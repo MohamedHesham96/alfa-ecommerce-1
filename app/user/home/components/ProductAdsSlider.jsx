@@ -17,6 +17,12 @@ import ProductCard from "../../components/ProductCard";
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL;
 const PRODUCT_ADS_MIN_NUMBER = 6;
 
+// Keep the outer shell identical across loading, empty, and loaded states.
+// React reuses this DOM node; changing its animation/class while replacing
+// its children makes Chrome report the old composited layer as a 4967px shift.
+const SHELL_CLASS_NAME =
+  "w-full h-full flex justify-between rounded-3xl relative";
+
 const resolveProductImage = (product) =>
   product?.mainImageURL || product?.images?.[0]?.imageUrl || "";
 
@@ -104,20 +110,24 @@ export default function ProductAdsSlider() {
 
   if (loading) {
     return (
-      <div className="w-full h-full bg-gray-100 rounded-3xl animate-pulse" />
+      <div className={SHELL_CLASS_NAME}>
+        <div className="w-full h-full bg-gray-100 rounded-3xl animate-pulse" />
+      </div>
     );
   }
 
   if (!slides.length) {
     return (
-      <div className="w-full h-full bg-white rounded-3xl flex justify-center items-center text-gray-400">
-        {t("product_ads")}
+      <div className={SHELL_CLASS_NAME}>
+        <div className="w-full h-full bg-white rounded-3xl flex justify-center items-center text-gray-400">
+          {t("product_ads")}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full flex justify-between rounded-3xl relative">
+    <div className={SHELL_CLASS_NAME}>
 
       {/* ================================
           PRODUCT SWIPER

@@ -73,9 +73,9 @@ export default function BestPick({ Products }) {
                       }
                       alt=""
                       fill
-                      priority
+                      loading="lazy"
                       quality={85}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      sizes="50px"
                       className="object-fill "
                     />
                   </div>

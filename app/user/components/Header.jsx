@@ -220,7 +220,6 @@ setSearchInput(decodeSearchInput(lastPort))
                 alt="شعار ألفا جروب تكنولوجي"
                 fill
                 sizes="200px"
-                priority
                 className="object-fill"
               />
             </span>

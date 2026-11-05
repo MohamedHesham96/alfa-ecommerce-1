@@ -98,7 +98,7 @@ export default function ReviewsClients() {
                 alt={getAltText(index)}
                 fill
                 quality={85}
-                priority={index < 3}
+                loading="lazy"
                 sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
                 className={`${
                   review.contain

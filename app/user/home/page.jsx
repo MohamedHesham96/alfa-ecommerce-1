@@ -20,6 +20,9 @@ import ProductAdsSlider from "./components/ProductAdsSlider";
 import ReviewsClients from "./components/ReviewsClients";
 import FeaturedProducts from "./components/FeatuerProducts";
 import HomeSkeleton from "./components/skeletons/HomeSkeleton";
+import AdHeroSkeleton from "./components/skeletons/AdHeroSkeleton";
+import CategorySkeleton from "./components/skeletons/CategorySkeleton";
+import BestPickSkeleton from "./components/skeletons/BestPickSkeleton";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import Link from "next/link";
@@ -48,6 +51,7 @@ import { productPath } from "../../../lib/seo";
 // Constants
 // ==============================
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL;
+const formatAdImageUrl = (imageUrl) => IMAGE_BASE_URL + imageUrl;
 
 const AD_RANGE = { min: 1, max: 5 };
 
@@ -93,9 +97,101 @@ const EMPTY_ADS = {
 };
 
 // ==============================
+// Above-the-fold hero
+// ==============================
+// Server-rendered when slider images are provided by app/page.js. The hero
+// image must not wait for the below-the-fold homepage requests.
+function HomeHero({
+  imagesSliders,
+  ads,
+  ad1Product,
+  categories,
+  topLast30DayItems,
+  loading,
+  t,
+  locale,
+}) {
+  return (
+    <div className="py-7">
+      <div className="flex lg:flex-row xs:flex-col justify-around gap-4 items-center w-full">
+        {/* Slider */}
+        <div className="lg:w-[40%] xs:w-full">
+          <ImageSlider sliderImages={imagesSliders} />
+        </div>
+
+        <div className="flex flex-col  gap-3 lg:w-[60%] xs:w-full">
+          <div className="w-full h-full">
+            <div className="flex md:flex-row xs:flex-col gap-3 justify-center items-center h-full  w-full">
+              {loading ? (
+                <>
+                  <AdHeroSkeleton />
+                  <CategorySkeleton />
+                </>
+              ) : (
+                <>
+                  {/* Ads */}
+                  <div className="group xl:w-[580px] lg:w-[500px] xs:w-full h-[350px] rounded-2xl  cursor-pointer
+                  text-[#EAEBB8] bg-gradient-to-b from-[#2F4D4C] via-[#263F40] to-[#0F1B1B]
+                  flex flex-col justify-between items-center relative overflow-hidden"
+                  >
+                    <Link href={productPath(ad1Product)}>
+                      <div className="w-full text-center p-5">
+                        <span className="text-sm">{t("Special_Offer")} </span>
+                        {ad1Product && (
+                          <div className="flex flex-col items-center gap-2 my-3 px-4 text-center">
+                            <p className="text-2xl font-semibold">
+                              {locale === "ar"
+                                ? ad1Product.nameAr : ad1Product.nameEn
+                              }
+                            </p>
+                            <div className="flex items-center gap-2">
+
+                              <span className="text-sm ">
+                                {ad1Product.price?.toLocaleString("en-US")}.00{" "}
+                                {t("currency")}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="w-[230px] h-[270px] group-hover:scale-105 duration-500 transition-all relative">
+                        <Image
+                          src={formatAdImageUrl(ads.ad1.imageUrl)}
+                          alt="Advertisement"
+                          fill
+                          sizes="(max-width: 640px) 100vw, 500px"
+                          className="object-cover"
+                        />
+                      </div>
+
+                    </Link>
+                  </div>
+
+                  {/* Categories */}
+                  <CategoriesSection categories={categories} />
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Best pick of the week */}
+          <div>
+            {loading ? (
+              <BestPickSkeleton />
+            ) : (
+              <BestPick Products={topLast30DayItems} />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==============================
 // Reusable components
 // ==============================
-export default function Homepage() {
+export default function Homepage({ initialSliderImages = [] }) {
   // ==============================
   // Contexts and hooks
   // ==============================
@@ -104,7 +200,7 @@ export default function Homepage() {
   // ==============================
   // State
   // ==============================
-  const [imagesSliders, setImagesSliders] = useState([]);
+  const [imagesSliders, setImagesSliders] = useState(initialSliderImages);
   const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [newProducts, setNewProducts] = useState([]);
@@ -162,9 +258,6 @@ export default function Homepage() {
     });
     return adsMap;
   };
-
-  const formatAdImageUrl = (imageUrl) =>
-    IMAGE_BASE_URL + imageUrl;
 
   // ==============================
   // API / data fetching logic
@@ -342,9 +435,11 @@ export default function Homepage() {
   // ==============================
   // Loading state
   // ==============================
-  // الـ skeleton بيغطي الصفحة كلها بنفس مقاسات المحتوى الحقيقي
-  // ويفضل ظاهر لحد ما كل طلبات الصفحة تخلص
-  if (loading) return <HomeSkeleton showRecentViewed={isLoggedIn} />;
+  // The hero can render as soon as its server-provided slider data exists.
+  // Below-the-fold sections keep their skeleton until their own data arrives.
+  const heroReady = imagesSliders.length > 0 || !loading;
+
+  if (loading && !heroReady) return <HomeSkeleton showRecentViewed={isLoggedIn} />;
 
   // ==============================
   // Return / JSX
@@ -364,68 +459,23 @@ export default function Homepage() {
         </div>
       )}
 
-      {/* ========================= Hero Section (Slider + Ads + Categories + Best Pick) ========================= */}
-      <div className="py-7">
-        <div className="flex lg:flex-row xs:flex-col justify-around gap-4 items-center w-full">
-            {/* Slider */}
-            <div className="lg:w-[40%] xs:w-full">
-            <ImageSlider sliderImages={imagesSliders} />
-            </div>
+      {heroReady ? (
+        <HomeHero
+          imagesSliders={imagesSliders}
+          ads={ads}
+          ad1Product={ad1Product}
+          categories={categories}
+          topLast30DayItems={topLast30DayItems}
+          loading={loading}
+          t={t}
+          locale={locale}
+        />
+      ) : null}
 
-            <div className="flex flex-col  gap-3 lg:w-[60%] xs:w-full">
-              <div className="w-full h-full">
-                <div className="flex md:flex-row xs:flex-col gap-3 justify-center items-center h-full  w-full">
-                  {/* Ads */}
-                 <div className="group xl:w-[580px] lg:w-[500px] xs:w-full h-[350px] rounded-2xl  cursor-pointer 
-                  text-[#EAEBB8] bg-gradient-to-b from-[#2F4D4C] via-[#263F40] to-[#0F1B1B] 
-                  flex flex-col justify-between items-center relative overflow-hidden"
-                 
-                  >
-                    <Link href={productPath(ad1Product)}>
-                    <div className="w-full text-center p-5">
-                      <span className="text-sm">{t("Special_Offer")} </span>
-                      {ad1Product && ( 
-                        <div className="flex flex-col items-center gap-2 my-3 px-4 text-center">
-                          <p className="text-2xl font-semibold">
-                            {locale === "ar"
-                              ? ad1Product.nameAr : ad1Product.nameEn
-                              }
-                          </p>
-                          <div className="flex items-center gap-2">
-
-                            <span className="text-sm ">
-                              {ad1Product.price?.toLocaleString("en-US")}.00{" "}
-                              {t("currency")} 
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="w-[230px] h-[270px] group-hover:scale-105 duration-500 transition-all relative">
-                      <Image
-                        src={formatAdImageUrl(ads.ad1.imageUrl)}
-                        alt="Advertisement"
-                        fill
-                        sizes="(max-width: 640px) 100vw, 500px"
-                        className="object-cover"
-                      />
-                    </div>
-
-</Link>
-                  </div>
-
-                  {/* Categories */}
-                  <CategoriesSection categories={categories} />
-                </div>
-              </div>
-
-              {/* Best pick of the week */}
-              <div>
-                <BestPick Products={topLast30DayItems} />
-              </div>
-            </div>
-          </div>
-      </div>
+      {loading ? (
+        <HomeSkeleton showRecentViewed={isLoggedIn} showHero={false} />
+      ) : (
+        <>
 
       {/* ========================= Site Features ========================= */}
       <SiteFeatures />
@@ -606,6 +656,8 @@ export default function Homepage() {
         </div>
       </section>
       <ReviewsClients/>
+        </>
+      )}
     </div>
   );
 }

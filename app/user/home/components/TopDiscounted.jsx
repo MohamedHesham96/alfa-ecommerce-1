@@ -24,8 +24,8 @@ const swiperRef = useRef()
     src="/Images/img2.png"
     alt="banner"
     fill
-    priority
-    sizes="200vw"
+    loading="lazy"
+    sizes="(max-width: 1023px) calc(100vw - 24px), (max-width: 1499px) calc(100vw - 324px), 1176px"
     quality={85}
     className="object-fill rounded-3xl"
   />

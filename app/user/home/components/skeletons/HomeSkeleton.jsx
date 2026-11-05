@@ -13,30 +13,31 @@ import SiteFeaturesSkeleton from "./SiteFeaturesSkeleton";
 import AdHeroSkeleton from "./AdHeroSkeleton";
 import PromoBannerSkeleton from "./PromoBannerSkeleton";
 
-export default function HomeSkeleton({ showRecentViewed = false }) {
+export default function HomeSkeleton({ showRecentViewed = false, showHero = true }) {
   return (
     <div className="w-full lg:px-3 xs:px-0" aria-busy="true" aria-live="polite">
-      {/* ========================= Hero (Slider + Ad + Categories + Best Pick) ========================= */}
-      <div className="py-7">
-        <div className="flex lg:flex-row xs:flex-col justify-around gap-4 items-center w-full">
-          <div className="lg:w-[40%] xs:w-full">
-            <Skeleton className="w-full lg:h-[530px] xs:h-[470px] rounded-3xl" />
-          </div>
-
-          <div className="flex flex-col gap-3 lg:w-[60%] xs:w-full">
-            <div className="w-full h-full">
-              <div className="flex md:flex-row xs:flex-col gap-3 justify-center items-center h-full w-full">
-                <AdHeroSkeleton />
-                <CategorySkeleton />
-              </div>
+      {showHero ? (
+        <div className="py-7">
+          <div className="flex lg:flex-row xs:flex-col justify-around gap-4 items-center w-full">
+            <div className="lg:w-[40%] xs:w-full">
+              <Skeleton className="w-full lg:h-[530px] xs:h-[470px] rounded-3xl" />
             </div>
 
-            <div>
-              <BestPickSkeleton />
+            <div className="flex flex-col gap-3 lg:w-[60%] xs:w-full">
+              <div className="w-full h-full">
+                <div className="flex md:flex-row xs:flex-col gap-3 justify-center items-center h-full w-full">
+                  <AdHeroSkeleton />
+                  <CategorySkeleton />
+                </div>
+              </div>
+
+              <div>
+                <BestPickSkeleton />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
       {/* ========================= Site Features ========================= */}
       <SiteFeaturesSkeleton />

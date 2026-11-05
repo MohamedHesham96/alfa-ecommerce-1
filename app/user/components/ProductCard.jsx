@@ -8,7 +8,7 @@ import { useLanguage } from "../../../context/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useRefresh } from "../../../context/refreshContext";
 import { toast } from "react-toastify";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getThumbnailUrl } from "../../../utils/functions";
 import {  IoMdHeart } from "react-icons/io";
 import StarRating from "./StarRating"
@@ -25,6 +25,8 @@ export default function ProductCard({ productInfo, favorite, priority = false })
   const navigate = useRouter();
   const { t } = useLanguage();
   const swiperRef = useRef(null);
+  const imageAreaRef = useRef(null);
+  const [swiperActive, setSwiperActive] = useState(Boolean(priority));
   const [activeSlide, setActiveSlide] = useState(0);
   const [loading, setLoading] = useState();
   const { locale } = useLanguage();
@@ -32,6 +34,33 @@ export default function ProductCard({ productInfo, favorite, priority = false })
   const { setIsCartOpen } = useCartDrawerOpen();
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("id") : null;
+
+  useEffect(() => {
+    if (swiperActive) return undefined;
+
+    const node = imageAreaRef.current;
+    if (!node) return undefined;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setSwiperActive(true);
+      return undefined;
+    }
+
+    // Product cards can be far below the fold. Keep the first image static
+    // until the card is near the viewport, then initialize Swiper once.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setSwiperActive(true);
+        observer.disconnect();
+      },
+      { rootMargin: "300px 0px" },
+    );
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, [swiperActive]);
+
   const addToCart = async (productId) => {
     try {
       if (userId) {
@@ -213,7 +242,8 @@ export default function ProductCard({ productInfo, favorite, priority = false })
 
             </div>
             <div className="w-full h-full flex justify-center px-1 items-center rounded-3xl z-10">
-              <div className=" h-full w-full relative   bg-white rounded-3xl">
+              <div ref={imageAreaRef} className=" h-full w-full relative   bg-white rounded-3xl">
+                {swiperActive ? (
                 <Swiper
                   key={locale}
                   slidesPerView={1}
@@ -395,6 +425,30 @@ export default function ProductCard({ productInfo, favorite, priority = false })
                     </div>
                   </div>
                 </Swiper>
+                ) : (
+                  <div className="relative w-full h-full select-none rounded-3xl">
+                    {productInfo?.images?.[0] ? (
+                      <Link
+                        href={productHref}
+                        onClick={(event) => event.stopPropagation()}
+                        aria-label={displayName}
+                        className="relative block h-full w-full"
+                      >
+                        <Image
+                          src={`${process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL}${getThumbnailUrl(
+                            productInfo.images[0].imageUrl
+                          )}`}
+                          alt={`${displayName} - ${locale === "ar" ? "صورة" : "image"} 1`}
+                          fill
+                          priority={priority}
+                          quality={85}
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          className="object-contain rounded-3xl"
+                        />
+                      </Link>
+                    ) : null}
+                  </div>
+                )}
               </div>
             </div>
           </div>

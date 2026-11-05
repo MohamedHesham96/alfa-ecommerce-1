@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import HomePage from "../user/home/page";
 
-export default function HomePageClient({ children }) {
+export default function HomePageClient({ children, initialSliderImages = [] }) {
   const router = useRouter();
   const [whatsAppUrl, setWhatsAppUrl] = useState();
   const [role, setRole] = useState();
@@ -62,7 +62,7 @@ export default function HomePageClient({ children }) {
             <Header />
             <main className="mx-auto w-full min-w-0 max-w-[1500px] overflow-x-clip pb-20 sm:pb-0">
               {children}
-              <HomePage />
+              <HomePage initialSliderImages={initialSliderImages} />
             </main>
 
             {whatsAppUrl ? (

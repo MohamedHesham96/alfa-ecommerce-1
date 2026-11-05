@@ -1,6 +1,6 @@
 import HomePageClient from "./components/HomePageClient";
 import HomeSeoIntro from "./components/HomeSeoIntro";
-import { getAllCategories, getRecentProducts } from "../lib/api";
+import { getAllCategories, getRecentProducts, getSliderImages } from "../lib/api";
 import {
   SITE_URL,
   SITE_NAME_AR,
@@ -39,9 +39,10 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  const [categories, products] = await Promise.all([
+  const [categories, products, sliderImages] = await Promise.all([
     getAllCategories().catch(() => []),
     getRecentProducts().catch(() => []),
+    getSliderImages().catch(() => []),
   ]);
   const breadcrumbs = [{ name: "الرئيسية", url: SITE_URL }];
 
@@ -53,7 +54,7 @@ export default async function HomePage() {
           __html: serializeJsonLd(buildBreadcrumbJsonLd(breadcrumbs)),
         }}
       />
-      <HomePageClient>
+      <HomePageClient initialSliderImages={sliderImages}>
         <HomeSeoIntro categories={categories} products={products} />
       </HomePageClient>
     </>
