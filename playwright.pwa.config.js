@@ -32,6 +32,7 @@ module.exports = defineConfig({
       reuseExistingServer: false,
       env: {
         ...process.env,
+        NEXT_PUBLIC_ENABLE_PWA: "true",
         NEXT_PUBLIC_API_BASE_URL: "http://localhost:8787",
       },
     },

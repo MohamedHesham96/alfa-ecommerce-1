@@ -1,9 +1,11 @@
 import {
   applyServiceWorkerUpdate,
+  isAlfaServiceWorkerRegistration,
   registerServiceWorker,
   resetRegistrationStateForTests,
   shouldRegisterServiceWorker,
   subscribeControllerChange,
+  unregisterAlfaServiceWorkers,
 } from "../lib/pwa/registration";
 import { UPDATE_APPLY_RESULT } from "../lib/pwa/update";
 import {
@@ -85,6 +87,7 @@ describe("service worker registration", () => {
         supported: true,
         secureContext: true,
         nodeEnv: "production",
+        pwaEnabled: true,
       }),
     ).toBe(true);
     expect(
@@ -92,6 +95,7 @@ describe("service worker registration", () => {
         supported: false,
         secureContext: true,
         nodeEnv: "production",
+        pwaEnabled: true,
       }),
     ).toBe(false);
     expect(
@@ -99,6 +103,7 @@ describe("service worker registration", () => {
         supported: true,
         secureContext: false,
         nodeEnv: "production",
+        pwaEnabled: true,
       }),
     ).toBe(false);
     expect(
@@ -106,6 +111,7 @@ describe("service worker registration", () => {
         supported: true,
         secureContext: true,
         nodeEnv: "development",
+        pwaEnabled: true,
       }),
     ).toBe(false);
     expect(
@@ -114,8 +120,38 @@ describe("service worker registration", () => {
         secureContext: true,
         nodeEnv: "development",
         devEnabled: true,
+        pwaEnabled: true,
       }),
     ).toBe(true);
+  });
+
+  it("never registers while the PWA kill switch is off", async () => {
+    const container = makeContainer();
+    const win = makeWindow(container);
+    const register = jest.fn();
+
+    const result = await registerServiceWorker(
+      {},
+      {
+        window: win,
+        container,
+        nodeEnv: "production",
+        secureContext: true,
+        pwaEnabled: false,
+        register,
+      },
+    );
+
+    expect(result).toBeNull();
+    expect(register).not.toHaveBeenCalled();
+    expect(
+      shouldRegisterServiceWorker({
+        supported: true,
+        secureContext: true,
+        nodeEnv: "production",
+        pwaEnabled: false,
+      }),
+    ).toBe(false);
   });
 
   it("registers at the root scope and configures the API origins", async () => {
@@ -132,6 +168,7 @@ describe("service worker registration", () => {
         nodeEnv: "production",
         secureContext: true,
         devEnabled: false,
+        pwaEnabled: true,
         register,
       },
     );
@@ -166,6 +203,7 @@ describe("service worker registration", () => {
         container,
         nodeEnv: "production",
         secureContext: true,
+        pwaEnabled: true,
         register: jest.fn().mockResolvedValue(registration),
       },
     );
@@ -194,6 +232,7 @@ describe("service worker registration", () => {
         container,
         nodeEnv: "production",
         secureContext: true,
+        pwaEnabled: true,
         register: jest.fn().mockResolvedValue(registration),
       },
     );
@@ -251,6 +290,7 @@ describe("service worker registration", () => {
         container,
         nodeEnv: "production",
         secureContext: true,
+        pwaEnabled: true,
         register: jest.fn().mockResolvedValue(registration),
       },
     );
@@ -272,5 +312,46 @@ describe("service worker registration", () => {
     expect(applyServiceWorkerUpdate(registration)).toBe(
       UPDATE_APPLY_RESULT.UNAVAILABLE,
     );
+  });
+
+  it("unregisters Alfa workers without deleting Cache Storage", async () => {
+    const alfaUnregister = jest.fn(() => Promise.resolve(true));
+    const otherUnregister = jest.fn(() => Promise.resolve(true));
+    const alfaRegistration = {
+      active: { scriptURL: "https://shop.test/sw.js" },
+      waiting: null,
+      installing: null,
+      unregister: alfaUnregister,
+    };
+    const otherRegistration = {
+      active: { scriptURL: "https://shop.test/other-sw.js" },
+      waiting: null,
+      installing: null,
+      unregister: otherUnregister,
+    };
+    const container = {
+      getRegistrations: jest.fn(() =>
+        Promise.resolve([alfaRegistration, otherRegistration]),
+      ),
+    };
+    const win = makeWindow(container);
+    const cacheDelete = jest.fn(() => Promise.resolve(true));
+    global.caches = {
+      keys: jest.fn(() => Promise.resolve(["alfa-pwa-v1-pages"])),
+      delete: cacheDelete,
+    };
+
+    try {
+      const result = await unregisterAlfaServiceWorkers({ window: win, container });
+
+      expect(isAlfaServiceWorkerRegistration(alfaRegistration)).toBe(true);
+      expect(isAlfaServiceWorkerRegistration(otherRegistration)).toBe(false);
+      expect(result).toEqual([alfaRegistration]);
+      expect(alfaUnregister).toHaveBeenCalledTimes(1);
+      expect(otherUnregister).not.toHaveBeenCalled();
+      expect(cacheDelete).not.toHaveBeenCalled();
+    } finally {
+      delete global.caches;
+    }
   });
 });

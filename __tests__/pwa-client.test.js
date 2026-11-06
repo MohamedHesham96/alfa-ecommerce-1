@@ -1,3 +1,8 @@
+jest.mock("../lib/pwa/constants", () => ({
+  ...jest.requireActual("../lib/pwa/constants"),
+  isPwaEnabled: true,
+}));
+
 import {
   clearUserScopedCaches,
   configureServiceWorker,

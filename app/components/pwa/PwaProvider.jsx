@@ -23,6 +23,7 @@ import {
   INSTALL_DISMISS_MS,
   INSTALL_DISMISSED_STORAGE_KEY,
   isInstallPromptAllowedPath,
+  isPwaEnabled,
 } from "../../../lib/pwa/constants";
 import {
   INSTALL_MODES,
@@ -37,6 +38,7 @@ import {
   applyServiceWorkerUpdate,
   registerServiceWorker,
   subscribeControllerChange,
+  unregisterAlfaServiceWorkers,
 } from "../../../lib/pwa/registration";
 import {
   getCriticalOperationSnapshot,
@@ -120,6 +122,24 @@ export function PwaProvider({ children }) {
     localeRef.current = locale;
   }, [locale]);
 
+  // Kill switch: when the PWA is disabled, remove any existing Alfa service
+  // worker registration. Cache Storage is intentionally left untouched.
+  useEffect(() => {
+    if (
+      isPwaEnabled ||
+      typeof navigator === "undefined" ||
+      !navigator.serviceWorker
+    ) {
+      return undefined;
+    }
+
+    unregisterAlfaServiceWorkers().catch(() => {});
+    if (typeof window !== "undefined") {
+      window.__alfaDeferredInstallPrompt = null;
+    }
+    return undefined;
+  }, []);
+
   // Keep connectivity state in one place. GlobalErrorOverlay consumes the
   // same store for server-down handling.
   useEffect(() => {
@@ -137,6 +157,8 @@ export function PwaProvider({ children }) {
 
   // Cross-tab checkout/update coordination.
   useEffect(() => {
+    if (!isPwaEnabled) return undefined;
+
     const coordinator = getCrossTabCoordinator();
     if (!coordinator) return undefined;
 
@@ -222,6 +244,7 @@ export function PwaProvider({ children }) {
   // tab is now running old page JS with the new service worker. Ask the user
   // to refresh rather than silently reloading their work.
   useEffect(() => {
+    if (!isPwaEnabled) return undefined;
     if (typeof navigator === "undefined" || !navigator.serviceWorker) {
       return undefined;
     }
@@ -253,6 +276,7 @@ export function PwaProvider({ children }) {
   // Install lifecycle: beforeinstallprompt, iOS Safari instructions, and
   // display-mode changes.
   useEffect(() => {
+    if (!isPwaEnabled) return undefined;
     if (typeof window === "undefined" || typeof navigator === "undefined") {
       return undefined;
     }
@@ -337,6 +361,8 @@ export function PwaProvider({ children }) {
 
   // Service worker registration and update detection.
   useEffect(() => {
+    if (!isPwaEnabled) return undefined;
+
     let cancelled = false;
     let cleanup = null;
 
@@ -394,17 +420,21 @@ export function PwaProvider({ children }) {
     return () => window.clearTimeout(timer);
   }, [isApplyingUpdate]);
 
-  const installMode = getInstallMode({
-    deferredPrompt,
-    isIosSafariBrowser,
-    isStandalone,
-    installed,
-  });
+  const installMode = isPwaEnabled
+    ? getInstallMode({
+        deferredPrompt,
+        isIosSafariBrowser,
+        isStandalone,
+        installed,
+      })
+    : INSTALL_MODES.UNAVAILABLE;
   const canInstall =
-    installMode === INSTALL_MODES.NATIVE ||
-    installMode === INSTALL_MODES.IOS_INSTRUCTIONS;
-  const pathAllowed = isInstallPromptAllowedPath(pathname);
-  const updateAvailableVisible = updateAvailable && !updateDismissed;
+    isPwaEnabled &&
+    (installMode === INSTALL_MODES.NATIVE ||
+      installMode === INSTALL_MODES.IOS_INSTRUCTIONS);
+  const pathAllowed = isPwaEnabled && isInstallPromptAllowedPath(pathname);
+  const updateAvailableVisible =
+    isPwaEnabled && updateAvailable && !updateDismissed;
 
   useEffect(() => {
     if (!pathAllowed) {
@@ -506,6 +536,7 @@ export function PwaProvider({ children }) {
   ]);
 
   const applyUpdate = useCallback(async () => {
+    if (!isPwaEnabled) return UPDATE_APPLY_RESULT.UNAVAILABLE;
     if (criticalOperation || crossTabCheckout) {
       setUpdateBlocked(true);
       return UPDATE_APPLY_RESULT.BLOCKED;
@@ -647,9 +678,13 @@ export function PwaProvider({ children }) {
   return (
     <PwaContext.Provider value={value}>
       {children}
-      <OfflineBanner />
-      <UpdatePrompt />
-      <InstallPrompt />
+      {isPwaEnabled ? (
+        <>
+          <OfflineBanner />
+          <UpdatePrompt />
+          <InstallPrompt />
+        </>
+      ) : null}
     </PwaContext.Provider>
   );
 }

@@ -11,6 +11,7 @@ import { ToastContainer } from "react-toastify";
 import RTLController from './components/RTLController.jsx'
 import GlobalErrorOverlay from './components/GlobalErrorOverlay.jsx'
 import { PwaProvider } from './components/pwa/PwaProvider.jsx'
+import { isPwaEnabled } from '../lib/pwa/constants'
 
 import {
   SITE_URL,
@@ -21,6 +22,19 @@ import {
   buildWebsiteJsonLd,
   serializeJsonLd,
 } from "../lib/seo";
+
+// PWA-only metadata is omitted while the kill switch is off. The manifest and
+// Apple web-app settings stay defined here so re-enabling needs no code change.
+const pwaMetadata = isPwaEnabled
+  ? {
+      manifest: "/manifest.webmanifest",
+      appleWebApp: {
+        capable: true,
+        title: "Alfa",
+        statusBarStyle: "black-translucent",
+      },
+    }
+  : {};
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
@@ -39,12 +53,7 @@ export const metadata = {
     "منتجات تقنية",
   ],
   applicationName: "Alfa E-commerce",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    title: "Alfa",
-    statusBarStyle: "black-translucent",
-  },
+  ...pwaMetadata,
   formatDetection: {
     telephone: false,
   },
@@ -194,21 +203,25 @@ export default function RootLayout({ children }) {
             <link rel="dns-prefetch" href={API_ORIGIN} />
           </>
         ) : null}
-        {APPLE_SPLASH_SCREENS.map((splash) => (
-          <link
-            key={splash.file}
-            rel="apple-touch-startup-image"
-            href={`/splash/${splash.file}`}
-            media={`(device-width: ${splash.width}px) and (device-height: ${splash.height}px) and (-webkit-device-pixel-ratio: ${splash.dpr}) and (orientation: portrait)`}
-          />
-        ))}
+        {isPwaEnabled
+          ? APPLE_SPLASH_SCREENS.map((splash) => (
+              <link
+                key={splash.file}
+                rel="apple-touch-startup-image"
+                href={`/splash/${splash.file}`}
+                media={`(device-width: ${splash.width}px) and (device-height: ${splash.height}px) and (-webkit-device-pixel-ratio: ${splash.dpr}) and (orientation: portrait)`}
+              />
+            ))
+          : null}
         {/* Capture beforeinstallprompt before React hydrates so the custom
             install entry point never misses a browser event. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{window.addEventListener("beforeinstallprompt",function(event){event.preventDefault();window.__alfaDeferredInstallPrompt=event;window.dispatchEvent(new Event("alfa:beforeinstallprompt"));});}catch(error){}})();`,
-          }}
-        />
+        {isPwaEnabled ? (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(){try{window.addEventListener("beforeinstallprompt",function(event){event.preventDefault();window.__alfaDeferredInstallPrompt=event;window.dispatchEvent(new Event("alfa:beforeinstallprompt"));});}catch(error){}})();`,
+            }}
+          />
+        ) : null}
       </head>
       <body
         className={`${plex.variable} ${albertSans.variable} ${urbanistSemiBold.variable} ${urbanistBold.variable} bg-[#f6f5f8]`}

@@ -22,6 +22,8 @@ split. Do not deploy or change the live server as part of a code review.
 Set these in the deployment environment before `npm run build`:
 
 ```bash
+# Central PWA kill switch. Set to true to enable PWA; false (or omit) disables.
+NEXT_PUBLIC_ENABLE_PWA=true
 NEXT_PUBLIC_SITE_URL=https://alfagrouptech.com
 NEXT_PUBLIC_API_BASE_URL=https://<production-api-host>
 NEXT_PUBLIC_API_IMAGE_BASE_URL=https://<production-api-host>/images
@@ -34,6 +36,11 @@ NEXT_PUBLIC_API_IMAGE_BASE_URL=https://<production-api-host>/images
 # Optional only when a release process needs a fixed cache version:
 # PWA_CACHE_VERSION=<release-id>
 ```
+
+To temporarily suspend the PWA, set `NEXT_PUBLIC_ENABLE_PWA=false` and rebuild.
+See [`pwa.md`](./pwa.md#temporary-feature-switch-kill-switch) for the exact
+disable/reactivate steps. Existing service-worker registrations are removed on
+the next page load; Cache Storage is preserved.
 
 Important:
 

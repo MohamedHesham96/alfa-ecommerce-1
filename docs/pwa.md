@@ -3,6 +3,48 @@
 This document describes the production PWA layer added to the Alfa E-commerce
 frontend. It is intentionally self-contained: no backend API was changed.
 
+## Temporary feature switch (kill switch)
+
+PWA support is controlled by one build-time variable:
+
+```bash
+NEXT_PUBLIC_ENABLE_PWA=true
+```
+
+When the variable is absent, empty, or `false`, the PWA is disabled. The
+default is **disabled**.
+
+While disabled:
+
+- No service worker is registered and no update checks run.
+- Any existing Alfa service-worker registration is unregistered on the next
+  page load. Cache Storage and all other browser data are preserved.
+- Install prompts, update prompts, the offline banner, and the mobile-menu
+  install entry are not rendered.
+- The web app manifest, Apple web-app metadata, iOS launch images, and the
+  pre-hydration `beforeinstallprompt` capture are omitted from the page.
+- The service worker file, manifest, icons, caching code, install UI, hooks,
+  utilities, tests, and dependencies remain in the repository unchanged.
+
+The switch is read at build time, so a rebuild/restart is required after
+changing it. No files need to be restored and no packages need to be
+reinstalled.
+
+### Disable the PWA
+
+1. Set `NEXT_PUBLIC_ENABLE_PWA=false` (or remove the variable).
+2. Rebuild and restart the frontend (`npm run build && npm run start` in
+   production, or restart `npm run dev` locally).
+3. Open the site. The app unregisters its existing service worker and leaves
+   existing caches intact.
+
+### Reactivate the PWA
+
+1. Set `NEXT_PUBLIC_ENABLE_PWA=true`.
+2. Rebuild and restart the frontend.
+3. No other change is required. The existing service worker, manifest,
+   install UI, offline support, and update flow become active again.
+
 ## What is implemented
 
 - `public/manifest.webmanifest` with standalone display, app identity, theme,
@@ -90,10 +132,14 @@ npm run start
 Required environment variables:
 
 ```bash
+NEXT_PUBLIC_ENABLE_PWA=true
 NEXT_PUBLIC_API_BASE_URL=https://api.example.com
 NEXT_PUBLIC_API_IMAGE_BASE_URL=https://api.example.com/images
 NEXT_PUBLIC_SITE_URL=https://alfagrouptech.com
 ```
+
+Set `NEXT_PUBLIC_ENABLE_PWA=false` (or omit it) to suspend PWA functionality;
+see the kill-switch section above.
 
 The API origins injected into the service worker are read at build time from
 `NEXT_PUBLIC_API_BASE_URL`, `API_BASE_URL`, and
@@ -121,6 +167,10 @@ npm run pwa:check        # verifies public/sw.js is current
 npm run pwa:generate     # regenerate the service worker manually
 npm run pwa:assets       # regenerate icons/splash screens from the logo
 ```
+
+`npm run test:e2e:pwa` automatically builds with `NEXT_PUBLIC_ENABLE_PWA=true`
+so the enabled PWA behaviour is always covered. A normal build without that
+variable remains PWA-disabled by default.
 
 The Playwright suite starts a local mock API and a production Next.js server.
 It verifies manifest/installability, service-worker scope and response headers,

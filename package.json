@@ -19,7 +19,7 @@
     "seo:validate": "node scripts/validate-seo.mjs",
     "seo:warm-images": "node scripts/warm-images.mjs",
     "test:e2e": "playwright test",
-    "test:e2e:pwa": "npm run build && playwright test -c playwright.pwa.config.js"
+    "test:e2e:pwa": "node scripts/run-pwa-e2e.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
