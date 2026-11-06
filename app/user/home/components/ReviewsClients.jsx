@@ -31,7 +31,7 @@ const REVIEW_IMAGES = [
   { src: "/Images/ReviewsClients/6.png", width: 445, height: 82 },
 ];
 
-const AUTOPLAY_DELAY = 5200;
+const AUTOPLAY_DELAY = 4000;
 const SWIPER_SPEED = 720;
 const padNumber = (value) => String(value).padStart(2, "0");
 
