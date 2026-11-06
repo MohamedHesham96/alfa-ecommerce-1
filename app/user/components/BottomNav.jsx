@@ -8,7 +8,7 @@ import { useMenuOpen } from "../../../context/MenuOpenContext";
 import { getRequest } from "../../../utils/requestsUtils";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { FiHeart } from "react-icons/fi";
-import { PiListBold, PiUser } from "react-icons/pi";
+import { PiHouse, PiListBold, PiUser } from "react-icons/pi";
 
 export default function BottomNav() {
   const { t } = useLanguage();
@@ -52,6 +52,17 @@ export default function BottomNav() {
       className={`xs:flex lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)]`}
     >
       <div className="flex w-full h-16 max-w-lg mx-auto">
+        <Link
+          prefetch={false}
+          href="/"
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-gray-700"
+        >
+          <span className="text-[22px] leading-none">
+            <PiHouse />
+          </span>
+          <span className="text-[11px] font-medium">{t("home")}</span>
+        </Link>
+
         <button
           type="button"
           onClick={toggleMenu}
