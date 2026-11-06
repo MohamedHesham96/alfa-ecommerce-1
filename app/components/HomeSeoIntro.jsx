@@ -31,9 +31,16 @@ export default function HomeSeoIntro() {
               >
                 {t("home_seo_title")}
               </h1>
-              <p className="mt-1.5 max-w-2xl text-[12px] leading-6 text-slate-600 sm:text-[13px]">
-                {t("home_seo_description")}
-              </p>
+              <div className="mt-1.5 max-w-2xl space-y-2 text-[12px] leading-6 text-slate-600 sm:text-[13px]">
+                <p className="font-semibold text-slate-700">
+                  {t("home_seo_tagline")}
+                </p>
+                <p>{t("home_seo_description")}</p>
+                <p>{t("home_seo_description_2")}</p>
+                <p className="font-medium text-slate-700">
+                  {t("home_seo_closing")}
+                </p>
+              </div>
             </div>
           </div>
 
