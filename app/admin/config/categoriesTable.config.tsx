@@ -50,10 +50,10 @@ export function createCategoryColumns({
     },
     {
       id: "name",
-      accessorFn: (row) => row.nameEn,
+      accessorFn: (row) => (locale === "ar" ? row.nameAr : row.nameEn),
       header: t("category_name_capetal"),
       meta: {
-        backendField: "nameEn",
+        backendField: locale === "ar" ? "nameAr" : "nameEn",
         dataType: "STRING",
         searchable: true,
         sortable: true,

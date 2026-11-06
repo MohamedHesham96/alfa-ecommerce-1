@@ -9,7 +9,7 @@ import { getThumbnailUrl } from "../../../../utils/functions";
 import StarRating from "../../components/StarRating";
 import { useIdContext } from "../../../../context/idContext";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { productPath } from "../../../../lib/seo";
 import { MdOutlineArrowBackIosNew, MdOutlineArrowForwardIos } from "react-icons/md";
 
@@ -17,15 +17,19 @@ export default function BestPick({ Products }) {
   const { locale } = useLanguage()
   const { t } = useLanguage()
   const swiperRef = useRef()
+  const [pageCount, setPageCount] = useState(0)
+  const [activePage, setActivePage] = useState(0)
 
   const { setSelectedProductId } = useIdContext()
-  const truncateText = (text) => {
-    if (text.length > 20) {
-      return text.slice(0, 18) + "...";
-    }
 
-    return text;
-  };
+  // عدد الصفحات بيتغير حسب عدد المنتجات الظاهرة في الشاشة،
+  // فبنحدثه مع أي تغيير في المقاس أو عدد الشرائح.
+  const syncPagination = (swiper) => {
+    if (!swiper) return
+    setPageCount(swiper.snapGrid?.length || 0)
+    setActivePage(swiper.snapIndex || 0)
+  }
+
   return (
     <div className="w-full  bg-white rounded-2xl p-4 relative group/BestPick">
       <div className="w-full flex justify-between items-center">
@@ -54,7 +58,12 @@ export default function BestPick({ Products }) {
           className="w-full "
           onSwiper={(swiper) => {
             swiperRef.current = swiper;
+            syncPagination(swiper);
           }}
+          onSlideChange={syncPagination}
+          onBreakpoint={syncPagination}
+          onResize={syncPagination}
+          onUpdate={syncPagination}
         >
           {Products?.slice(0, 4).map((product, index) => {
             const nameProduct = locale === "ar" ? product.nameAr : product.nameEn
@@ -81,8 +90,12 @@ export default function BestPick({ Products }) {
                     />
                   </div>
                   <div className="flex flex-col gap-2 w-full min-w-0">
-                    <span className="text-[13px] font-medium cursor-pointer truncate" title={nameProduct}
-                    >{truncateText(nameProduct)}</span>
+                    <span
+                      className="text-[13px] font-medium cursor-pointer whitespace-normal break-words min-[720px]:line-clamp-2"
+                      title={nameProduct}
+                    >
+                      {nameProduct}
+                    </span>
                     {product.averageRating === 0 ? "" : <StarRating rating={product.averageRating || 0} />}
 
                     <div className="flex w-full  justify-start gap-2 items-center ">
@@ -108,6 +121,34 @@ export default function BestPick({ Products }) {
           })
           }
         </Swiper>
+
+        {pageCount > 1 && (
+          <div className="mt-3 flex items-center justify-center gap-0.5">
+            {Array.from({ length: pageCount }).map((_, index) => {
+              const isActive = index === activePage
+
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => swiperRef.current?.slideTo(index)}
+                  aria-label={`${t("best_pick_go_to_page")} ${index + 1}`}
+                  aria-current={isActive ? "true" : undefined}
+                  className="group flex h-7 w-7 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1"
+                >
+                  <span
+                    className={`block h-1.5 rounded-full transition-all duration-300 ease-out ${
+                      isActive
+                        ? "w-5 bg-red-600"
+                        : "w-1.5 bg-gray-300 group-hover:w-3 group-hover:bg-gray-400"
+                    }`}
+                  />
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         <div className=" opacity-0 invisible
            group-hover/BestPick:opacity-100 group-hover/BestPick:visible
            

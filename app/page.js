@@ -4,7 +4,6 @@ import {
   getAllCategories,
   getContact,
   getOffers,
-  getRecentProducts,
   getSliderImages,
 } from "../lib/api";
 import {
@@ -50,9 +49,8 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  const [categories, products, sliderImages, offers, contact] = await Promise.all([
+  const [categories, sliderImages, offers, contact] = await Promise.all([
     getAllCategories().catch(() => []),
-    getRecentProducts().catch(() => []),
     getSliderImages().catch(() => []),
     getOffers().catch(() => []),
     getContact().catch(() => null),
@@ -73,7 +71,7 @@ export default async function HomePage() {
         initialOffers={offers}
         initialContact={contact}
       >
-        <HomeSeoIntro categories={categories} products={products} />
+        <HomeSeoIntro />
       </HomePageClient>
     </>
   );

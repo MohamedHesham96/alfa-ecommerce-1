@@ -17,10 +17,12 @@ export function createShippingColumns({
   return [
     {
       id: "governorate",
-      accessorFn: (row) => row.governorate?.nameEn,
+      accessorFn: (row) =>
+        locale === "ar" ? row.governorate?.nameAr : row.governorate?.nameEn,
       header: t("governorate"),
       meta: {
-        backendField: "governorate.nameEn",
+        backendField:
+          locale === "ar" ? "governorate.nameAr" : "governorate.nameEn",
         dataType: "STRING",
         searchable: true,
         sortable: true,

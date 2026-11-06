@@ -27,10 +27,16 @@ export function createProductsColumns({
   onToggleAvailable,
   onDelete,
 }: ProductsColumnActions): ColumnDef<ProductRow, unknown>[] {
+  const isArabic = locale === "ar";
+  // Filters and sorting must target the same language the admin sees.
+  const productNameField = isArabic ? "nameAr" : "nameEn";
+  const categoryNameField = isArabic
+    ? "itemCategory.nameAr"
+    : "itemCategory.nameEn";
   const productName = (product: ProductRow) =>
-    locale === "ar" ? product.nameAr : product.nameEn;
+    isArabic ? product.nameAr : product.nameEn;
   const categoryName = (product: ProductRow) =>
-    locale === "ar"
+    isArabic
       ? product.itemCategory?.nameAr
       : product.itemCategory?.nameEn;
 
@@ -94,10 +100,10 @@ export function createProductsColumns({
     },
     {
       id: "product",
-      accessorKey: "nameEn",
+      accessorKey: productNameField,
       header: t("PRODUCT_NAME"),
       meta: {
-        backendField: "nameEn",
+        backendField: productNameField,
         dataType: "STRING",
         searchable: true,
         sortable: true,
@@ -140,10 +146,10 @@ export function createProductsColumns({
     },
     {
       id: "category",
-      accessorFn: (row) => row.itemCategory?.nameEn,
+      accessorFn: (row) => categoryName(row),
       header: t("product_category"),
       meta: {
-        backendField: "itemCategory.nameEn",
+        backendField: categoryNameField,
         dataType: "STRING",
         sortable: true,
         filterable: true,
