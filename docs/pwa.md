@@ -8,11 +8,10 @@ frontend. It is intentionally self-contained: no backend API was changed.
 PWA support is controlled by one build-time variable:
 
 ```bash
-NEXT_PUBLIC_ENABLE_PWA=true
+NEXT_PUBLIC_ENABLE_PWA=false
 ```
 
-When the variable is absent, empty, or `false`, the PWA is disabled. The
-default is **disabled**.
+The PWA is **enabled by default**. Only the exact string `false` disables it.
 
 While disabled:
 
@@ -32,7 +31,7 @@ reinstalled.
 
 ### Disable the PWA
 
-1. Set `NEXT_PUBLIC_ENABLE_PWA=false` (or remove the variable).
+1. Set `NEXT_PUBLIC_ENABLE_PWA=false`.
 2. Rebuild and restart the frontend (`npm run build && npm run start` in
    production, or restart `npm run dev` locally).
 3. Open the site. The app unregisters its existing service worker and leaves
@@ -40,7 +39,7 @@ reinstalled.
 
 ### Reactivate the PWA
 
-1. Set `NEXT_PUBLIC_ENABLE_PWA=true`.
+1. Remove the variable or set `NEXT_PUBLIC_ENABLE_PWA=true`.
 2. Rebuild and restart the frontend.
 3. No other change is required. The existing service worker, manifest,
    install UI, offline support, and update flow become active again.

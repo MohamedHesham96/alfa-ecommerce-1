@@ -203,16 +203,19 @@ export default function RootLayout({ children }) {
             <link rel="dns-prefetch" href={API_ORIGIN} />
           </>
         ) : null}
-        {isPwaEnabled
-          ? APPLE_SPLASH_SCREENS.map((splash) => (
+        {isPwaEnabled ? (
+          <>
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            {APPLE_SPLASH_SCREENS.map((splash) => (
               <link
                 key={splash.file}
                 rel="apple-touch-startup-image"
                 href={`/splash/${splash.file}`}
                 media={`(device-width: ${splash.width}px) and (device-height: ${splash.height}px) and (-webkit-device-pixel-ratio: ${splash.dpr}) and (orientation: portrait)`}
               />
-            ))
-          : null}
+            ))}
+          </>
+        ) : null}
         {/* Capture beforeinstallprompt before React hydrates so the custom
             install entry point never misses a browser event. */}
         {isPwaEnabled ? (

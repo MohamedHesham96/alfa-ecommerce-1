@@ -10,15 +10,15 @@ describe("PWA feature switch", () => {
     jest.resetModules();
   });
 
-  it("is disabled when NEXT_PUBLIC_ENABLE_PWA is absent", () => {
+  it("is enabled when NEXT_PUBLIC_ENABLE_PWA is absent", () => {
     delete process.env.NEXT_PUBLIC_ENABLE_PWA;
     jest.resetModules();
 
     const { isPwaEnabled } = require("../lib/pwa/constants");
-    expect(isPwaEnabled).toBe(false);
+    expect(isPwaEnabled).toBe(true);
   });
 
-  it("is disabled for any value other than the exact string true", () => {
+  it("is disabled only when NEXT_PUBLIC_ENABLE_PWA is the exact string false", () => {
     process.env.NEXT_PUBLIC_ENABLE_PWA = "false";
     jest.resetModules();
 
@@ -26,7 +26,7 @@ describe("PWA feature switch", () => {
     expect(isPwaEnabled).toBe(false);
   });
 
-  it("is enabled only when NEXT_PUBLIC_ENABLE_PWA is true", () => {
+  it("stays enabled when NEXT_PUBLIC_ENABLE_PWA is true", () => {
     process.env.NEXT_PUBLIC_ENABLE_PWA = "true";
     jest.resetModules();
 

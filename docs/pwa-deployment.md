@@ -22,7 +22,8 @@ split. Do not deploy or change the live server as part of a code review.
 Set these in the deployment environment before `npm run build`:
 
 ```bash
-# Central PWA kill switch. Set to true to enable PWA; false (or omit) disables.
+# Central PWA switch. Enabled by default; set to false to suspend it.
+# Set NEXT_PUBLIC_ENABLE_PWA=false and rebuild to disable the PWA.
 NEXT_PUBLIC_ENABLE_PWA=true
 NEXT_PUBLIC_SITE_URL=https://alfagrouptech.com
 NEXT_PUBLIC_API_BASE_URL=https://<production-api-host>
