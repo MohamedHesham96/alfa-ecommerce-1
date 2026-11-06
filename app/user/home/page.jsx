@@ -532,7 +532,7 @@ export default function Homepage({
             <ProductShowcase Products={recentWatchedProducts} title={"recentViewed"} />
           )}
           <div className="w-full lg:flex-col sm:flex-row xs:flex-col flex gap-5">
-            <div className="bg-white mt-2 lg:w-[280px] xs:w-full h-[660px] rounded-3xl relative overflow-hidden">
+            <div className="relative mt-2 h-[660px] w-full overflow-hidden rounded-3xl bg-white lg:w-[280px]">
               {ads.ad2.imageUrl && (
                 <Image
                   src={IMAGE_BASE_URL + ads.ad2.imageUrl}
@@ -540,7 +540,7 @@ export default function Homepage({
                   fill
                   sizes="280px"
                   quality={75}
-                  className="object-cover"
+                  className="object-contain lg:object-cover"
                 />
               )}
             </div>
