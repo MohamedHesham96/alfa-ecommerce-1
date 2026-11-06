@@ -190,7 +190,9 @@ export default function ProductAdsSlider({ offers = [] }) {
               className="h-full"
             >
               <div className="w-full h-full flex items-center justify-center">
-                <ProductCard productInfo={slide.product} />
+                <div className="w-full max-w-[300px]">
+                  <ProductCard productInfo={slide.product} />
+                </div>
               </div>
             </SwiperSlide>
           ))}

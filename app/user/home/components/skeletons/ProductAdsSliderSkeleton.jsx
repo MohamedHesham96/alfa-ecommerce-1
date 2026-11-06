@@ -7,7 +7,9 @@ export default function ProductAdsSliderSkeleton() {
   return (
     <div className="w-full h-full flex justify-between rounded-3xl relative">
       <div className="w-[40%] h-full flex items-center justify-center">
-        <ProductCardSkeleton />
+        <div className="w-full max-w-[300px]">
+          <ProductCardSkeleton />
+        </div>
       </div>
 
       <div className="w-[60%] h-full">
