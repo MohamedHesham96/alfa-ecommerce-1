@@ -14,6 +14,7 @@ import BestPick from "./components/BestPick";
 import ImageSlider from "./components/ImageSlider";
 import CategoriesSection from "./components/CategoriesSection";
 import DeferredMount from "./components/DeferredMount";
+import PromoAdCard from "./components/PromoAdCard";
 import AdHeroSkeleton from "./components/skeletons/AdHeroSkeleton";
 import BestPickSkeleton from "./components/skeletons/BestPickSkeleton";
 import Link from "next/link";
@@ -611,79 +612,11 @@ export default function Homepage({
         <>
 
       {/* ========================= Promo Banner ========================= */}
-      <section className="my-32">
-        <div className="w-full flex flex-col md:flex-row lg:justify-between items-stretch gap-5">
-          <div className="group cursor-pointer w-full flex flex-col justify-center items-center h-[500px] bg-white rounded-3xl  overflow-hidden p-5">
-            {ads.ad3.imageUrl ? (
-              <div className="w-full h-2/3 relative group-hover:scale-105 duration-500 transition-all">
-
-                <Image
-                  src={IMAGE_BASE_URL + ads.ad3.imageUrl}
-                  alt="Advertisement"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  quality={75}
-                  className="object-cover"
-                />
-              </div>
-            ) : (
-              <div className="w-full h-full" />
-            )}
-            <div className="flex flex-col justify-around items-center w-full">
-              <h2 className="text-3xl font-bold">{ad3Product.brand} </h2>
-
-              <h2 className=" text-center my-3">{locale === "ar" ? ads.ad3.titleAr : ads.ad3.title} </h2>
-             <Link prefetch={false} className={ads.ad3.itemId ? "block" : "hidden"} href={productPath({...ad3Product, itemId: ads.ad3.itemId})}><button  className="text-white rounded-full bg-[#CD4354] hover:bg-[#c13b4a] w-[120px] py-3 px-5 mt-2 text-sm font-semibold ">{t("buyNow")} </button></Link>
-            </div>
-
-          </div>
-          <div className="group cursor-pointer text-white w-full flex flex-col justify-center items-center h-[500px] bg-black rounded-3xl  overflow-hidden p-5">
-            {ads.ad4.imageUrl ? (
-              <div className="w-full h-2/3 relative group-hover:scale-105 duration-500 transition-all">
-                <Image
-                  src={IMAGE_BASE_URL + ads.ad4.imageUrl}
-                  alt="Advertisement"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  quality={75}
-                  className="object-cover"
-                />
-              </div>
-
-            ) : (
-              <div className="w-full h-full" />
-            )}
-            <div className="flex flex-col justify-around items-center w-full">
-              <h2 className="text-3xl font-bold">{ad4Product.brand} </h2>
-
-              <h2 className=" text-center my-3">{locale === "ar" ? ads.ad4.titleAr : ads.ad4.title} </h2>
-             <Link prefetch={false} className={ads.ad4.itemId ? "block" : "hidden"} href={productPath({...ad4Product, itemId: ads.ad4.itemId})}><button  className="text-white rounded-full bg-[#CD4354] hover:bg-[#c13b4a] w-[120px] py-3 px-5 mt-2 text-sm font-semibold ">{t("buyNow")} </button></Link>
-            </div>
-          </div>
-          <div className="group cursor-pointer w-full flex flex-col justify-center items-center h-[500px] bg-white rounded-3xl  overflow-hidden p-5">
-            {ads.ad5.imageUrl ? (
-              <div className="w-full h-2/3 relative group-hover:scale-105 duration-500 transition-all">
-
-                <Image
-                  src={IMAGE_BASE_URL + ads.ad5.imageUrl}
-                  alt="Advertisement"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  quality={75}
-                  className="object-cover"
-                />
-              </div>
-            ) : (
-              <div className="w-full h-full" />
-            )}
-            <div className="flex flex-col justify-around items-center w-full">
-              <h2 className="text-3xl font-bold">{ad5Product.brand} </h2>
-
-              <h2 className=" text-center my-3">{locale === "ar" ? ads.ad5.titleAr : ads.ad5.title} </h2>
-             <Link prefetch={false} className={ads.ad5.itemId ? "block" : "hidden"} href={productPath({...ad5Product, itemId: ads.ad5.itemId})}><button  className="text-white rounded-full bg-[#CD4354] hover:bg-[#c13b4a] w-[120px] py-3 px-5 mt-2 text-sm font-semibold ">{t("buyNow")} </button></Link>
-            </div>
-
-          </div>
+      <section className="my-20 md:my-28">
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
+          <PromoAdCard ad={ads.ad3} product={ad3Product} t={t} locale={locale} />
+          <PromoAdCard ad={ads.ad4} product={ad4Product} t={t} locale={locale} />
+          <PromoAdCard ad={ads.ad5} product={ad5Product} t={t} locale={locale} />
         </div>
       </section>
 
