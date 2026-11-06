@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d0625" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>غير متصل | Alfa E-commerce</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --brand-dark: #0d0625;
+        --brand-red: #e14a5c;
+        --brand-red-dark: #cd4354;
+        --surface: #ffffff;
+        --page: #f6f5f8;
+        --text: #1f2937;
+        --muted: #6b7280;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem
+          max(1.25rem, env(safe-area-inset-bottom));
+        background: var(--page);
+        color: var(--text);
+        font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      }
+
+      .shell {
+        width: 100%;
+        max-width: 34rem;
+        overflow: hidden;
+        border-radius: 1.25rem;
+        background: var(--surface);
+        box-shadow: 0 18px 60px rgba(13, 6, 37, 0.12);
+      }
+
+      .brand-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.9rem 1.25rem;
+        background: var(--brand-dark);
+        color: #fff;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+
+      .brand img {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 0.6rem;
+        background: #fff;
+      }
+
+      .brand small {
+        display: block;
+        color: #f2b4bc;
+        font-size: 0.7rem;
+        font-weight: 500;
+      }
+
+      .brand-en {
+        color: #d1d5db;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .content {
+        padding: 2.25rem 1.5rem 2rem;
+        text-align: center;
+      }
+
+      .icon-wrap {
+        width: 5.5rem;
+        height: 5.5rem;
+        margin: 0 auto 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #fdecee;
+        color: var(--brand-red-dark);
+      }
+
+      .icon-wrap svg {
+        width: 2.75rem;
+        height: 2.75rem;
+      }
+
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: 1.55rem;
+        line-height: 1.35;
+      }
+
+      .lead {
+        margin: 0 auto;
+        max-width: 30rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.8;
+      }
+
+      .status {
+        margin: 1.15rem auto 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border-radius: 999px;
+        background: #f3f4f6;
+        padding: 0.42rem 0.85rem;
+        color: #4b5563;
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+
+      .status-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 999px;
+        background: #ef4444;
+      }
+
+      .status.online .status-dot {
+        background: #16a34a;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.7rem;
+        margin-top: 1.6rem;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.75rem;
+        padding: 0.72rem 1.35rem;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        text-decoration: none;
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--brand-red);
+        color: #fff;
+      }
+
+      .btn-primary:hover {
+        background: var(--brand-red-dark);
+      }
+
+      .btn-secondary {
+        border-color: #d1d5db;
+        background: #fff;
+        color: #374151;
+      }
+
+      .btn-secondary:hover {
+        background: #f9fafb;
+      }
+
+      .links {
+        margin-top: 1.4rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.85rem;
+        color: #6b7280;
+        font-size: 0.82rem;
+      }
+
+      .links a {
+        color: var(--brand-red-dark);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .links a:hover {
+        text-decoration: underline;
+      }
+
+      .english {
+        border-top: 1px solid #e5e7eb;
+        padding: 1.1rem 1.5rem 1.4rem;
+        direction: ltr;
+        text-align: left;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.65;
+      }
+
+      .english strong {
+        color: #374151;
+      }
+
+      @media (max-width: 420px) {
+        .content {
+          padding: 1.75rem 1.15rem 1.5rem;
+        }
+
+        h1 {
+          font-size: 1.3rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .icon-wrap {
+          animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.04);
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell" role="main">
+      <header class="brand-bar">
+        <div class="brand">
+          <img src="/icons/icon-192.png" alt="" width="36" height="36" />
+          <span>
+            ألفا جروب تكنولوجي
+            <small>Alfa E-commerce</small>
+          </span>
+        </div>
+        <span class="brand-en">Alfa</span>
+      </header>
+
+      <section class="content">
+        <div class="icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 8.8a15 15 0 0 1 20 0" opacity="0.35" />
+            <path d="M5.5 12.3a10 10 0 0 1 13 0" opacity="0.55" />
+            <path d="M9 15.8a5 5 0 0 1 6 0" opacity="0.8" />
+            <circle cx="12" cy="19.3" r="1.1" fill="currentColor" stroke="none" />
+            <path d="M3 3l18 18" stroke-width="2" />
+          </svg>
+        </div>
+
+        <h1 id="offline-title">أنت غير متصل بالإنترنت</h1>
+        <p class="lead">
+          يمكنك فتح الصفحات التي زرتها سابقًا من التطبيق، أما تسجيل الدخول والدفع
+          وإتمام الطلبات فتتطلب اتصالًا بالإنترنت.
+        </p>
+
+        <div class="status" id="status">
+          <span class="status-dot"></span>
+          <span id="status-text">لا يوجد اتصال حاليًا</span>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="retry" type="button">إعادة المحاولة</button>
+          <a class="btn btn-secondary" href="/">الرئيسية</a>
+        </div>
+
+        <nav class="links" aria-label="صفحات محفوظة">
+          <a href="/products">المنتجات</a>
+          <a href="/user/about">من نحن</a>
+          <a href="/user/home">التسوق</a>
+        </nav>
+      </section>
+
+      <footer class="english" dir="ltr">
+        <strong>You are offline.</strong> Pages you visited before may still be
+        available. Signing in, checkout, payments, and order placement require
+        an internet connection. Your cart and account remain secure.
+      </footer>
+    </main>
+
+    <script>
+      (function () {
+        var status = document.getElementById("status");
+        var statusText = document.getElementById("status-text");
+        var retry = document.getElementById("retry");
+
+        function render() {
+          var online = typeof navigator !== "undefined" && navigator.onLine;
+          status.className = "status" + (online ? " online" : "");
+          statusText.textContent = online
+            ? "تم استعادة الاتصال — اضغط لإعادة المحاولة"
+            : "لا يوجد اتصال حاليًا";
+          retry.textContent = online ? "فتح التطبيق" : "إعادة المحاولة";
+        }
+
+        retry.addEventListener("click", function () {
+          if (typeof navigator !== "undefined" && navigator.onLine) {
+            window.location.href = "/";
+            return;
+          }
+          render();
+        });
+
+        window.addEventListener("online", render);
+        window.addEventListener("offline", render);
+        render();
+      })();
+    </script>
+  </body>
+</html>

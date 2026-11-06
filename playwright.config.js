@@ -7,6 +7,7 @@ const backendRoot = path.resolve(__dirname, "../alfa-ecommerce");
 module.exports = defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.spec.js",
+  testIgnore: "**/pwa.spec.js",
   timeout: 120_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,

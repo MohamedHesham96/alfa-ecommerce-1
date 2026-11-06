@@ -19,6 +19,7 @@
     "/confirmedemail",
     "/email-failed",
     "/forgotpassword",
+    "/offline",
     "/products",
     "/products/[slug]",
     "/signin",

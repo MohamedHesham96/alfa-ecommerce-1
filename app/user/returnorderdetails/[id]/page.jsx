@@ -1,8 +1,8 @@
 import ReturnOrderDetails from'../components/returnOrderDetails'
 import RequireAuth from "../../components/RequireAuth";
 
-export default function ReturnOrderDetailsPage({params}) {  
-  const { id } = params; 
+export default async function ReturnOrderDetailsPage({params}) {
+  const { id } = await params;
 
 return(
 <RequireAuth>

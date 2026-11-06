@@ -43,7 +43,7 @@ function notFoundResponse() {
  * and /categories/:slug. Only legacy paths hit the API here, so canonical product
  * views pay no middleware lookup cost.
  */
-export async function middleware(request) {
+export async function proxy(request) {
   const { pathname } = request.nextUrl;
 
   // One canonical hostname: https://alfagrouptech.com (not www).
@@ -108,6 +108,6 @@ export async function middleware(request) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|images|favicon.ico|api).*)",
+    "/((?!_next/static|_next/image|images|Images|favicon.ico|api|sw\\.js|sw-policies\\.js|offline\\.html|manifest\\.webmanifest|icons/|splash/).*)",
   ],
 };

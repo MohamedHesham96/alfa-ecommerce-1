@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { clearAuthStorage } from "../../../utils/authSession";
 
 export default function RequireAuth({ children }) {
   const router = useRouter();
@@ -13,10 +14,12 @@ export default function RequireAuth({ children }) {
     );
 
     if (!hasSession) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("id");
-      router.replace("/signin");
+      // A missing/expired local session must also drop any cached public API
+      // or page HTML that may have been produced while another account was
+      // active on this device.
+      clearAuthStorage().finally(() => {
+        router.replace("/signin");
+      });
       return;
     }
 

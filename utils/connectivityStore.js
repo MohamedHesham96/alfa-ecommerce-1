@@ -42,3 +42,10 @@ export const clearServerFailure = () => {
   if (!connectivityState.serverDown) return;
   setState({ serverDown: false });
 };
+
+// Test-only reset. Keeping this in the store avoids tests leaking state into
+// one another through the module-level singleton.
+export const resetConnectivityForTests = () => {
+  connectivityState = { browserOnline: true, serverDown: false };
+  listeners.clear();
+};

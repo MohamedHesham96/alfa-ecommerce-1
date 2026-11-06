@@ -48,9 +48,13 @@ async function resolveCategory(slug) {
 }
 
 export async function generateMetadata({ params, searchParams }) {
-  const slug = decodeURIComponent(params.slug);
-  const page = pageFromSearchParams(searchParams);
-  const category = await resolveCategory(slug);
+  const [{ slug }, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+  const decodedSlug = decodeURIComponent(slug);
+  const page = pageFromSearchParams(resolvedSearchParams);
+  const category = await resolveCategory(decodedSlug);
   const categories = await loadCategories();
   const categoryWithCount =
     categories.find(
@@ -74,9 +78,13 @@ export async function generateMetadata({ params, searchParams }) {
 }
 
 export default async function CategoryPage({ params, searchParams }) {
-  const slug = decodeURIComponent(params.slug);
-  const page = pageFromSearchParams(searchParams);
-  const category = await resolveCategory(slug);
+  const [{ slug }, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+  const decodedSlug = decodeURIComponent(slug);
+  const page = pageFromSearchParams(resolvedSearchParams);
+  const category = await resolveCategory(decodedSlug);
   const categories = await loadCategories();
   const categoryWithCount =
     categories.find(

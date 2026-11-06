@@ -2,6 +2,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { reportApiFailure } from "./connectivityStore";
+import {
+  invalidateCatalogCaches,
+} from "../lib/pwa/client";
+import { clearAuthStorage } from "./authSession";
 
 const showRequestError = (error) => {
   const responseData = error?.response?.data;
@@ -96,34 +100,39 @@ const showRequestError = (error) => {
   }
 };
 
-const AUTH_STORAGE_KEYS = [
-  "accessToken",
-  "refreshToken",
-  "id",
-  "firstName",
-  "lastName",
-  "address",
-  "email",
-  "phone",
-  "role",
-  "username",
-  "governorateId",
-];
-
 let refreshInFlight = null;
 
 const isAuthFailure = (error) =>
   error?.response?.status === 401 || error?.response?.status === 403;
 
-const clearAuthStorage = () => {
-  if (typeof window === "undefined") return;
-  AUTH_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+const isBrowserOffline = () =>
+  typeof navigator !== "undefined" && navigator.onLine === false;
+
+const throwOfflineMutationError = () => {
+  const isArabic =
+    typeof window !== "undefined" && localStorage.getItem("lang") === "ar";
+  const message = isArabic
+    ? "لا يوجد اتصال بالإنترنت. لم يتم حفظ هذا التغيير. حاول مرة أخرى بعد استعادة الاتصال."
+    : "You are offline. This change was not saved. Try again when you are back online.";
+  toast.error(message);
+  const error = new Error(message);
+  error.code = "ALFA_OFFLINE";
+  error.isOffline = true;
+  throw error;
+};
+
+const shouldInvalidateCatalog = (endpoint) =>
+  typeof endpoint === "string" && endpoint.startsWith("/api/admin/");
+
+const invalidateCatalogAfterAdminChange = (endpoint) => {
+  if (!shouldInvalidateCatalog(endpoint)) return;
+  invalidateCatalogCaches().catch(() => {});
 };
 
 const redirectToSignIn = () => {
   if (typeof window === "undefined") return;
   if (!window.location.pathname.startsWith("/signin")) {
-    window.location.href = "/signin";
+    window.location.href = new URL("/signin", window.location.origin).toString();
   }
 };
 
@@ -154,8 +163,9 @@ const getRefreshedAccessToken = async () => {
       })
       .catch((error) => {
         if (isAuthFailure(error)) {
-          clearAuthStorage();
-          redirectToSignIn();
+          clearAuthStorage().finally(() => {
+            redirectToSignIn();
+          });
         }
         throw error;
       })
@@ -182,24 +192,32 @@ export const logoutRequest = async () => {
     );
 
   const accessToken = localStorage.getItem("accessToken");
-  if (!accessToken) return;
 
   try {
-    await postLogout(accessToken);
-  } catch (error) {
-    // If the access token already expired, refresh once before revoking so
-    // the server still drops the user's active refresh tokens.
-    if (isAuthFailure(error)) {
-      const newAccessToken = await getRefreshedAccessToken();
-      if (newAccessToken) {
-        try {
-          await postLogout(newAccessToken);
-        } catch {
-          // Local sign-out must still complete.
+    if (!accessToken) return;
+
+    try {
+      await postLogout(accessToken);
+    } catch (error) {
+      // If the access token already expired, refresh once before revoking so
+      // the server still drops the user's active refresh tokens.
+      if (isAuthFailure(error)) {
+        const newAccessToken = await getRefreshedAccessToken();
+        if (newAccessToken) {
+          try {
+            await postLogout(newAccessToken);
+          } catch {
+            // Local sign-out must still complete.
+          }
         }
       }
+      // Local sign-out must still complete if the session already expired.
     }
-    // Local sign-out must still complete if the session already expired.
+  } finally {
+    // Never leave credentials, profile fields, pages, or API responses from
+    // this account available on a shared device, even when the server is
+    // unreachable.
+    await clearAuthStorage();
   }
 };
 
@@ -210,6 +228,8 @@ export const logoutRequest = async () => {
 // };
 
 export const postRequest = async (endpoint, dataBody, message ,toster, options = {}) => {
+  if (isBrowserOffline()) throwOfflineMutationError();
+
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
   const lang =
@@ -238,6 +258,7 @@ export const postRequest = async (endpoint, dataBody, message ,toster, options =
 
       const response = await request(token)
       if(toster) toast.success(response.data.message);
+      invalidateCatalogAfterAdminChange(endpoint);
 
       return response.data;
 
@@ -270,6 +291,7 @@ export const postRequest = async (endpoint, dataBody, message ,toster, options =
 
       const response = await request(token);
       toast.success(response.data.message);
+      invalidateCatalogAfterAdminChange(endpoint);
       return response.data;
 
     }
@@ -285,6 +307,7 @@ export const postRequest = async (endpoint, dataBody, message ,toster, options =
         try {
           const retryResponse = await request(newAccessToken);
           toast.success(retryResponse.data.message);
+          invalidateCatalogAfterAdminChange(endpoint);
           return retryResponse.data;
         } catch (retryError) {
           if (axios.isCancel(retryError) || retryError?.code === "ERR_CANCELED") {
@@ -345,6 +368,8 @@ export const getRequest = async (endpoint) => {
 };
 
 export const putRequest = async (endpoint, dataBody, message) => {
+  if (isBrowserOffline()) throwOfflineMutationError();
+
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
   const lang =
@@ -366,6 +391,7 @@ export const putRequest = async (endpoint, dataBody, message) => {
     const token = getToken();
     const response = await request(token);
     toast.success(response.data.message);
+    invalidateCatalogAfterAdminChange(endpoint);
     return response.data;
   };
 
@@ -409,6 +435,7 @@ export const putRequest = async (endpoint, dataBody, message) => {
         try {
           const retryResponse = await request(newAccessToken);
           toast.success(retryResponse.data.message);
+          invalidateCatalogAfterAdminChange(endpoint);
           return retryResponse.data;
         } catch (retryError) {
           reportApiFailure(retryError);
@@ -424,6 +451,8 @@ export const putRequest = async (endpoint, dataBody, message) => {
 };
 
 export const deleteRequest = async (endpoint, message) => {
+  if (isBrowserOffline()) throwOfflineMutationError();
+
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
   const lang =
@@ -463,6 +492,7 @@ export const deleteRequest = async (endpoint, message) => {
       const token = getToken();
       const response = await request(token);
       toast.success(response.data.message);
+      invalidateCatalogAfterAdminChange(endpoint);
       return response.data;
     }
   } catch (error) {
@@ -474,6 +504,7 @@ export const deleteRequest = async (endpoint, message) => {
         try {
           const retryResponse = await request(newAccessToken);
           toast.success(retryResponse.data.message);
+          invalidateCatalogAfterAdminChange(endpoint);
           return retryResponse.data;
         } catch (retryError) {
           reportApiFailure(retryError);

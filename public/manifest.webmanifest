@@ -1,0 +1,71 @@
+{
+  "id": "/",
+  "name": "Alfa E-commerce",
+  "short_name": "Alfa",
+  "description": "Alfa E-commerce — تسوق الإلكترونيات والأجهزة المنزلية من ألفا جروب تكنولوجي بأسعار ومواصفات حقيقية.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone"],
+  "orientation": "any",
+  "background_color": "#f6f5f8",
+  "theme_color": "#0d0625",
+  "categories": ["shopping", "business"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "تسوق المنتجات",
+      "short_name": "المنتجات",
+      "description": "تصفح كتالوج ألفا الكامل",
+      "url": "/products",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "سلة التسوق",
+      "short_name": "السلة",
+      "description": "انتقل إلى سلة التسوق",
+      "url": "/user/cart",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

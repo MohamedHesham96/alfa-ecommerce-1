@@ -13,9 +13,28 @@
     --foreground: #ededed;
   }
 } */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-urbanist-sans), sans-serif;
   min-width: 0;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Keep standalone launches feeling native on notched devices. */
+@media (display-mode: standalone) {
+  body {
+    overscroll-behavior-y: none;
+  }
 }
 
 html[dir="rtl"] body {

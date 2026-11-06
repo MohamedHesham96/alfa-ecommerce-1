@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, use, useEffect, useRef, useState } from "react";
 import { postRequest } from "../../../../utils/requestsUtils";
 import ProductCard from "../../components/ProductCard";
 import { useLanguage } from "../../../../context/LanguageContext";
@@ -18,7 +18,8 @@ export default function Searchpage({params}) {
     // Route params arrive URL-encoded (Next.js does not decode them): decode
     // once so the heading shows the real text (e.g. Arabic) and the searchText
     // sent to the API matches stored item names.
-    const searchInput = decodeSearchInput(params?.searchInput);
+    const resolvedParams = use(params);
+    const searchInput = decodeSearchInput(resolvedParams?.searchInput);
 
   const { t } = useLanguage();
   const [products, setProducts] = useState([]);

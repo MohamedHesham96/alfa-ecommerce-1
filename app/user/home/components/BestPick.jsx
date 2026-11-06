@@ -87,7 +87,7 @@ export default function BestPick({ Products }) {
                     <div className="flex w-full  justify-start gap-2 items-center ">
                       {product.oldPrice ? (
                         <div className="w-auto">
-                          <span className=" line-through text-xs  w-auto text-gray-400">
+                          <span className=" line-through text-xs  w-auto text-gray-500">
                             {product.oldPrice?.toLocaleString("en-US")}
                           </span>
                         </div>

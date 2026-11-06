@@ -255,12 +255,12 @@ export default function CartTable({
                         </span>
 
                         {product.oldUnitPrice ? (
-                          <span className="text-xs text-gray-400 line-through">
+                          <span className="text-xs text-gray-500 line-through">
                             {product.oldUnitPrice.toLocaleString("en-US")}{" "}
                             {t("currency")}
                           </span>
                         ) : product.oldPrice ? (
-                          <span className="text-xs text-gray-400 line-through">
+                          <span className="text-xs text-gray-500 line-through">
                             {product.oldPrice.toLocaleString("en-US")}{" "}
                             {t("currency")}
                           </span>

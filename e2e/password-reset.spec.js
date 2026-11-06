@@ -67,8 +67,15 @@ test("complete forgot-password lifecycle: signup → confirm → reset → login
 
   await request.delete(`${SMTP}/messages`);
 
-  // Request a reset from the actual sign-in UI.
+  // Request a reset from the actual sign-in UI. The app defaults to Arabic,
+  // so switch to English using the real UI control before asserting labels.
   await page.goto("/signin");
+  const languageToggle = page.getByRole("button", {
+    name: /تغيير اللغة|Change language/,
+  });
+  if (!(await page.getByText("Forgot Password?").isVisible().catch(() => false))) {
+    await languageToggle.click();
+  }
   await expect(page.getByText("Forgot Password?")).toBeVisible();
   await page.getByText("Forgot Password?").click();
   await page.locator('#form_email input[type="email"]').fill(email);

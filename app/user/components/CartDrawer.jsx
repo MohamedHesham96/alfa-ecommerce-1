@@ -5,6 +5,7 @@ import { useLanguage } from "../../../context/LanguageContext";
 import { getThumbnailUrl } from "../../../utils/functions";
 import { MdClose } from "react-icons/md";
 import { useState } from "react";
+import { usePwa } from "../../components/pwa/PwaProvider";
 
 export default function CartDrawer({
   isOpen = false,
@@ -20,6 +21,7 @@ export default function CartDrawer({
   checkoutHref = "/user/cart",
 }) {
   const { t, locale } = useLanguage();
+  const { isOnline } = usePwa();
   const navigate = useRouter();
   const [pendingLineId, setPendingLineId] = useState(null);
 
@@ -207,6 +209,11 @@ export default function CartDrawer({
 
         {/* Fixed bottom summary */}
         <footer className="border-t border-gray-200 bg-white px-5 py-4">
+          {!isOnline ? (
+            <p className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+              {userId ? t("pwa_cart_offline_error") : t("pwa_cart_local_note")}
+            </p>
+          ) : null}
  <div className="mb-4 flex items-center justify-between">
             <span className=" font-semibold">{t("shippingCost")}</span>
              <span className=" font-bold ">

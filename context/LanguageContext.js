@@ -25,6 +25,7 @@ export const LanguageProvider = ({ children }) => {
   // SEO-visible HTML translated instead of exposing translation keys, and
   // avoids a hydration mismatch when the visitor later switches language.
   const [locale, setLocale] = useState('ar');
+  const [languageReady, setLanguageReady] = useState(false);
 
   useEffect(() => {
     let savedLang = null;
@@ -41,15 +42,20 @@ export const LanguageProvider = ({ children }) => {
     if (SUPPORTED_LANGUAGES.includes(savedLang)) {
       setLocale(savedLang);
     }
+    setLanguageReady(true);
   }, []);
 
   useEffect(() => {
+    // Never persist the temporary Arabic first-paint value before the saved
+    // preference has been read. In React StrictMode (or any remount before the
+    // state update commits) that could overwrite `en` with `ar` on navigation.
+    if (!languageReady) return;
     try {
       localStorage.setItem('lang', locale);
     } catch (error) {
       console.error('Unable to save language:', error);
     }
-  }, [locale]);
+  }, [languageReady, locale]);
 
   const messages = BUNDLES[locale] || BUNDLES.ar;
 

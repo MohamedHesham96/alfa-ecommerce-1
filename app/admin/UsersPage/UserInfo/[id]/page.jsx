@@ -1,6 +1,6 @@
 import UserInfo from "../../components/userInfo";
-export default function UsersPage({ params }) {
-  const { id } = params;
+export default async function UsersPage({ params }) {
+  const { id } = await params;
   return (
     <div className=" p-5 ">
       <div className=" w-full ">

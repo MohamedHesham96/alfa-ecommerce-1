@@ -3,8 +3,8 @@ import RequireAuth from "../../components/RequireAuth";
 
 
 
-export default function OrderDetailsPage({params}) {  
-  const { id } = params; 
+export default async function OrderDetailsPage({params}) {
+  const { id } = await params;
 
 return(
 <RequireAuth>

@@ -198,7 +198,7 @@ export default function OrderDetails({ orderId }) {
                           {product.unitPrice.toLocaleString("en-US")}{" "}
                           {t("currency")}
                           {product.oldUnitPrice ? (
-                            <span className="text-xs text-gray-400 line-through mx-2">
+                            <span className="text-xs text-gray-500 line-through mx-2">
                               {product.oldUnitPrice.toLocaleString("en-US")}{" "}
                               {t("currency")}
                             </span>
@@ -372,7 +372,7 @@ export default function OrderDetails({ orderId }) {
                         </span>
 
                         {product.oldUnitPrice ? (
-                          <span className="text-xs text-gray-400 line-through">
+                          <span className="text-xs text-gray-500 line-through">
                             {product.oldUnitPrice.toLocaleString("en-US")}{" "}
                             {t("currency")}
                           </span>

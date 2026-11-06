@@ -378,7 +378,6 @@ export function useInfiniteScroll({
     setTotalElements(0);
     setPageIndex(0);
     runRef.current(0, "reset");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryKeyStr, enabled]);
 
   // Re-check the sentinel whenever a page finishes loading. Re-observing the
@@ -387,7 +386,6 @@ export function useInfiniteScroll({
   useEffect(() => {
     if (!idle) return;
     rearm();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, idle, rearm]);
 
   const loadMore = useCallback(() => {
@@ -435,7 +433,6 @@ export function useClientInfiniteScroll(allItems = [], pageSize = 15) {
   useEffect(() => {
     if (!hasMore) return;
     rearm();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allItems, visibleCount, hasMore, rearm]);
 
   const items = useMemo(

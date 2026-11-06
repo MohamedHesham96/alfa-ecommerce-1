@@ -2,8 +2,8 @@ import OrderDetailsHeader from "../../orders/OrdersDetails/components/Header";
 import Order_Iitems from "../../orders/OrdersDetails/components/Order_Items";
 import User_Info from "../../orders/OrdersDetails/components/User_Info";
 import UpdateStatus from "../../orders/OrdersDetails/components/UpdateStatus";
-export default function ReturnOrderDetailsPage({params}) {
-  const { id } = params;
+export default async function ReturnOrderDetailsPage({params}) {
+  const { id } = await params;
 
   return (
     <div className="h-full p-5 ">

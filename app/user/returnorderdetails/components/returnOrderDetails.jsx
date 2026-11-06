@@ -190,7 +190,7 @@ const navigate = useRouter();
                     <span className="text-sm font-medium text-gray-900">
                       {order.price?.toLocaleString("en-US")} {t("currency")}
                       {order.oldPrice ? (
-                        <span className="text-xs text-gray-400 line-through mx-2">
+                        <span className="text-xs text-gray-500 line-through mx-2">
                           {order.oldPrice.toLocaleString("en-US")}{" "}
                           {t("currency")}
                         </span>
@@ -274,7 +274,7 @@ const navigate = useRouter();
                     </span>
 
                     {order.oldPrice ? (
-                      <span className="text-xs text-gray-400 line-through">
+                      <span className="text-xs text-gray-500 line-through">
                         {order.oldPrice.toLocaleString("en-US")}{" "}
                         {t("currency")}
                       </span>

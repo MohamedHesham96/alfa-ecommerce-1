@@ -10,6 +10,7 @@ import { CartDrawerOpenProvider } from "../context/CartDrawerOpenContext";
 import { ToastContainer } from "react-toastify";
 import RTLController from './components/RTLController.jsx'
 import GlobalErrorOverlay from './components/GlobalErrorOverlay.jsx'
+import { PwaProvider } from './components/pwa/PwaProvider.jsx'
 
 import {
   SITE_URL,
@@ -37,9 +38,30 @@ export const metadata = {
     "تسوق إلكتروني",
     "منتجات تقنية",
   ],
-  applicationName: SITE_NAME_AR,
+  applicationName: "Alfa E-commerce",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Alfa",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      {
+        url: "/icons/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+    shortcut: ["/favicon.ico"],
   },
   openGraph: {
     type: "website",
@@ -126,9 +148,68 @@ const urbanistBold = localFont({
   preload: false,
 });
 
+const API_ORIGIN = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_API_BASE_URL || "").origin;
+  } catch {
+    return null;
+  }
+})();
+
+// Keep iOS launch screens in sync with scripts/generate-pwa-assets.ps1.
+// Apple matches the logical viewport size and DPR, not the raw image size.
+const APPLE_SPLASH_SCREENS = [
+  { file: "apple-splash-828x1792.png", width: 414, height: 896, dpr: 2 },
+  { file: "apple-splash-1080x2340.png", width: 360, height: 780, dpr: 3 },
+  { file: "apple-splash-1125x2436.png", width: 375, height: 812, dpr: 3 },
+  { file: "apple-splash-1170x2532.png", width: 390, height: 844, dpr: 3 },
+  { file: "apple-splash-1179x2556.png", width: 393, height: 852, dpr: 3 },
+  { file: "apple-splash-1206x2622.png", width: 402, height: 874, dpr: 3 },
+  { file: "apple-splash-1242x2688.png", width: 414, height: 896, dpr: 3 },
+  { file: "apple-splash-1284x2778.png", width: 428, height: 926, dpr: 3 },
+  { file: "apple-splash-1290x2796.png", width: 430, height: 932, dpr: 3 },
+  { file: "apple-splash-1320x2868.png", width: 440, height: 956, dpr: 3 },
+  { file: "apple-splash-1536x2048.png", width: 768, height: 1024, dpr: 2 },
+  { file: "apple-splash-1668x2388.png", width: 834, height: 1194, dpr: 2 },
+  { file: "apple-splash-2048x2732.png", width: 1024, height: 1366, dpr: 2 },
+];
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+  colorScheme: "light",
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#0d0625" }],
+};
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        {API_ORIGIN ? (
+          <>
+            <link rel="preconnect" href={API_ORIGIN} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={API_ORIGIN} />
+          </>
+        ) : null}
+        {APPLE_SPLASH_SCREENS.map((splash) => (
+          <link
+            key={splash.file}
+            rel="apple-touch-startup-image"
+            href={`/splash/${splash.file}`}
+            media={`(device-width: ${splash.width}px) and (device-height: ${splash.height}px) and (-webkit-device-pixel-ratio: ${splash.dpr}) and (orientation: portrait)`}
+          />
+        ))}
+        {/* Capture beforeinstallprompt before React hydrates so the custom
+            install entry point never misses a browser event. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{window.addEventListener("beforeinstallprompt",function(event){event.preventDefault();window.__alfaDeferredInstallPrompt=event;window.dispatchEvent(new Event("alfa:beforeinstallprompt"));});}catch(error){}})();`,
+          }}
+        />
+      </head>
       <body
         className={`${plex.variable} ${albertSans.variable} ${urbanistSemiBold.variable} ${urbanistBold.variable} bg-[#f6f5f8]`}
       >
@@ -149,25 +230,27 @@ export default function RootLayout({ children }) {
           position={"bottom-center"} />
 
         <LanguageProvider>
-          <GlobalErrorOverlay />
-          <RTLController>
-            <IdProvider>
+          <PwaProvider>
+            <GlobalErrorOverlay />
+            <RTLController>
+              <IdProvider>
 
-              <SearchInputProvider>
-                <RefreshProvider>
-                  <OrderDetailsProvider>
-                    <CartDrawerOpenProvider>
-                      <NamePageInAdminProvider>
-                        {children}
+                <SearchInputProvider>
+                  <RefreshProvider>
+                    <OrderDetailsProvider>
+                      <CartDrawerOpenProvider>
+                        <NamePageInAdminProvider>
+                          {children}
 
-                      </NamePageInAdminProvider>
-                    </CartDrawerOpenProvider>
+                        </NamePageInAdminProvider>
+                      </CartDrawerOpenProvider>
 
-                  </OrderDetailsProvider>
-                </RefreshProvider>
-              </SearchInputProvider>
-            </IdProvider>
-          </RTLController>
+                    </OrderDetailsProvider>
+                  </RefreshProvider>
+                </SearchInputProvider>
+              </IdProvider>
+            </RTLController>
+          </PwaProvider>
         </LanguageProvider>
       </body>
     </html>

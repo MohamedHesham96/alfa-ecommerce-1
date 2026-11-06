@@ -6,11 +6,12 @@ import { getCategoryById } from "../../../../../../lib/api";
  * same permanent destination and prevents duplicate category content.
  */
 export default async function LegacyCategoryPage({ params }) {
-  if (params.category === "all" || params.id === "null") {
+  const { category: categoryName, id } = await params;
+  if (categoryName === "all" || id === "null") {
     permanentRedirect("/products");
   }
 
-  const category = await getCategoryById(params.id);
+  const category = await getCategoryById(id);
 
   if (!category?.seoCode) {
     notFound();

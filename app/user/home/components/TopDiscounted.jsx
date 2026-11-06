@@ -16,6 +16,12 @@ import { MdOutlineArrowBackIosNew, MdOutlineArrowForwardIos } from "react-icons/
 export default function TopDiscounted({ Products }) {
   const { locale ,t } = useLanguage();
 const swiperRef = useRef()
+  const isRtl = locale === "ar";
+  // Swiper's slideNext() advances in data order. In RTL that next slide is
+  // visually on the left, so the left arrow means "next" and the right arrow
+  // means "previous". Keep the handlers semantic and map them per direction.
+  const showPreviousProducts = () => swiperRef.current?.slidePrev();
+  const showNextProducts = () => swiperRef.current?.slideNext();
   useEffect(() => {
   }, []);
   return (
@@ -27,7 +33,7 @@ const swiperRef = useRef()
     loading="lazy"
     sizes="(max-width: 1023px) calc(100vw - 24px), (max-width: 1499px) calc(100vw - 324px), 1176px"
     quality={85}
-    className="object-fill rounded-3xl"
+    className="object-cover rounded-3xl"
   />
       <div className="w-full h-full absolute top-0  flex md:flex-row xs:flex-col px-2 justify-center items-center ">
 <div className=" w-full  h-full  flex xs:flex-row md:flex-col gap-5 p-5 xs:justify-between md:justify-center items-center">
@@ -94,7 +100,8 @@ const swiperRef = useRef()
     transition-all duration-300 ">
           <button
       type="button"
-      onClick={() => swiperRef.current?.slideNext()}
+      aria-label={isRtl ? "المنتجات التالية" : "Previous products"}
+      onClick={isRtl ? showNextProducts : showPreviousProducts}
       className="absolute left-0 top-1/2 -translate-y-1/2 z-50
                   text-2xl
                 flex items-center justify-center 
@@ -104,7 +111,8 @@ const swiperRef = useRef()
     </button>
         <button
       type="button"
-      onClick={() => swiperRef.current?.slidePrev()}
+      aria-label={isRtl ? "المنتجات السابقة" : "Next products"}
+      onClick={isRtl ? showPreviousProducts : showNextProducts}
       className="absolute right-0 top-1/2 -translate-y-1/2 z-50
               
                 text-2xl

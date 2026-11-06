@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import { reportApiFailure } from "../../utils/connectivityStore";
 import { resolveLanguage } from "../../utils/languageUtils";
 import { postRequest } from "../../utils/requestsUtils";
+import { clearUserScopedCaches } from "../../lib/pwa/client";
 
 export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm }) {
   const navigate = useRouter();
@@ -39,7 +40,7 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
           username: username,
           password: password,
         },
-        "",
+        {},
       );
       // console.log(response.data);
       toast.success(response.data.message);
@@ -57,6 +58,10 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
         "governorateId",
         response.data.userDetails.governorate.governorateId,
       );
+
+      // A different account may be signing in on this device. Drop any
+      // previously cached page/API data before navigating.
+      await clearUserScopedCaches().catch(() => {});
 
       if (response.data.userDetails.role === "ADMIN") {
         navigate.replace("/admin/Dashboard");
@@ -124,6 +129,10 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
           </h4>
         </div>
        <button
+          type="button"
+          aria-label={
+            locale === "ar" ? "تغيير اللغة إلى الإنجليزية" : "Change language to Arabic"
+          }
           onClick={() => {
             const newLocale = locale === "ar" ? "en" : "ar";
             setLocale(newLocale);

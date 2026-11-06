@@ -22,11 +22,13 @@ function pageFromSearchParams(searchParams) {
 }
 
 export async function generateMetadata({ searchParams }) {
-  return buildProductsIndexMetadata(pageFromSearchParams(searchParams));
+  const resolvedSearchParams = await searchParams;
+  return buildProductsIndexMetadata(pageFromSearchParams(resolvedSearchParams));
 }
 
 export default async function ProductsPage({ searchParams }) {
-  const page = pageFromSearchParams(searchParams);
+  const resolvedSearchParams = await searchParams;
+  const page = pageFromSearchParams(resolvedSearchParams);
   const products = await loadProducts(page);
   const categories = await loadCategories();
   const productsPage = normalizePagePayload(products, 40);

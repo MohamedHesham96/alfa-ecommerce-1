@@ -175,7 +175,7 @@ export default function ProductInfo({ product, itemId }) {
                             : ""}
                     </span>
                     {product.oldPrice ? (
-                        <span className="text-base text-gray-400 line-through sm:text-lg">
+                        <span className="text-base text-gray-500 line-through sm:text-lg">
                             {product.oldPrice.toLocaleString("en-US") + " " + t("currency")}
                         </span>
                     ) : null}

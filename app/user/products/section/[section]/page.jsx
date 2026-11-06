@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import { getRequest, postRequest } from "../../../../../utils/requestsUtils";
 import ProductCard from "../../../components/ProductCard";
 import { useLanguage } from "../../../../../context/LanguageContext";
@@ -9,7 +9,7 @@ import { MdOutlineDownloading } from "react-icons/md";
 import Pagination from "../../../search/[searchInput]/components/Pagination";
 
 export default function ProductsBySection({ params }) {
-  const { section } = params;
+  const { section } = use(params);
 
   const { t } = useLanguage();
   const [products, setProducts] = useState([]);

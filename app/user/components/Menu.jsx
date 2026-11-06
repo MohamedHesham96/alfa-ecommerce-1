@@ -7,6 +7,7 @@ import { categoryPath } from "../../../lib/seo";
 import { useMenuOpen } from "../../../context/MenuOpenContext";
 import {
   MdDevices,
+  MdInstallMobile,
   MdOutlineKitchen,
   MdYard,
   MdChildCare,
@@ -16,6 +17,7 @@ import {
 import { FiHeart } from "react-icons/fi";
 import { PiUser, PiHouse, PiSquaresFour } from "react-icons/pi";
 import { RiShoppingBag4Fill, RiTruckLine } from "react-icons/ri";
+import { usePwa } from "../../components/pwa/PwaProvider";
 
 const getCategoryIcon = (name) => {
   const n = (name || "").toLowerCase();
@@ -33,6 +35,7 @@ const getCategoryIcon = (name) => {
 export default function Menu() {
   const { t, locale } = useLanguage();
   const { isMenuOpen, closeMenu } = useMenuOpen();
+  const { canInstall, openInstallPrompt } = usePwa();
   const [activeTab, setActiveTab] = useState("categories");
   const [categoriesList, setCategoriesList] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
@@ -97,6 +100,7 @@ export default function Menu() {
           </button>
           <button
             type="button"
+            data-testid="menu-tab-menu"
             onClick={() => setActiveTab("menu")}
             className={`flex-1 h-12 flex items-center justify-center text-sm font-semibold uppercase tracking-wide transition-colors ${
               activeTab === "menu"
@@ -149,6 +153,24 @@ export default function Menu() {
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto bg-white py-2">
+            {canInstall ? (
+              <button
+                type="button"
+                data-testid="install-menu-entry"
+                onClick={() => {
+                  closeMenu();
+                  openInstallPrompt();
+                }}
+                className="flex w-full items-center gap-3 border-b border-gray-200 px-4 py-3.5 text-start hover:bg-gray-50"
+              >
+                <span className="shrink-0 text-xl text-[#CD4354]">
+                  <MdInstallMobile />
+                </span>
+                <span className="text-sm font-semibold text-[#CD4354]">
+                  {t("install_app")}
+                </span>
+              </button>
+            ) : null}
             {menuLinks.map((link, idx) => (
               <Link
                 key={idx}

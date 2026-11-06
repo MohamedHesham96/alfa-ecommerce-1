@@ -1,6 +1,7 @@
 "use client";
 // import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { useLanguage } from "../../../../context/LanguageContext";
+import { usePwa } from "../../../components/pwa/PwaProvider";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AiFillSafetyCertificate } from "react-icons/ai";
@@ -16,9 +17,13 @@ import { toast } from "react-toastify";
 // import Link from "next/link";
 import CartTable from "./CartTable";
 import Select from "react-select";
+import { beginCriticalOperation } from "../../../../lib/pwa/criticalOperation";
+import { getCrossTabCoordinator } from "../../../../lib/pwa/crossTab";
 export default function Cart({ setShowSignIn }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const { isOnline } = usePwa();
   const [items, setItems] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [Checkout, setCheckout] = useState(false);
   const [summery, setSummery] = useState({
     totalOrder: "",
@@ -43,8 +48,17 @@ export default function Cart({ setShowSignIn }) {
   ];
   const synced = useRef(false);
 
+  const translate = (key, fallbackAr, fallbackEn) => {
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+    return locale === "en" ? fallbackEn : fallbackAr;
+  };
+
+  const checkoutDisabled = !isOnline || items.length === 0;
+
   const getProductInCart = useCallback(async () => {
     try {
+      setLoadError(false);
       if (userId) {
         setLoading(true);
 
@@ -91,6 +105,9 @@ export default function Cart({ setShowSignIn }) {
         }));
       }
     } catch (error) {
+      // Do not render an empty cart as if the server had confirmed it. This
+      // is especially important while offline or during an API outage.
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -130,47 +147,58 @@ export default function Cart({ setShowSignIn }) {
   }, [userId, getProductInCart]);
 
   const deleteItemFormCart = async (itemLineId, productID) => {
-    if (userId) {
-      await deleteRequest(
-        `/api/shopCarts/deleteLine/${itemLineId}`,
-        t("message"),
-      );
-      getProductInCart();
-    } else {
-      let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    try {
+      if (userId) {
+        await deleteRequest(
+          `/api/shopCarts/deleteLine/${itemLineId}`,
+          t("message"),
+        );
+      } else {
+        let cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-      cart = cart.filter((item) => Number(item.id) !== Number(productID));
+        cart = cart.filter((item) => Number(item.id) !== Number(productID));
 
-      localStorage.setItem("cart", JSON.stringify(cart));
-      getProductInCart();
+        localStorage.setItem("cart", JSON.stringify(cart));
+      }
+    } catch {
+      return;
     }
+    getProductInCart();
   };
 
   const changeQuantity = async (itemLineId, itemId, newQuantity) => {
-    if (userId) {
-      await postRequest(
-        `/api/shopCarts/changeQuantity`,
-        {
-          itemLineId: itemLineId,
-          quantity: newQuantity,
-        },
-        "",
-      );
-      getProductInCart();
-    } else {
-      let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    try {
+      if (userId) {
+        await postRequest(
+          `/api/shopCarts/changeQuantity`,
+          {
+            itemLineId: itemLineId,
+            quantity: newQuantity,
+          },
+          "",
+        );
+      } else {
+        let cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-      cart = cart.map((item) =>
-        Number(item.id) === Number(itemId)
-          ? { ...item, quantity: newQuantity }
-          : item,
-      );
+        cart = cart.map((item) =>
+          Number(item.id) === Number(itemId)
+            ? { ...item, quantity: newQuantity }
+            : item,
+        );
 
-      localStorage.setItem("cart", JSON.stringify(cart));
-      getProductInCart();
+        localStorage.setItem("cart", JSON.stringify(cart));
+      }
+    } catch {
+      return;
     }
+    getProductInCart();
   };
   const placeOrder = async () => {
+    // A service-worker update may not reload the page while an order is in
+    // flight: the request must be allowed to reach a definitive server result.
+    const releaseCriticalOperation = beginCriticalOperation("checkout");
+    const crossTab = getCrossTabCoordinator();
+    let releaseCrossTabCheckout = null;
     try {
       if (userId) {
         if (items.length != 0) {
@@ -179,6 +207,11 @@ export default function Cart({ setShowSignIn }) {
             return;
           }
           setLoading(true);
+          // Hold a cross-tab checkout lock. The update gate cannot be acquired
+          // while this lock is held, even from another tab.
+          if (crossTab) {
+            releaseCrossTabCheckout = await crossTab.beginCheckout("order");
+          }
           await postRequest(
             `/api/users/orders/place-order`,
             {
@@ -195,6 +228,8 @@ export default function Cart({ setShowSignIn }) {
       }
     } catch (error) {
     } finally {
+      if (releaseCrossTabCheckout) releaseCrossTabCheckout();
+      releaseCriticalOperation();
       setLoading(false);
     }
   };
@@ -216,6 +251,32 @@ export default function Cart({ setShowSignIn }) {
           />
         </div>
       )}
+
+      {!isOnline || loadError ? (
+        <div
+          data-testid="cart-offline-notice"
+          role="status"
+          className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900"
+        >
+          {!isOnline
+            ? userId
+              ? translate(
+                  "pwa_cart_offline_error",
+                  "تعذر تحميل سلة الحساب دون اتصال. أعد الاتصال لعرض السلة وإتمام الطلب.",
+                  "Your account cart could not be loaded offline. Reconnect to view it and complete checkout.",
+                )
+              : translate(
+                  "pwa_cart_local_note",
+                  "سلة الضيف محفوظة على هذا الجهاز. سجّل الدخول عند توفر الاتصال لمزامنتها.",
+                  "Your guest cart is saved on this device. Sign in when you are online to sync it.",
+                )
+            : translate(
+                "pwa_cart_load_error",
+                "تعذر تحميل السلة. حاول مرة أخرى.",
+                "The cart could not be loaded. Please try again.",
+              )}
+        </div>
+      ) : null}
       {/* <div className="flex justify-between py-5">
         <div className="">
           <h1 className="text-4xl font-bold mb-2"> {t("shoppingCart")} </h1>
@@ -380,8 +441,9 @@ export default function Cart({ setShowSignIn }) {
                 </span>
               </div>
               <button
+                disabled={checkoutDisabled}
                 className={`flex justify-center items-center w-full  py-2 rounded-full mt-10 text-white 
-                    ${items.length === 0
+                    ${checkoutDisabled
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-[#E76E7D] hover:bg-[#CD4354]"
                   }`}

@@ -7,7 +7,8 @@ import { getProductById } from "../../../../../lib/api";
  * guarantees the old id/name URL never serves duplicate product content.
  */
 export default async function LegacyProductPage({ params }) {
-  const product = await getProductById(params.id);
+  const { id } = await params;
+  const product = await getProductById(id);
 
   if (!product) {
     notFound();

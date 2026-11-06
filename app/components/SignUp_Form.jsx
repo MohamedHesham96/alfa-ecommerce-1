@@ -11,6 +11,7 @@ import Select from "react-select";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { resolveLanguage } from "../../utils/languageUtils";
+import { clearUserScopedCaches } from "../../lib/pwa/client";
 
 export default function SignUp({ popUp, setShowSignIn ,setOpenForm}) {
   const navigate = useRouter();
@@ -63,7 +64,7 @@ const router = useRouter();
             language: locale,
             governorateId: value.value,
           },
-          "",
+          {},
         );
         // localStorage.setItem("accessToken", response.data.accessToken);
         // console.log("accessToken", response.data.accessToken);
@@ -74,7 +75,7 @@ const router = useRouter();
               username: username,
               password: password,
             },
-            "",
+            {},
           );
           localStorage.setItem("accessToken", response.data.accessToken);
           localStorage.setItem("refreshToken", response.data.refreshToken);
@@ -96,6 +97,7 @@ const router = useRouter();
             "governorateId",
             response.data.userDetails.governorate.governorateId,
           );
+          await clearUserScopedCaches().catch(() => {});
 
 router.refresh();    
 setOpenForm(false)
@@ -115,7 +117,7 @@ setOpenForm(false)
             language: locale,
             governorateId: value.value,
           },
-          "",
+          {},
         );
         localStorage.setItem("accessToken", response.data.accessToken);
         navigate.push("/signin");

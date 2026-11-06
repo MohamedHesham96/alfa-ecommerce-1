@@ -57,7 +57,7 @@ export default function RecentlyViewed({ Products, title }) {
                   <div className="flex  justify-start gap-2 items-center ">
                     {item.oldPrice ? (
                       <div className="flex gap-2">
-                        <span className=" line-through text-xs  flex text-gray-400">
+                        <span className=" line-through text-xs  flex text-gray-500">
                           {item.oldPrice?.toLocaleString("en-US")}{" "}{t("currency")}
                         </span>
                       </div>

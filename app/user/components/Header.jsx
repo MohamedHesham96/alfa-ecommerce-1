@@ -96,36 +96,44 @@ export default function Header() {
     }
   }, [userId]);
   const deleteItemFormCart = async (itemLineId, productID) => {
-    if (userId) {
-      await deleteRequest(
-        `/api/shopCarts/deleteLine/${itemLineId}`,
-        t("message"),
-      );
-    } else {
-      let cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      cart = cart.filter((item) => Number(item.id) !== Number(productID));
-      localStorage.setItem("cart", JSON.stringify(cart));
+    try {
+      if (userId) {
+        await deleteRequest(
+          `/api/shopCarts/deleteLine/${itemLineId}`,
+          t("message"),
+        );
+      } else {
+        let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        cart = cart.filter((item) => Number(item.id) !== Number(productID));
+        localStorage.setItem("cart", JSON.stringify(cart));
+      }
+    } catch {
+      return;
     }
     getProductInCart();
   };
   const changeQuantity = async (itemLineId, itemId, newQuantity) => {
-    if (userId) {
-      await postRequest(
-        `/api/shopCarts/changeQuantity`,
-        {
-          itemLineId: itemLineId,
-          quantity: newQuantity,
-        },
-        "",
-      );
-    } else {
-      let cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      cart = cart.map((item) =>
-        Number(item.id) === Number(itemId)
-          ? { ...item, quantity: newQuantity }
-          : item,
-      );
-      localStorage.setItem("cart", JSON.stringify(cart));
+    try {
+      if (userId) {
+        await postRequest(
+          `/api/shopCarts/changeQuantity`,
+          {
+            itemLineId: itemLineId,
+            quantity: newQuantity,
+          },
+          "",
+        );
+      } else {
+        let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        cart = cart.map((item) =>
+          Number(item.id) === Number(itemId)
+            ? { ...item, quantity: newQuantity }
+            : item,
+        );
+        localStorage.setItem("cart", JSON.stringify(cart));
+      }
+    } catch {
+      return;
     }
     getProductInCart();
   };
@@ -150,7 +158,7 @@ setSearchInput(decodeSearchInput(lastPort))
   }, [username]);
 
   return (
-    <header className="bg-[#0d0625] ">
+    <header className="bg-[#0d0625] pt-[env(safe-area-inset-top)]">
       <div className="md:flex xs:hidden gap-2 flex-wrap gap-y-1 items-center text-white p-2 text-xs w-full justify-between">
         <div className="flex flex-wrap justify-start items-center gap-2">
           <Link

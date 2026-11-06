@@ -24,16 +24,18 @@ async function resolveProduct(slug) {
 }
 
 export async function generateMetadata({ params }) {
-  const slug = decodeURIComponent(params.slug);
-  const product = await resolveProduct(slug);
+  const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
+  const product = await resolveProduct(decodedSlug);
   return buildProductMetadata(product);
 }
 
 export default async function ProductPage({ params }) {
-  const slug = decodeURIComponent(params.slug);
-  const product = await resolveProduct(slug);
+  const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
+  const product = await resolveProduct(decodedSlug);
 
-  if (product.seoCode && product.seoCode !== slug) {
+  if (product.seoCode && product.seoCode !== decodedSlug) {
     permanentRedirect(`/products/${encodeURIComponent(product.seoCode)}`);
   }
 

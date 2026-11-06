@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import { useLanguage } from "../../../context/LanguageContext.js";
 import { postRequest } from "../../../utils/requestsUtils.js";
 import { useNamePageInAdminContext } from "../../../context/namePageInAdmin.jsx";
@@ -82,7 +82,7 @@ export default function Header({ page_title }) {
   // });
 
   return (
-    <header className="md:min-h-[70px] xs:min-h-[50px] h-auto flex flex-wrap justify-between items-center gap-2 px-5 py-2 font-semibold w-full bg-[#204272] text-white  border-b-[1px]">
+    <header className="md:min-h-[70px] xs:min-h-[50px] h-auto flex flex-wrap justify-between items-center gap-2 px-5 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] font-semibold w-full bg-[#204272] text-white border-b-[1px]">
       <h1 id="page-title" className="md:text-2xl xs:text-lg break-words min-w-0 ">
         {t(selectedNamePage)}
       </h1>

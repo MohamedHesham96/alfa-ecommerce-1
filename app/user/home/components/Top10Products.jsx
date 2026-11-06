@@ -43,7 +43,7 @@ export default function Top10Products({ Products, section, href }) {
                                 <div className="flex  justify-start gap-2 items-center ">
                                     {product.oldPrice ? (
                                         <div className="flex gap-2">
-                                            <span className=" line-through text-xs  flex text-gray-400">
+                                            <span className=" line-through text-xs  flex text-gray-500">
                                                 {product.oldPrice?.toLocaleString("en-US")}{" "}{t("currency")}
                                             </span>
                                         </div>

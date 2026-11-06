@@ -131,7 +131,9 @@ export default function ProductCard({ productInfo, favorite, priority = false })
         //   navigate.push("/user/cart");
         // }
       }
+      return true;
     } catch (error) {
+      return false;
     } finally {
       setLoading(false);
     }
@@ -391,8 +393,11 @@ export default function ProductCard({ productInfo, favorite, priority = false })
           "
                             onClick={(e) => {
                               e.stopPropagation();
-                              addToCart(productInfo?.itemId);
-                              setIsCartOpen(true);
+                              addToCart(productInfo?.itemId).then((added) => {
+                                // Never open a success cart drawer when the
+                                // server rejected the mutation (e.g. offline).
+                                if (added) setIsCartOpen(true);
+                              });
                             }}
                           >
                             <span
@@ -462,7 +467,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
             <Link
               href={productHref}
               onClick={(event) => event.stopPropagation()}
-              className="transition-colors hover:text-[#E14A5C]"
+              className="inline-flex min-h-6 items-center py-0.5 transition-colors hover:text-[#E14A5C]"
             >
               {displayName?.length <= 29
                 ? displayName
@@ -474,7 +479,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
               <Link
                 href={categoryHref}
                 onClick={(event) => event.stopPropagation()}
-                className="transition-colors hover:text-[#E14A5C]"
+                className="inline-flex min-h-6 items-center py-0.5 transition-colors hover:text-[#E14A5C]"
               >
                 {locale === "ar"
                   ? productInfo?.itemCategory?.nameAr
@@ -507,7 +512,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
                 <div className="flex  justify-center gap-2 items-center flex-wrap ">
                   {productInfo?.oldPrice ? (
                     <div className="flex gap-2">
-                      <span className=" line-through text-sm  flex text-gray-400">
+                      <span className=" line-through text-sm  flex text-gray-500">
                         {productInfo?.oldPrice.toLocaleString("en-US")}{" "}{t("currency")}
                       </span>
                     </div>
