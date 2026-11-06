@@ -1,10 +1,14 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { FiArrowUpRight } from "react-icons/fi";
+import { useLanguage } from "../../context/LanguageContext";
 import { categoryPath, productPath, productDisplayName } from "../../lib/seo";
 import { getThumbnailUrl } from "../../utils/functions";
 
 export default function HomeSeoIntro({ categories = [], products = [] }) {
+  const { locale, t } = useLanguage();
   const visibleCategories = categories
     .filter((category) => Number(category.itemsCount || 0) > 0)
     .slice(0, 6);
@@ -32,11 +36,10 @@ export default function HomeSeoIntro({ categories = [], products = [] }) {
                 id="home-seo-title"
                 className="text-[17px] font-semibold leading-7 text-[#20161a] sm:text-[19px]"
               >
-                ألفا جروب تكنولوجي – إلكترونيات وأجهزة منزلية بأسعار تنافسية
+                {t("home_seo_title")}
               </h1>
               <p className="mt-1.5 max-w-2xl text-[12px] leading-6 text-slate-600 sm:text-[13px]">
-                تسوق أجهزة استقبال وشاشات وكابلات وأجهزة منزلية وإلكترونيات من
-                ألفا جروب تكنولوجي، بأسعار ومواصفات واضحة.
+                {t("home_seo_description")}
               </p>
             </div>
           </div>
@@ -46,15 +49,15 @@ export default function HomeSeoIntro({ categories = [], products = [] }) {
             prefetch={false}
             className="inline-flex w-fit shrink-0 items-center gap-1 rounded-full bg-[#CD4354] px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-[#b53646] sm:mt-1"
           >
-            كل المنتجات
+            {t("all_products")}
             <FiArrowUpRight aria-hidden="true" className="h-3.5 w-3.5" />
           </Link>
         </div>
 
         {visibleCategories.length > 0 ? (
-          <nav aria-label="تصفح أقسام المتجر" className="relative mt-5">
+          <nav aria-label={t("browse_store_categories")} className="relative mt-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              تسوق حسب القسم
+              {t("shop_by_category")}
             </p>
             <ul className="mt-2.5 grid grid-cols-3 gap-2 sm:grid-cols-6">
               {visibleCategories.map((category) => (
@@ -78,7 +81,9 @@ export default function HomeSeoIntro({ categories = [], products = [] }) {
                       ) : null}
                     </span>
                     <span className="line-clamp-2 min-w-0 text-[13px] font-medium leading-5 text-slate-700 sm:text-sm">
-                      {category.nameAr || category.nameEn}
+                      {locale === "ar"
+                        ? category.nameAr || category.nameEn
+                        : category.nameEn || category.nameAr}
                     </span>
                   </Link>
                 </li>
@@ -90,7 +95,7 @@ export default function HomeSeoIntro({ categories = [], products = [] }) {
         {visibleProducts.length > 0 ? (
           <div className="relative mt-4 border-t border-slate-100 pt-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              منتجات حديثة
+              {t("latest_products")}
             </p>
             <ul className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {visibleProducts.map((product) => {
@@ -116,7 +121,7 @@ export default function HomeSeoIntro({ categories = [], products = [] }) {
                         ) : null}
                       </span>
                       <span className="line-clamp-2 min-w-0 text-[11px] font-medium leading-4 text-slate-700">
-                        {productDisplayName(product, "ar")}
+                        {productDisplayName(product, locale)}
                       </span>
                     </Link>
                   </li>
