@@ -11,19 +11,29 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import HomePage from "../user/home/page";
 
-export default function HomePageClient({ children, initialSliderImages = [] }) {
+export default function HomePageClient({
+  children,
+  initialSliderImages = [],
+  initialCategories = [],
+  initialOffers = [],
+  initialContact = null,
+}) {
   const router = useRouter();
-  const [whatsAppUrl, setWhatsAppUrl] = useState();
+  const [contact, setContact] = useState(initialContact);
   const [role, setRole] = useState();
 
-  const getWhatsappUrl = async () => {
-    const response = await getRequest("/api/public/contact");
-    setWhatsAppUrl(response?.data?.whatsappURL);
-  };
-
   useEffect(() => {
-    getWhatsappUrl();
-  }, []);
+    if (initialContact) return undefined;
+    let cancelled = false;
+    getRequest("/api/public/contact")
+      .then((response) => {
+        if (!cancelled) setContact(response?.data || null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [initialContact]);
 
   useEffect(() => {
     setRole(localStorage.role);
@@ -62,12 +72,16 @@ export default function HomePageClient({ children, initialSliderImages = [] }) {
             <Header />
             <main className="mx-auto w-full min-w-0 max-w-[1500px] overflow-x-clip pb-20 sm:pb-0">
               {children}
-              <HomePage initialSliderImages={initialSliderImages} />
+              <HomePage
+                initialSliderImages={initialSliderImages}
+                initialCategories={initialCategories}
+                initialOffers={initialOffers}
+              />
             </main>
 
-            {whatsAppUrl ? (
+            {contact?.whatsappURL ? (
               <a
-                href={whatsAppUrl}
+                href={contact.whatsappURL}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="واتساب"
@@ -77,7 +91,7 @@ export default function HomePageClient({ children, initialSliderImages = [] }) {
               </a>
             ) : null}
             <footer id="footer" className="w-full bg-white pb-20 sm:pb-0">
-              <Footer />
+              <Footer initialContact={contact} />
             </footer>
             <BottomNav />
             <Menu />

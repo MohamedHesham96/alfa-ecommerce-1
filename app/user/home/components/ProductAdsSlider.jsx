@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -26,44 +26,69 @@ const SHELL_CLASS_NAME =
 const resolveProductImage = (product) =>
   product?.mainImageURL || product?.images?.[0]?.imageUrl || "";
 
-export default function ProductAdsSlider() {
+export default function ProductAdsSlider({ offers = [] }) {
   const { t, locale } = useLanguage();
 
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(false);
+  const shellRef = useRef(null);
 
   const [productSwiper, setProductSwiper] = useState(null);
   const [imageSwiper, setImageSwiper] = useState(null);
 
   const [activeIndex, setActiveIndex] = useState(0);
 
+  // This section sits well below the fold. Do not spend six API requests on
+  // it until the user is close enough to see it.
+  useEffect(() => {
+    const node = shellRef.current;
+    if (!node) return undefined;
+    if (typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setVisible(true);
+        observer.disconnect();
+      },
+      { rootMargin: "400px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   const fetchSlides = useCallback(async () => {
     try {
       setLoading(true);
 
-      const res = await getRequest("/api/public/offers");
+      let offersList = offers;
+      if (!offersList.length) {
+        const res = await getRequest("/api/public/offers");
+        offersList = res.data || [];
+      }
 
-      const offers = (res.data || [])
+      const eligibleOffers = offersList
         .filter((offer) => offer.number >= PRODUCT_ADS_MIN_NUMBER)
         .sort((a, b) => a.number - b.number);
 
-      const slidesData = [];
-
-      for (const offer of offers) {
-        if (!offer.itemId) continue;
-
-        try {
-          const pRes = await getProductDetails(offer.itemId);
-          const product = pRes.data || null;
-
-          if (product || offer.imageUrl) {
-            slidesData.push({
-              ...offer,
-              product,
-            });
-          }
-        } catch (error) {}
-      }
+      const slidesData = (
+        await Promise.all(
+          eligibleOffers.map(async (offer) => {
+            if (!offer.itemId) return null;
+            try {
+              const pRes = await getProductDetails(offer.itemId);
+              const product = pRes.data || null;
+              if (!product && !offer.imageUrl) return null;
+              return { ...offer, product };
+            } catch {
+              return offer.imageUrl ? { ...offer, product: null } : null;
+            }
+          }),
+        )
+      ).filter(Boolean);
 
       setSlides(slidesData);
     } catch (error) {
@@ -71,11 +96,12 @@ export default function ProductAdsSlider() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [offers]);
 
   useEffect(() => {
+    if (!visible) return;
     fetchSlides();
-  }, [fetchSlides]);
+  }, [fetchSlides, visible]);
 
   // // ==========================================
   // // AUTOPLAY - الاتنين يتحركوا مع بعض
@@ -110,7 +136,7 @@ export default function ProductAdsSlider() {
 
   if (loading) {
     return (
-      <div className={SHELL_CLASS_NAME}>
+      <div ref={shellRef} className={SHELL_CLASS_NAME}>
         <div className="w-full h-full bg-gray-100 rounded-3xl animate-pulse" />
       </div>
     );
@@ -118,7 +144,7 @@ export default function ProductAdsSlider() {
 
   if (!slides.length) {
     return (
-      <div className={SHELL_CLASS_NAME}>
+      <div ref={shellRef} className={SHELL_CLASS_NAME}>
         <div className="w-full h-full bg-white rounded-3xl flex justify-center items-center text-gray-400">
           {t("product_ads")}
         </div>
@@ -127,7 +153,7 @@ export default function ProductAdsSlider() {
   }
 
   return (
-    <div className={SHELL_CLASS_NAME}>
+    <div ref={shellRef} className={SHELL_CLASS_NAME}>
 
       {/* ================================
           PRODUCT SWIPER
@@ -224,8 +250,8 @@ export default function ProductAdsSlider() {
                         src={largeSrc}
                         alt=""
                         fill
-                        sizes="(max-width: 1024px) 100vw, 60vw"
-                        quality={85}
+                        sizes="(max-width: 1024px) 60vw, 420px"
+                        quality={75}
                         className="object-cover"
                       />
                     ) : (
@@ -265,12 +291,17 @@ export default function ProductAdsSlider() {
 
               setActiveIndex(index);
             }}
-            className={`rounded-full transition-all duration-300 ${
-              index === activeIndex
-                ? "w-2.5 h-2.5 bg-gray-900"
-                : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
-            }`}
-          />
+            className="flex h-6 w-6 items-center justify-center rounded-full"
+          >
+            <span
+              aria-hidden="true"
+              className={`block rounded-full transition-all duration-300 ${
+                index === activeIndex
+                  ? "w-2.5 h-2.5 bg-gray-900"
+                  : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
+              }`}
+            />
+          </button>
         ))}
       </div>
 

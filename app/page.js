@@ -1,6 +1,12 @@
 import HomePageClient from "./components/HomePageClient";
 import HomeSeoIntro from "./components/HomeSeoIntro";
-import { getAllCategories, getRecentProducts, getSliderImages } from "../lib/api";
+import {
+  getAllCategories,
+  getContact,
+  getOffers,
+  getRecentProducts,
+  getSliderImages,
+} from "../lib/api";
 import {
   SITE_URL,
   SITE_NAME_AR,
@@ -9,8 +15,13 @@ import {
   serializeJsonLd,
 } from "../lib/seo";
 
+// The route shell contains no prices, inventory, or user data: product
+// prices and availability are fetched live in the browser. Caching the shell
+// lets Next serve the pre-built document instead of re-rendering it for every
+// visitor, which is important because the origin has no CDN cache in front of
+// it. The 5-minute window only affects non-transactional content (slider
+// images, category names, SEO copy) and is revalidated in the background.
 export const revalidate = 300;
-export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: {
@@ -39,10 +50,12 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  const [categories, products, sliderImages] = await Promise.all([
+  const [categories, products, sliderImages, offers, contact] = await Promise.all([
     getAllCategories().catch(() => []),
     getRecentProducts().catch(() => []),
     getSliderImages().catch(() => []),
+    getOffers().catch(() => []),
+    getContact().catch(() => null),
   ]);
   const breadcrumbs = [{ name: "الرئيسية", url: SITE_URL }];
 
@@ -54,7 +67,12 @@ export default async function HomePage() {
           __html: serializeJsonLd(buildBreadcrumbJsonLd(breadcrumbs)),
         }}
       />
-      <HomePageClient initialSliderImages={sliderImages}>
+      <HomePageClient
+        initialSliderImages={sliderImages}
+        initialCategories={categories}
+        initialOffers={offers}
+        initialContact={contact}
+      >
         <HomeSeoIntro categories={categories} products={products} />
       </HomePageClient>
     </>

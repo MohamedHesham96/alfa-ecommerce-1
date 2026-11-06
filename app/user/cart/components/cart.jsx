@@ -11,7 +11,6 @@ import {
   deleteRequest,
 } from "../../../../utils/requestsUtils";
 import { LuLoader } from "react-icons/lu";
-import "aos/dist/aos.css";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 // import Link from "next/link";

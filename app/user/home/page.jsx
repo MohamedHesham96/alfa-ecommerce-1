@@ -4,28 +4,30 @@
 // Imports - React / Next.js
 // ==============================
 import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 
 // ==============================
 // Imports - Components
 // ==============================
 import BestPick from "./components/BestPick";
-import ProductShowcase from "./components/ProductShowcase";
-import Top10Products from "./components/Top10Products";
-import SiteFeatures from "./components/SiteFeatures";
-import TopDiscounted from "./components/TopDiscounted";
 import ImageSlider from "./components/ImageSlider";
 import CategoriesSection from "./components/CategoriesSection";
-import ProductAdsSlider from "./components/ProductAdsSlider";
-import ReviewsClients from "./components/ReviewsClients";
-import FeaturedProducts from "./components/FeatuerProducts";
-import HomeSkeleton from "./components/skeletons/HomeSkeleton";
+import DeferredMount from "./components/DeferredMount";
 import AdHeroSkeleton from "./components/skeletons/AdHeroSkeleton";
-import CategorySkeleton from "./components/skeletons/CategorySkeleton";
 import BestPickSkeleton from "./components/skeletons/BestPickSkeleton";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
 import Link from "next/link";
+
+// Everything below the hero is mounted on demand (see DeferredMount) and its
+// JavaScript is split into separate chunks. This keeps the initial hydration
+// focused on the header, hero, and the sections a visitor can actually see.
+const ProductShowcase = dynamic(() => import("./components/ProductShowcase"));
+const Top10Products = dynamic(() => import("./components/Top10Products"));
+const SiteFeatures = dynamic(() => import("./components/SiteFeatures"));
+const TopDiscounted = dynamic(() => import("./components/TopDiscounted"));
+const ProductAdsSlider = dynamic(() => import("./components/ProductAdsSlider"));
+const ReviewsClients = dynamic(() => import("./components/ReviewsClients"));
+const FeaturedProducts = dynamic(() => import("./components/FeatuerProducts"));
 
 // ==============================
 // Imports - Contexts / hooks
@@ -36,15 +38,12 @@ import { useLanguage } from "../../../context/LanguageContext";
 // Imports - Utilities / helpers
 // ==============================
 import {
-  getCategories,
   getFeatuerProducts,
   getProductDetails,
   getSliderImage,
-  getThumbnailUrl,
   getTopRatedByCategory,
 } from "../../../utils/functions";
 import { getRequest } from "../../../utils/requestsUtils";
-import "aos/dist/aos.css";
 import { productPath } from "../../../lib/seo";
 
 // ==============================
@@ -96,6 +95,21 @@ const EMPTY_ADS = {
   },
 };
 
+const buildAdsMap = (adsList = []) => {
+  const adsMap = {};
+  adsList.forEach((ad) => {
+    if (ad.number >= AD_RANGE.min && ad.number <= AD_RANGE.max) {
+      adsMap[`ad${ad.number}`] = {
+        imageUrl: ad.imageUrl,
+        itemId: ad.itemId,
+        title: ad.title,
+        titleAr: ad.titleAr,
+      };
+    }
+  });
+  return adsMap;
+};
+
 // ==============================
 // Above-the-fold hero
 // ==============================
@@ -107,10 +121,20 @@ function HomeHero({
   ad1Product,
   categories,
   topLast30DayItems,
-  loading,
+  heroLoading,
   t,
   locale,
 }) {
+  const hasAd = Boolean(ads.ad1.imageUrl);
+  const adHref = ads.ad1.itemId
+    ? productPath({
+        ...ad1Product,
+        itemId: ads.ad1.itemId,
+        nameEn: ad1Product.nameEn || ads.ad1.title,
+        nameAr: ad1Product.nameAr || ads.ad1.titleAr,
+      })
+    : "/products";
+
   return (
     <div className="py-7">
       <div className="flex lg:flex-row xs:flex-col justify-around gap-4 items-center w-full">
@@ -122,61 +146,59 @@ function HomeHero({
         <div className="flex flex-col  gap-3 lg:w-[60%] xs:w-full">
           <div className="w-full h-full">
             <div className="flex md:flex-row xs:flex-col gap-3 justify-center items-center h-full  w-full">
-              {loading ? (
-                <>
-                  <AdHeroSkeleton />
-                  <CategorySkeleton />
-                </>
+              {heroLoading && !hasAd ? (
+                <AdHeroSkeleton />
               ) : (
-                <>
-                  {/* Ads */}
-                  <div className="group xl:w-[580px] lg:w-[500px] xs:w-full h-[350px] rounded-2xl  cursor-pointer
-                  text-[#EAEBB8] bg-gradient-to-b from-[#2F4D4C] via-[#263F40] to-[#0F1B1B]
-                  flex flex-col justify-between items-center relative overflow-hidden"
-                  >
-                    <Link href={productPath(ad1Product)}>
-                      <div className="w-full text-center p-5">
-                        <span className="text-sm">{t("Special_Offer")} </span>
-                        {ad1Product && (
-                          <div className="flex flex-col items-center gap-2 my-3 px-4 text-center">
-                            <p className="text-2xl font-semibold">
-                              {locale === "ar"
-                                ? ad1Product.nameAr : ad1Product.nameEn
-                              }
-                            </p>
-                            <div className="flex items-center gap-2">
+                <div className="group xl:w-[580px] lg:w-[500px] xs:w-full h-[350px] rounded-2xl  cursor-pointer
+                text-[#EAEBB8] bg-gradient-to-b from-[#2F4D4C] via-[#263F40] to-[#0F1B1B]
+                flex flex-col justify-between items-center relative overflow-hidden"
+                >
+                  <Link href={adHref} prefetch={false}>
+                    <div className="w-full min-h-[110px] text-center p-5">
+                      <span className="text-sm">{t("Special_Offer")} </span>
+                      {ad1Product && (
+                        <div className="flex flex-col items-center gap-2 my-3 px-4 text-center">
+                          <p className="text-2xl font-semibold">
+                            {locale === "ar"
+                              ? ad1Product.nameAr : ad1Product.nameEn
+                            }
+                          </p>
+                          <div className="flex items-center gap-2">
 
-                              <span className="text-sm ">
-                                {ad1Product.price?.toLocaleString("en-US")}.00{" "}
-                                {t("currency")}
-                              </span>
-                            </div>
+                            <span className="text-sm ">
+                              {ad1Product.price?.toLocaleString("en-US")}.00{" "}
+                              {t("currency")}
+                            </span>
                           </div>
-                        )}
-                      </div>
-                      <div className="w-[230px] h-[270px] group-hover:scale-105 duration-500 transition-all relative">
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-[230px] h-[270px] group-hover:scale-105 duration-500 transition-all relative">
+                      {hasAd ? (
                         <Image
                           src={formatAdImageUrl(ads.ad1.imageUrl)}
                           alt="Advertisement"
                           fill
-                          sizes="(max-width: 640px) 100vw, 500px"
+                          sizes="230px"
+                          quality={75}
                           className="object-cover"
                         />
-                      </div>
+                      ) : null}
+                    </div>
 
-                    </Link>
-                  </div>
-
-                  {/* Categories */}
-                  <CategoriesSection categories={categories} />
-                </>
+                  </Link>
+                </div>
               )}
+
+              {/* Categories come from the server and must not wait for the
+                  live product/offer requests. */}
+              <CategoriesSection categories={categories} />
             </div>
           </div>
 
           {/* Best pick of the week */}
           <div>
-            {loading ? (
+            {heroLoading && !topLast30DayItems.length ? (
               <BestPickSkeleton />
             ) : (
               <BestPick Products={topLast30DayItems} />
@@ -191,7 +213,11 @@ function HomeHero({
 // ==============================
 // Reusable components
 // ==============================
-export default function Homepage({ initialSliderImages = [] }) {
+export default function Homepage({
+  initialSliderImages = [],
+  initialCategories = [],
+  initialOffers = [],
+}) {
   // ==============================
   // Contexts and hooks
   // ==============================
@@ -201,7 +227,8 @@ export default function Homepage({ initialSliderImages = [] }) {
   // State
   // ==============================
   const [imagesSliders, setImagesSliders] = useState(initialSliderImages);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(initialCategories);
+  const [offers, setOffers] = useState(initialOffers);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [newProducts, setNewProducts] = useState([]);
   const [topHomeApplianceItems, setTopHomeApplianceItems] = useState([]);
@@ -212,62 +239,47 @@ export default function Homepage({ initialSliderImages = [] }) {
   const [items, setItems] = useState();
   const [topRatingItems, setTopRatingItems] = useState();
   const [recentWatchedProducts, setRecentWatchedProducts] = useState([]);
-  const [ads, setAds] = useState(EMPTY_ADS);
+  const [ads, setAds] = useState(() => ({
+    ...EMPTY_ADS,
+    ...buildAdsMap(initialOffers),
+  }));
   const [ad1Product, setAd1Product] = useState({
-    nameEn:"",
-    nameAr:"",
-    brand:""
+    nameEn: "",
+    nameAr: "",
+    brand: "",
   });
   const [ad3Product, setAd3Product] = useState({
-    name:"",
-    brand:""
+    name: "",
+    brand: "",
   });
   const [ad4Product, setAd4Product] = useState({
-    name:"",
-    brand:""
+    name: "",
+    brand: "",
   });
   const [ad5Product, setAd5Product] = useState({
-    name:"",
-    brand:""
+    name: "",
+    brand: "",
   });
-  const [loading, setLoading] = useState(true);
+  // The hero has its own skeleton so it never waits for the eight
+  // below-the-fold catalogue requests. Prices are always fetched live.
+  const [heroLoading, setHeroLoading] = useState(true);
+  const [contentLoading, setContentLoading] = useState(true);
   const [error, setError] = useState(false);
   const requestIdRef = useRef(0);
+  const offersRef = useRef(initialOffers);
+  const slidersRef = useRef(initialSliderImages);
+  const categoriesRef = useRef(initialCategories);
   const [productType, setProductType] = useState("mustWatchedItems");
-  // ==============================
-  // Derived values
-  // ==============================
-  // بيتقرأ بعد الـ mount بس عشان مفيش اختلاف بين السيرفر والمتصفح
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const isLoggedInRef = useRef(false);
-
-  // ==============================
-  // Helper functions
-  // ==============================
-  const buildAdsMap = (adsList = []) => {
-    const adsMap = {};
-    adsList.forEach((ad) => {
-      if (ad.number >= AD_RANGE.min && ad.number <= AD_RANGE.max) {
-        adsMap[`ad${ad.number}`] = {
-          imageUrl: ad.imageUrl,
-          itemId: ad.itemId,
-          title: ad.title,
-          titleAr: ad.titleAr,
-        };
-      }
-    });
-    return adsMap;
-  };
 
   // ==============================
   // API / data fetching logic
   // ==============================
   const fetchHomepageData = useCallback(async () => {
-    // كل تشغيل جديد للصفحة يلغي النتيجة القديمة حتى لا تتغير البيانات بعد الانتقال
     const requestId = ++requestIdRef.current;
     const isStale = () => requestId !== requestIdRef.current;
 
-    // فشل طلب واحد مايلغيش الصفحة كلها، وبيرجع قيمة بديلة فاضية
     const safeRequest = async (label, request, fallback) => {
       try {
         return await request();
@@ -281,29 +293,34 @@ export default function Homepage({ initialSliderImages = [] }) {
     const EMPTY_LIST = { data: [] };
 
     try {
-      setLoading(true);
       setError(false);
+      setHeroLoading(true);
+      setContentLoading(true);
 
-      // ==============================
-      // 1) البيانات الأساسية
-      // ==============================
-      const [imagesRes, productsRes, adsRes] = await Promise.all([
-        safeRequest("sliderImages", () => getSliderImage(), []),
-        safeRequest("featuredProducts", () => getFeatuerProducts(12), EMPTY_CONTENT),
-        safeRequest("offers", () => getRequest("/api/public/offers"), EMPTY_LIST),
-      ]);
+      // app/page.js already provides the server-rendered slider. Only fall
+      // back to a client request when the server could not load it.
+      if (!slidersRef.current.length) {
+        safeRequest("sliderImages", () => getSliderImage(), []).then((sliderRes) => {
+          if (isStale() || !sliderRes?.length) return;
+          slidersRef.current = sliderRes;
+          setImagesSliders(sliderRes);
+        });
+      }
 
-      if (isStale()) return;
+      let offersList = offersRef.current;
+      if (!offersList.length) {
+        const adsRes = await safeRequest(
+          "offers",
+          () => getRequest("/api/public/offers"),
+          EMPTY_LIST,
+        );
+        if (isStale()) return;
+        offersList = adsRes?.data || [];
+        offersRef.current = offersList;
+        setOffers(offersList);
+        setAds((prev) => ({ ...prev, ...buildAdsMap(offersList) }));
+      }
 
-      const offersList = adsRes?.data || [];
-
-      setImagesSliders(imagesRes || []);
-      setFeaturedProducts(productsRes?.data?.content || []);
-      setAds((prev) => ({ ...prev, ...buildAdsMap(offersList) }));
-
-      // ==============================
-      // 2) منتجات الإعلانات
-      // ==============================
       const fetchAdProduct = async (number) => {
         const itemId = offersList.find((ad) => ad.number === number)?.itemId;
 
@@ -318,50 +335,67 @@ export default function Homepage({ initialSliderImages = [] }) {
         return res?.data || null;
       };
 
-      const [ad1, ad3, ad4, ad5] = await Promise.all([
-        fetchAdProduct(1),
-        fetchAdProduct(3),
-        fetchAdProduct(4),
-        fetchAdProduct(5),
-      ]);
+      // Hero data: offer images (server-provided), live ad prices, and the
+      // best-pick prices. Keeping prices client-side avoids stale pricing.
+      const heroPromise = (async () => {
+        const [ad1, ad3, ad4, ad5, last30] = await Promise.all([
+          fetchAdProduct(1),
+          fetchAdProduct(3),
+          fetchAdProduct(4),
+          fetchAdProduct(5),
+          safeRequest(
+            "topRatedLast30Days",
+            () => getRequest("/api/public/items/topRated/last30Days"),
+            EMPTY_CONTENT,
+          ),
+        ]);
 
+        if (isStale()) return;
+
+        if (ad1) setAd1Product(ad1);
+
+        [ad3, ad4, ad5].forEach((adProduct, index) => {
+          if (!adProduct) return;
+
+          const setter = [setAd3Product, setAd4Product, setAd5Product][index];
+
+          setter((prev) => ({
+            ...prev,
+            brand: adProduct.brand || null,
+            name: adProduct.nameEn || null,
+            seoCode: adProduct.seoCode || null,
+            itemId: adProduct.itemId || null,
+          }));
+        });
+
+        setTopLast30DayItems(last30?.data?.content || []);
+      })();
+
+      await heroPromise;
       if (isStale()) return;
+      setHeroLoading(false);
 
-      if (ad1) setAd1Product(ad1);
-
-      [ad3, ad4, ad5].forEach((adProduct, index) => {
-        if (!adProduct) return;
-
-        const setter = [setAd3Product, setAd4Product, setAd5Product][index];
-
-        setter((prev) => ({
-          ...prev,
-          brand: adProduct.brand || null,
-          name: adProduct.nameEn || null,
-          seoCode: adProduct.seoCode || null,
-          itemId: adProduct.itemId || null,
-        }));
-      });
-
-      // ==============================
-      // 3) باقي الأقسام (كلها مستقلة وبتتحمل مع بعض)
-      // ==============================
+      // Start below-the-fold catalogue requests only after the hero is ready
+      // so they do not compete with the LCP image and hero text.
       const [
         categoryRes,
+        productsRes,
         newProductsRes,
         topHomeApplianceItemsRes,
         topRatingProductsRes,
         mustWatchedRes,
         topDiscountedRes,
         soldItemRes,
-        topLast30DaysRes,
         recentWatchedProductsRes,
       ] = await Promise.all([
-        safeRequest(
-          "itemCategory",
-          () => getRequest("/api/public/itemCategory/latest"),
-          EMPTY_LIST,
-        ),
+        categoriesRef.current.length
+          ? Promise.resolve(null)
+          : safeRequest(
+              "itemCategory",
+              () => getRequest("/api/public/itemCategory/latest"),
+              EMPTY_LIST,
+            ),
+        safeRequest("featuredProducts", () => getFeatuerProducts(12), EMPTY_CONTENT),
         safeRequest("recentItems", () => getRequest("/api/public/items/recent"), EMPTY_LIST),
         safeRequest(
           "topRatedByCategory",
@@ -372,7 +406,6 @@ export default function Homepage({ initialSliderImages = [] }) {
         safeRequest("topWatched", () => getRequest("/api/public/items/topWatched"), EMPTY_CONTENT),
         safeRequest("topDiscounted", () => getRequest("/api/public/items/topDiscounted"), EMPTY_CONTENT),
         safeRequest("topSold", () => getRequest("/api/public/items/topSold"), EMPTY_CONTENT),
-        safeRequest("topRatedLast30Days", () => getRequest("/api/public/items/topRated/last30Days"), EMPTY_CONTENT),
         isLoggedInRef.current
           ? safeRequest(
               "recentWatchedItems",
@@ -384,7 +417,11 @@ export default function Homepage({ initialSliderImages = [] }) {
 
       if (isStale()) return;
 
-      setCategories(categoryRes?.data || []);
+      if (categoryRes?.data) {
+        categoriesRef.current = categoryRes.data;
+        setCategories(categoryRes.data);
+      }
+      setFeaturedProducts(productsRes?.data?.content || []);
       setNewProducts(newProductsRes?.data || []);
       setTopHomeApplianceItems(topHomeApplianceItemsRes || []);
 
@@ -395,23 +432,33 @@ export default function Homepage({ initialSliderImages = [] }) {
       setMustWatchedItems(mustWatchedRes?.data?.content || []);
       setTopDiscountedItems(topDiscountedRes?.data?.content || []);
       setTopSoldItems(soldItemRes?.data?.content || []);
-      setTopLast30DayItems(topLast30DaysRes?.data?.content || []);
       setRecentWatchedProducts(recentWatchedProductsRes?.data || []);
     } catch (err) {
       console.error("Failed to fetch homepage data:", err);
-      setError(true);
+      if (!isStale()) setError(true);
     } finally {
-      // الـ skeleton يفضل ظاهر لحد ما كل الطلبات تخلص (أو تفشل)
-      if (!isStale()) setLoading(false);
+      if (!isStale()) {
+        setHeroLoading(false);
+        setContentLoading(false);
+      }
     }
   }, []);
 
   // ==============================
   // Event handlers
   // ==============================
-  const handleShowPopularProducts = () =>{ setItems(topRatingItems) , setProductType("popularProducts")};
-  const handleShowTopSoldItems = () => {setItems(topSoldItems) , setProductType("topSoldItems")};
-  const handleShowMustWatchedItems = () => {setItems(mustWatchedItems) , setProductType("mustWatchedItems")};
+  const handleShowPopularProducts = () => {
+    setItems(topRatingItems);
+    setProductType("popularProducts");
+  };
+  const handleShowTopSoldItems = () => {
+    setItems(topSoldItems);
+    setProductType("topSoldItems");
+  };
+  const handleShowMustWatchedItems = () => {
+    setItems(mustWatchedItems);
+    setProductType("mustWatchedItems");
+  };
 
   // ==============================
   // useEffect
@@ -426,22 +473,11 @@ export default function Homepage({ initialSliderImages = [] }) {
   useEffect(() => {
     fetchHomepageData();
 
-    // منع تحديث الحالة بعد مغادرة الصفحة
     return () => {
       requestIdRef.current += 1;
     };
   }, [fetchHomepageData]);
 
-  // ==============================
-  // Loading state
-  // ==============================
-  // The hero can render as soon as its server-provided slider data exists.
-  // Below-the-fold sections keep their skeleton until their own data arrives.
-  const heroReady = imagesSliders.length > 0 || !loading;
-
-  if (loading && !heroReady) return <HomeSkeleton showRecentViewed={isLoggedIn} />;
-
-  // ==============================
   // Return / JSX
   // ==============================
   return (
@@ -459,22 +495,29 @@ export default function Homepage({ initialSliderImages = [] }) {
         </div>
       )}
 
-      {heroReady ? (
-        <HomeHero
-          imagesSliders={imagesSliders}
-          ads={ads}
-          ad1Product={ad1Product}
-          categories={categories}
-          topLast30DayItems={topLast30DayItems}
-          loading={loading}
-          t={t}
-          locale={locale}
-        />
-      ) : null}
+      <HomeHero
+        imagesSliders={imagesSliders}
+        ads={ads}
+        ad1Product={ad1Product}
+        categories={categories}
+        topLast30DayItems={topLast30DayItems}
+        heroLoading={heroLoading}
+        t={t}
+        locale={locale}
+      />
 
-      {loading ? (
-        <HomeSkeleton showRecentViewed={isLoggedIn} showHero={false} />
+      {contentLoading ? (
+        // The hero is already visible. A full skeleton grid here added hundreds
+        // of DOM nodes to hydrate for content the visitor cannot see yet.
+        <div
+          className="w-full min-h-[3200px] flex items-start justify-center pt-16"
+          aria-busy="true"
+          aria-live="polite"
+        >
+          <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#CD4354] border-t-transparent" />
+        </div>
       ) : (
+        <DeferredMount minHeight={1600}>
         <>
 
       {/* ========================= Site Features ========================= */}
@@ -494,9 +537,9 @@ export default function Homepage({ initialSliderImages = [] }) {
                   src={IMAGE_BASE_URL + ads.ad2.imageUrl}
                   alt="Advertisement"
                   fill
-                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                   quality={85}
-                  className="object-fill"
+                  sizes="280px"
+                  quality={75}
+                  className="object-cover"
                 />
               )}
             </div>
@@ -546,7 +589,7 @@ export default function Homepage({ initialSliderImages = [] }) {
           </div>
           <div className="flex xl:flex-row xs:flex-col mt-10 gap-5 justify-between  items-start w-full">
             <div className="w-full h-[500px] bg-white rounded-3xl">
-              <ProductAdsSlider />
+              <ProductAdsSlider offers={offers} />
             </div>
             <div className="flex flex-col items-center gap-5 w-full">
               <Top10Products
@@ -559,6 +602,13 @@ export default function Homepage({ initialSliderImages = [] }) {
           </div>
         </section>
       </div>
+        </>
+        </DeferredMount>
+      )}
+
+      {contentLoading ? null : (
+        <DeferredMount minHeight={1600}>
+        <>
 
       {/* ========================= Promo Banner ========================= */}
       <section className="my-32">
@@ -572,7 +622,8 @@ export default function Homepage({ initialSliderImages = [] }) {
                   alt="Advertisement"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-fill"
+                  quality={75}
+                  className="object-cover"
                 />
               </div>
             ) : (
@@ -582,7 +633,7 @@ export default function Homepage({ initialSliderImages = [] }) {
               <h2 className="text-3xl font-bold">{ad3Product.brand} </h2>
 
               <h2 className=" text-center my-3">{locale === "ar" ? ads.ad3.titleAr : ads.ad3.title} </h2>
-             <Link className={ads.ad3.itemId ? "block" : "hidden"} href={productPath({...ad3Product, itemId: ads.ad3.itemId})}><button  className="text-white rounded-full bg-[#CD4354] hover:bg-[#c13b4a] w-[120px] py-3 px-5 mt-2 text-sm font-semibold ">{t("buyNow")} </button></Link>
+             <Link prefetch={false} className={ads.ad3.itemId ? "block" : "hidden"} href={productPath({...ad3Product, itemId: ads.ad3.itemId})}><button  className="text-white rounded-full bg-[#CD4354] hover:bg-[#c13b4a] w-[120px] py-3 px-5 mt-2 text-sm font-semibold ">{t("buyNow")} </button></Link>
             </div>
 
           </div>
@@ -594,7 +645,8 @@ export default function Homepage({ initialSliderImages = [] }) {
                   alt="Advertisement"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-fill"
+                  quality={75}
+                  className="object-cover"
                 />
               </div>
 
@@ -605,7 +657,7 @@ export default function Homepage({ initialSliderImages = [] }) {
               <h2 className="text-3xl font-bold">{ad4Product.brand} </h2>
 
               <h2 className=" text-center my-3">{locale === "ar" ? ads.ad4.titleAr : ads.ad4.title} </h2>
-             <Link className={ads.ad4.itemId ? "block" : "hidden"} href={productPath({...ad4Product, itemId: ads.ad4.itemId})}><button  className="text-white rounded-full bg-[#CD4354] hover:bg-[#c13b4a] w-[120px] py-3 px-5 mt-2 text-sm font-semibold ">{t("buyNow")} </button></Link>
+             <Link prefetch={false} className={ads.ad4.itemId ? "block" : "hidden"} href={productPath({...ad4Product, itemId: ads.ad4.itemId})}><button  className="text-white rounded-full bg-[#CD4354] hover:bg-[#c13b4a] w-[120px] py-3 px-5 mt-2 text-sm font-semibold ">{t("buyNow")} </button></Link>
             </div>
           </div>
           <div className="group cursor-pointer w-full flex flex-col justify-center items-center h-[500px] bg-white rounded-3xl  overflow-hidden p-5">
@@ -617,7 +669,8 @@ export default function Homepage({ initialSliderImages = [] }) {
                   alt="Advertisement"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-fill"
+                  quality={75}
+                  className="object-cover"
                 />
               </div>
             ) : (
@@ -627,7 +680,7 @@ export default function Homepage({ initialSliderImages = [] }) {
               <h2 className="text-3xl font-bold">{ad5Product.brand} </h2>
 
               <h2 className=" text-center my-3">{locale === "ar" ? ads.ad5.titleAr : ads.ad5.title} </h2>
-             <Link className={ads.ad5.itemId ? "block" : "hidden"} href={productPath({...ad5Product, itemId: ads.ad5.itemId})}><button  className="text-white rounded-full bg-[#CD4354] hover:bg-[#c13b4a] w-[120px] py-3 px-5 mt-2 text-sm font-semibold ">{t("buyNow")} </button></Link>
+             <Link prefetch={false} className={ads.ad5.itemId ? "block" : "hidden"} href={productPath({...ad5Product, itemId: ads.ad5.itemId})}><button  className="text-white rounded-full bg-[#CD4354] hover:bg-[#c13b4a] w-[120px] py-3 px-5 mt-2 text-sm font-semibold ">{t("buyNow")} </button></Link>
             </div>
 
           </div>
@@ -645,7 +698,7 @@ export default function Homepage({ initialSliderImages = [] }) {
             {/* <hr className="w-24 h-1 border-0 rounded-full bg-gradient-to-l from-red-200 via-red-400 to-red-200" /> */}
           </div>
           <div className="text-xs font-semibold">
-            <Link href="/user/products/section/morerecommendedproducts">{t("shopMore")} </Link>
+            <Link prefetch={false} href="/user/products/section/morerecommendedproducts">{t("shopMore")} </Link>
             <hr className="bg-red-500 h-[2px] border-none w-auto " />
           </div>
 
@@ -657,6 +710,7 @@ export default function Homepage({ initialSliderImages = [] }) {
       </section>
       <ReviewsClients/>
         </>
+        </DeferredMount>
       )}
     </div>
   );

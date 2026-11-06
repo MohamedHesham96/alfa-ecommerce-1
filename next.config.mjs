@@ -53,7 +53,7 @@ const nextConfig = {
   trailingSlash: false,
   images: {
     formats: ["image/avif", "image/webp"],
-    qualities: [75, 85],
+    qualities: [65, 75, 85],
     minimumCacheTTL: 2592000,
     // Only allow local media hosts in local/e2e builds. Production hosts must
     // remain blocked by Next.js 16's local-IP SSRF protection.

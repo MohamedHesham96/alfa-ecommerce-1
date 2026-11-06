@@ -5,7 +5,6 @@ import { FaRegCalendar } from "react-icons/fa";
 import { IoMdSearch } from "react-icons/io";
 import { VscCircleFilled } from "react-icons/vsc";
 import { postRequest } from "../../../../utils/requestsUtils";
-import "aos/dist/aos.css";
 import { useLanguage } from "../../../../context/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useIdContext } from "../../../../context/idContext";

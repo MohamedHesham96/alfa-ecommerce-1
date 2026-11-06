@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback } from "react";
 import { getProductDetails, getItemRatings } from "../../../../utils/functions";
 import { postRequest } from "../../../../utils/requestsUtils";
 import Image from "next/image";
-import "aos/dist/aos.css";
 import { useLanguage } from "../../../../context/LanguageContext";
 import ProductImages from "./ProductImages"
 import ProductInfo from "./ProductInfo"

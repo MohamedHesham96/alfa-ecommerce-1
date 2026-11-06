@@ -63,7 +63,7 @@ export default function BottomNav() {
           <span className="text-[11px] font-medium">{t("menu")}</span>
         </button>
 
-        <Link
+        <Link prefetch={false}
           href="/user/wishlist"
           className="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-gray-700"
         >
@@ -73,7 +73,7 @@ export default function BottomNav() {
           <span className="text-[11px] font-medium">{t("wishlist")}</span>
         </Link>
 
-        <Link
+        <Link prefetch={false}
           href="/user/cart"
           className="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-gray-700 relative"
         >

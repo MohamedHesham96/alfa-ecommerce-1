@@ -12,43 +12,54 @@ import { getRequest } from "../../../utils/requestsUtils";
 import { useLanguage } from "../../../context/LanguageContext";
 import { IoIosArrowDown, IoIosArrowRoundDown } from "react-icons/io";
 
-export default function Footer() {
+const EMPTY_CONTACT = {
+  phone: "",
+  email: "",
+  facebook: "",
+  instagram: "",
+  x: "",
+  whatsApp: "",
+  telegram: "",
+  youtube: "",
+};
+
+const toContactState = (data) => ({
+  phone: data?.phone || "",
+  email: data?.email || "",
+  facebook: data?.facebookURL || "",
+  instagram: data?.instagramURL || "",
+  x: data?.xurl || "",
+  whatsApp: data?.whatsappURL || "",
+  telegram: data?.telegramURL || "",
+  youtube: data?.youtubeURL || "",
+});
+
+export default function Footer({ initialContact = null }) {
   const { t } = useLanguage();
-  const [contact, setContact] = useState({
-    phone: "",
-    email: "",
-    facebook: "",
-    instagram: "",
-    x: "",
-    whatsApp: "",
-    telegram: "",
-    youtube: "",
-  });
+  const [contact, setContact] = useState(() =>
+    initialContact ? toContactState(initialContact) : EMPTY_CONTACT,
+  );
   const [show, setshow] = useState({
     quick_links: false,
     contact_us: false,
     my_account: false,
     customer_service: false,
   })
-  const getContact = async () => {
-    const response = await getRequest(`/api/public/contact`);
-    const resData = response.data;
-    setContact((prev) => ({
-      ...prev,
-      phone: resData.phone || "",
-      email: resData.email || "",
-      facebook: resData.facebookURL || "",
-      instagram: resData.instagramURL || "",
-      x: resData.xurl || "",
-      whatsApp: resData.whatsappURL || "",
-      telegram: resData.telegramURL || "",
-      youtube: resData.youtubeURL || "",
-    }));
-    // console.log(resData.facebookURL);
-  };
   useEffect(() => {
-    getContact();
-  }, []);
+    if (initialContact) {
+      setContact(toContactState(initialContact));
+      return undefined;
+    }
+    let cancelled = false;
+    getRequest(`/api/public/contact`)
+      .then((response) => {
+        if (!cancelled) setContact(toContactState(response?.data));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [initialContact]);
 
 
 
@@ -56,7 +67,7 @@ export default function Footer() {
     <div  className="bg-white text-black px-3 py-5 flex flex-col  w-full">
       <div className="flex  md:flex-row xs:flex-col  justify-between md:items-center xs:items-start xs:gap-5">
         <div className="flex items-center justify-start w-full flex-wrap min-w-0">
-          <Link href="/">
+          <Link prefetch={false} href="/">
             <div className="flex  items-start justify-start w-full ">
 
               <span className=" relative w-[60px] h-[60px]">
@@ -64,8 +75,8 @@ export default function Footer() {
                   src="/Images/logo.png"
                   alt="شعار ألفا جروب تكنولوجي"
                   fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-fill"
+                  sizes="60px"
+                  className="object-contain"
                 />
               </span>
             </div>
@@ -75,7 +86,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="flex justify-between items-center gap-2">
-          <Link
+          <Link prefetch={false}
             href={contact.facebook}
             target="_blank"
             rel="noopener noreferrer"
@@ -87,7 +98,7 @@ export default function Footer() {
               <FaFacebookF className="w-full h-full" />
             </span>
           </Link>
-          <Link
+          <Link prefetch={false}
             href={contact.whatsApp}
             target="_blank"
             rel="noopener noreferrer"
@@ -99,7 +110,7 @@ export default function Footer() {
               <FaWhatsapp className="w-full h-full" />
             </span>
           </Link>
-          <Link
+          <Link prefetch={false}
             href={contact.telegram}
             target="_blank"
             rel="noopener noreferrer"
@@ -112,7 +123,7 @@ export default function Footer() {
             </span>
           </Link>
 
-          <Link
+          <Link prefetch={false}
             href={contact.instagram}
             target="_blank"
             rel="noopener noreferrer"
@@ -125,7 +136,7 @@ export default function Footer() {
             </span>
           </Link>
 
-          <Link
+          <Link prefetch={false}
             href={contact.x}
             target="_blank"
             rel="noopener noreferrer"
@@ -137,7 +148,7 @@ export default function Footer() {
               <FaXTwitter className="w-full h-full" />
             </span>
           </Link>
-          <Link
+          <Link prefetch={false}
             href={contact.youtube}
             target="_blank"
             rel="noopener noreferrer"
@@ -175,13 +186,13 @@ export default function Footer() {
           </div>
           <div className={`flex-col  gap-2 w-full ${show.quick_links ? "flex duration-500 scale-x-100" : "hidden duration-500 "
             } md:flex`}>
-            <Link
+            <Link prefetch={false}
               href={"/"}
               className="hover:text-gray-800"
             >
               {t("homepage")}
             </Link>
-            <Link
+            <Link prefetch={false}
               href={"/#FeaturedProducts"}
               className="hover:text-gray-800"
             >
@@ -189,13 +200,13 @@ export default function Footer() {
             </Link>
 
 
-            <Link
+            <Link prefetch={false}
               href={"/#CategoriesSection"}
               className="hover:text-gray-800"
             >
               {t("categories")}{" "}
             </Link>
-            <Link
+            <Link prefetch={false}
               href={"/user/about"}
               className="hover:text-gray-800"
             >
@@ -221,25 +232,25 @@ export default function Footer() {
           <div className={`flex-col gap-2 w-full ${show.customer_service ? "flex duration-500 scale-x-100" : "hidden duration-500 "
             } md:flex`}>
 
-            <Link
+            <Link prefetch={false}
               href={"/user/ordershistory"}
               className="hover:text-gray-800"
             >
               {t("orders")}{" "}
             </Link>
-            <Link
+            <Link prefetch={false}
               href={"/user/returnorders"}
               className="hover:text-gray-8000"
             >
               {t("returns")}{" "}
             </Link>
-            <Link
+            <Link prefetch={false}
               href={"/user/about#Guarantee_Policy"}
               className="hover:text-gray-800"
             >
               {t("Guarantee_Policy")}
             </Link>
-            <Link
+            <Link prefetch={false}
               href={"/user/about#Return_Policy"}
               className="hover:text-gray-800"
             >
@@ -265,20 +276,20 @@ export default function Footer() {
               }`}><IoIosArrowDown /></span>          </div>
           <div className={`flex-col  gap-2 w-full ${show.my_account ? "flex duration-500 scale-x-100" : "hidden duration-500 "
             } md:flex`}>
-            <Link
+            <Link prefetch={false}
               href={"/user/profile"}
               className="hover:text-gray-800"
             >
               {t("view_profile")}{" "}
             </Link>
-            <Link
+            <Link prefetch={false}
               href={"/user/wishlist"}
               className="hover:text-gray-800"
             >
               {" "}
               {t("wishlist")}{" "}
             </Link>
-            <Link
+            <Link prefetch={false}
               href={"/user/cart"}
               className="hover:text-gray-800"
             >

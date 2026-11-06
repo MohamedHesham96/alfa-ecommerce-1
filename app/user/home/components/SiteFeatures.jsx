@@ -9,7 +9,6 @@ import { RiLoopRightFill } from "react-icons/ri";
 import { LiaCertificateSolid } from "react-icons/lia";
 import "swiper/css";
 import "swiper/css/navigation";
-import "swiper/css/pagination";
 import { ImPriceTags } from "react-icons/im";
 import { IoMdPricetags } from "react-icons/io";
 export default function SiteFeatures() {

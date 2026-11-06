@@ -180,7 +180,7 @@ export default function ProductInfo({ product, itemId }) {
                         </span>
                     ) : null}
                     {discount > 0 ? (
-                        <span className="rounded-full bg-[#8CBC67] px-2.5 py-1 text-xs font-semibold text-white">
+                        <span className="rounded-full bg-[#557A3A] px-2.5 py-1 text-xs font-semibold text-white">
                             -{discount}%
                         </span>
                     ) : null}

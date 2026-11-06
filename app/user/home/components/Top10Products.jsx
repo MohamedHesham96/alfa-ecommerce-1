@@ -12,7 +12,7 @@ export default function Top10Products({ Products, section, href }) {
             <div className="w-full h-full flex justify-between items-center">
                 <h2 className="font-semibold text-lg sticky z-10 ">{t(section)}</h2>
                 <div className="text-xs font-semibold">
-                    <Link href={href || "/user/products/section/newProducts"}>{t("shopMore")} </Link>
+                    <Link prefetch={false} href={href || "/user/products/section/newProducts"}>{t("shopMore")} </Link>
                     <hr className="bg-red-500 h-[2px] border-none w-auto " />
                 </div>
             </div>
@@ -21,7 +21,7 @@ export default function Top10Products({ Products, section, href }) {
                 {Products?.map((product, index) => {
                     return (
 
-                        <Link
+                        <Link prefetch={false}
                         href={productPath(product)}
                         key={index} className={`${index < 8 ? "flex" :"hidden"} gap-2 items-center cursor-pointer w-full`}>
                             <div className="relative w-[60px] h-[60px] ">

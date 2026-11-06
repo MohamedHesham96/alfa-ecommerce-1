@@ -1,11 +1,20 @@
 import axios from "axios";
 import { toast } from "react-toastify";
-import Swal from "sweetalert2";
 import { reportApiFailure } from "./connectivityStore";
 import {
   invalidateCatalogCaches,
 } from "../lib/pwa/client";
 import { clearAuthStorage } from "./authSession";
+
+// Confirmation dialogs are rare and must not put sweetalert2 (~23 KB) in the
+// initial bundle of every public page. The module is loaded on first use.
+let sweetAlertPromise;
+const loadSweetAlert = () => {
+  if (!sweetAlertPromise) {
+    sweetAlertPromise = import("sweetalert2").then((module) => module.default ?? module);
+  }
+  return sweetAlertPromise;
+};
 
 const showRequestError = (error) => {
   const responseData = error?.response?.data;
@@ -267,6 +276,7 @@ export const postRequest = async (endpoint, dataBody, message ,toster, options =
     }
 
     // 🟡 مع confirm
+    const Swal = await loadSweetAlert();
     const result = await Swal.fire({
       icon: "question",
       title: message,
@@ -403,6 +413,7 @@ export const putRequest = async (endpoint, dataBody, message) => {
       return await send();
     }
 
+    const Swal = await loadSweetAlert();
     const result = await Swal.fire({
       icon: "info",
       title: message,
@@ -470,6 +481,7 @@ export const deleteRequest = async (endpoint, message) => {
   }
   try {
     // 🟡 نستخدم Swal.fire مع icon: 'warning' (مش error)
+    const Swal = await loadSweetAlert();
     const result = await Swal.fire({
       icon: "warning",
       title: message,

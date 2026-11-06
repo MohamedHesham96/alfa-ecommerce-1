@@ -6,7 +6,6 @@ import { FaHeart, FaUser } from "react-icons/fa";
 import { IoLocationSharp } from "react-icons/io5";
 import { MdEmail, MdLock, MdPhoneEnabled } from "react-icons/md";
 import { PiSignOutBold } from "react-icons/pi";
-import "aos/dist/aos.css";
 import { useLanguage } from "../../../../context/LanguageContext";
 import { RiShoppingBag4Fill } from "react-icons/ri";
 import { TbTruckReturn } from "react-icons/tb";

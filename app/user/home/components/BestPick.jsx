@@ -31,7 +31,7 @@ export default function BestPick({ Products }) {
       <div className="w-full flex justify-between items-center">
         <h2 className="font-semibold text-base  sticky z-10 ">{t("Best_pick_of_the_week")}</h2>
         <div className="text-xs font-semibold">
-          <Link href="/user/products/section/topLast30Days">{t("shopMore")} </Link>
+          <Link prefetch={false} href="/user/products/section/topLast30Days">{t("shopMore")} </Link>
           <hr className="bg-red-500 h-[2px] border-none w-auto " />
         </div>
       </div>
@@ -62,6 +62,7 @@ export default function BestPick({ Products }) {
               <SwiperSlide key={index} className="">
                 <Link
                   href={productPath(product)}
+                  prefetch={false}
                   className="flex items-center  cursor-pointer gap-1 select-none w-full"
                   onClick={() => setSelectedProductId(product.itemId)}
                 >
@@ -74,9 +75,9 @@ export default function BestPick({ Products }) {
                       alt=""
                       fill
                       loading="lazy"
-                      quality={85}
+                      quality={75}
                       sizes="50px"
-                      className="object-fill "
+                      className="object-cover "
                     />
                   </div>
                   <div className="flex flex-col gap-2 w-full min-w-0">

@@ -17,7 +17,7 @@ export default function RecentlyViewed({ Products, title }) {
 
           <h2 className="font-semibold  sticky z-10 py-2 bg-white">{t(title)} </h2>
           <div className="text-xs font-semibold">
-            <Link
+            <Link prefetch={false}
               href={`/user/products/section/${title === "recentViewed" ? "recentWatched" : "newProducts"}`}
               className={title === "recentViewed" ? "hidden" : "block"}
             >{t("shopMore")} </Link>
@@ -30,7 +30,7 @@ export default function RecentlyViewed({ Products, title }) {
 
             return (
 
-              <Link key={index} href={productPath(item)} className={` ${title === "recentViewed" ? index < 5 ? "flex" : "hidden" : index < 7 ? "flex" : "hidden"} gap-2 items-center `}
+              <Link key={index} href={productPath(item)} prefetch={false} className={` ${title === "recentViewed" ? index < 5 ? "flex" : "hidden" : index < 7 ? "flex" : "hidden"} gap-2 items-center `}
                 onClick={() => setSelectedProductId(item.itemId)}
               >
                 <div className="relative w-[60px] h-[60px] hover:scale-105 duration-200 cursor-pointer select-none rounded-full ">
@@ -39,9 +39,9 @@ export default function RecentlyViewed({ Products, title }) {
                     getThumbnailUrl(item.images?.[0]?.imageUrl)
                   } alt={locale === "ar" ? item.nameAr : item.nameEn}
                     fill
-                    quality={85}
+                    quality={75}
                     sizes="60px"
-                    className="object-fill rounded-full" />
+                    className="object-cover rounded-full" />
                 </div>
                 <div>
                   <span className="text-sm font-semibold cursor-pointer">{locale === "ar" ? item.nameAr : item.nameEn}</span>

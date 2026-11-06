@@ -4,7 +4,6 @@ import { getRequest, postRequest } from "../../../../utils/requestsUtils";
 import ProductCard from "../../components/ProductCard";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import Link from "next/link";
-import "aos/dist/aos.css";
 import { useLanguage } from "../../../../context/LanguageContext";
 export default function WishList() {
   const [products, setProducts] = useState([]);

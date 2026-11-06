@@ -1,5 +1,4 @@
 import Profile from "./components/Profile"
-import "aos/dist/aos.css";
 import ResetPasswordForm from './components/ResetPasswordForm'
 import RequireAuth from "../components/RequireAuth";
 

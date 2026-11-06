@@ -15,8 +15,6 @@ import StarRating from "./StarRating"
 import { useCartDrawerOpen } from "../../../context/CartDrawerOpenContext";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
 import { useRef } from "react";
 import { productPath, categoryPath } from "../../../lib/seo";
 
@@ -218,7 +216,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
               {productInfo?.available ?
                 <div className=" flex flex-col gap-1">
                   {productInfo?.oldPrice ? (
-                    <span className="font-semibold flex justify-center items-center text-center bg-[#8CBC67] text-xs min-w-[48px] px-2 h-6 text-white rounded-full whitespace-nowrap">
+                    <span className="font-semibold flex justify-center items-center text-center bg-[#557A3A] text-xs min-w-[48px] px-2 h-6 text-white rounded-full whitespace-nowrap">
                       {" - " +
                         (
                           ((productInfo?.oldPrice - productInfo?.price) /
@@ -261,6 +259,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
                     >
                       <Link
                         href={productHref}
+                        prefetch={false}
                         onClick={(event) => event.stopPropagation()}
                         aria-label={displayName}
                         className="relative block h-full w-full"
@@ -273,9 +272,9 @@ export default function ProductCard({ productInfo, favorite, priority = false })
                           }
                           alt={`${displayName} - ${locale === "ar" ? "صورة" : "image"} ${index + 1}`}
                           fill
-                          priority={priority && index === 0}
-                          quality={85}
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          preload={priority && index === 0}
+                          quality={75}
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 30vw, (max-width: 1400px) 22vw, 260px"
                           className="object-contain rounded-3xl"
                         />
                       </Link>
@@ -435,6 +434,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
                     {productInfo?.images?.[0] ? (
                       <Link
                         href={productHref}
+                        prefetch={false}
                         onClick={(event) => event.stopPropagation()}
                         aria-label={displayName}
                         className="relative block h-full w-full"
@@ -445,9 +445,9 @@ export default function ProductCard({ productInfo, favorite, priority = false })
                           )}`}
                           alt={`${displayName} - ${locale === "ar" ? "صورة" : "image"} 1`}
                           fill
-                          priority={priority}
-                          quality={85}
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          preload={priority}
+                          quality={75}
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 30vw, (max-width: 1400px) 22vw, 260px"
                           className="object-contain rounded-3xl"
                         />
                       </Link>
@@ -466,6 +466,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
           >
             <Link
               href={productHref}
+              prefetch={false}
               onClick={(event) => event.stopPropagation()}
               className="inline-flex min-h-6 items-center py-0.5 transition-colors hover:text-[#E14A5C]"
             >
@@ -478,6 +479,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
             {categoryHref ? (
               <Link
                 href={categoryHref}
+                prefetch={false}
                 onClick={(event) => event.stopPropagation()}
                 className="inline-flex min-h-6 items-center py-0.5 transition-colors hover:text-[#E14A5C]"
               >

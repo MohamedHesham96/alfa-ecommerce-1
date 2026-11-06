@@ -8,6 +8,7 @@ import {
 } from "react-icons/md";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { getRequest, postRequest, deleteRequest } from "../../../utils/requestsUtils";
@@ -16,11 +17,22 @@ import { useRefresh } from "../../../context/refreshContext";
 import { useMenuOpen } from "../../../context/MenuOpenContext";
 import { FiHeart } from "react-icons/fi";
 import { PiListBold, PiUser } from "react-icons/pi";
-import SignIn_Form from "../../components/SignIn_Form";
-import SignUp_Form from "../../components/SignUp_Form";
 import CartDrawer from "./CartDrawer";
 import { useCartDrawerOpen } from "../../../context/CartDrawerOpenContext";
 // import { useCartDrawerOpen } from "../../../context/CartDrawerOpenContext";
+
+// The auth forms (and their react-select dependency) are only needed after
+// the user opens the modal. Loading them lazily keeps ~30 KB of unused
+// JavaScript out of the initial homepage bundle.
+const SignIn_Form = dynamic(() => import("../../components/SignIn_Form"), {
+  ssr: false,
+  loading: () => <div className="p-8 text-center text-sm text-gray-500">...</div>,
+});
+
+const SignUp_Form = dynamic(() => import("../../components/SignUp_Form"), {
+  ssr: false,
+  loading: () => <div className="p-8 text-center text-sm text-gray-500">...</div>,
+});
 
 export default function Header() {
   const { t } = useLanguage();
@@ -163,6 +175,7 @@ setSearchInput(decodeSearchInput(lastPort))
         <div className="flex flex-wrap justify-start items-center gap-2">
           <Link
             href={"/user/about"}
+            prefetch={false}
             className="hover:text-gray-100"
           >
             {t("about_us")}
@@ -170,7 +183,7 @@ setSearchInput(decodeSearchInput(lastPort))
           <hr
             className="w-[1px] h-4 border-0  bg-gray-300"
           />
-          <Link
+          <Link prefetch={false}
             href={"/#footer"}
             className="hover:text-gray-100"
           >
@@ -181,6 +194,7 @@ setSearchInput(decodeSearchInput(lastPort))
           />
           <Link
             href={"/user/ordershistory"}
+            prefetch={false}
             className="hover:text-gray-100"
           >
             {t("orders")}{" "}
@@ -189,6 +203,7 @@ setSearchInput(decodeSearchInput(lastPort))
         <div className="flex flex-wrap justify-start items-center gap-2">
           <Link
             href={"/user/returnorders"}
+            prefetch={false}
             className="hover:text-gray-1000"
           >
             {t("returns")}{" "}
@@ -197,6 +212,7 @@ setSearchInput(decodeSearchInput(lastPort))
           />
           <Link
             href={"/user/about#Guarantee_Policy"}
+            prefetch={false}
             className="hover:text-gray-100"
           >
             {t("Guarantee_Policy")}
@@ -205,6 +221,7 @@ setSearchInput(decodeSearchInput(lastPort))
           />
           <Link
             href={"/user/about#Return_Policy"}
+            prefetch={false}
             className="hover:text-gray-100"
           >
             {t("Return_Policy")}
@@ -220,15 +237,16 @@ setSearchInput(decodeSearchInput(lastPort))
           <PiListBold />
         </button>
         <div className="flex justify-center items-center min-w-0">
-          <Link href="/" className="flex justify-center items-center ">
+          <Link prefetch={false} href="/" className="flex justify-center items-center ">
 
             <span className="relative w-12 h-12 ">
               <Image
                 src="/Images/logo.png"
                 alt="شعار ألفا جروب تكنولوجي"
                 fill
-                sizes="200px"
-                className="object-fill"
+                sizes="48px"
+                quality={75}
+                className="object-contain"
               />
             </span>
             <div className="cursor-pointer min-w-0">
@@ -338,13 +356,13 @@ setSearchInput(decodeSearchInput(lastPort))
           </div>
         </div>
       </div>
-      <div className="w-full px-6 bg-[#e14a5c]  py-3">
+      <div className="w-full px-6 bg-[#d63b4d]  py-3">
         <div className="xs:hidden lg:flex text-white">
           <div className="w-full flex justify-between ">
             <div className="w-full flex"></div>
             <div className="w-full flex justify-end items-center gap-5">
               <div className="">
-                <Link href="/user/wishlist" className="xs:hidden lg:flex items-center gap-1">
+                <Link href="/user/wishlist" prefetch={false} className="xs:hidden lg:flex items-center gap-1">
                   <FiHeart className="w-5 h-5 " />
                
                 <span className=" font-semibold ">{t("wishlist")} </span>
