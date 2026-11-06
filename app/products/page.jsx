@@ -62,7 +62,7 @@ export default async function ProductsPage({ searchParams }) {
         initialTotalPages={totalPages}
         initialTotalElements={totalElements}
         basePath="/products"
-        description="تصفح كل منتجات ألفا جروب تكنولوجي: أجهزة استقبال، شاشات، كابلات، أجهزة منزلية وإلكترونيات بأسعار ومواصفات حقيقية."
+        description="تصفح كل منتجات ألفا جروب تكنولوجي: أجهزة استقبال، شاشات، كابلات، أجهزة منزلية وإلكترونيات بأسعار تنافسية ومواصفات واضحة."
       />
     </div>
   );

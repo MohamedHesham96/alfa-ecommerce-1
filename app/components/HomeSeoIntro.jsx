@@ -13,7 +13,7 @@ export default function HomeSeoIntro({ categories = [], products = [] }) {
   return (
     <section
       aria-labelledby="home-seo-title"
-      className="mx-auto flex w-full max-w-[1240px] items-start pt-6 sm:pt-12"
+      className="mx-auto flex w-full items-start pt-6 sm:pt-12"
     >
       <div className="relative flex w-full flex-col self-stretch overflow-hidden rounded-[28px] border border-white/80 bg-[linear-gradient(135deg,#ffffff_0%,#fffafb_100%)] px-4 py-5 shadow-[0_24px_60px_-48px_rgba(56,24,35,0.45)] sm:px-7 sm:py-6">
         <div
@@ -32,7 +32,7 @@ export default function HomeSeoIntro({ categories = [], products = [] }) {
                 id="home-seo-title"
                 className="text-[17px] font-semibold leading-7 text-[#20161a] sm:text-[19px]"
               >
-                ألفا جروب تكنولوجي – إلكترونيات وأجهزة منزلية بأسعار حقيقية
+                ألفا جروب تكنولوجي – إلكترونيات وأجهزة منزلية بأسعار تنافسية
               </h1>
               <p className="mt-1.5 max-w-2xl text-[12px] leading-6 text-slate-600 sm:text-[13px]">
                 تسوق أجهزة استقبال وشاشات وكابلات وأجهزة منزلية وإلكترونيات من
@@ -53,7 +53,7 @@ export default function HomeSeoIntro({ categories = [], products = [] }) {
 
         {visibleCategories.length > 0 ? (
           <nav aria-label="تصفح أقسام المتجر" className="relative mt-5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
               تسوق حسب القسم
             </p>
             <ul className="mt-2.5 grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -77,7 +77,7 @@ export default function HomeSeoIntro({ categories = [], products = [] }) {
                         />
                       ) : null}
                     </span>
-                    <span className="line-clamp-2 min-w-0 text-[11px] font-medium leading-4 text-slate-700">
+                    <span className="line-clamp-2 min-w-0 text-[13px] font-medium leading-5 text-slate-700 sm:text-sm">
                       {category.nameAr || category.nameEn}
                     </span>
                   </Link>

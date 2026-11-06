@@ -183,8 +183,8 @@ export default function CategoryProductsClient({
             <p className="mt-1 max-w-3xl text-sm leading-relaxed text-gray-600">
               {description ||
                 (category
-                  ? `تصفح ${heading} من ألفا جروب تكنولوجي بأسعار ومواصفات حقيقية.`
-                  : "تصفح كل منتجات ألفا جروب تكنولوجي بأسعار ومواصفات حقيقية.")}
+                  ? `تصفح ${heading} من ألفا جروب تكنولوجي بأسعار تنافسية ومواصفات واضحة.`
+                  : "تصفح كل منتجات ألفا جروب تكنولوجي بأسعار تنافسية ومواصفات واضحة.")}
             </p>
           </div>
 
