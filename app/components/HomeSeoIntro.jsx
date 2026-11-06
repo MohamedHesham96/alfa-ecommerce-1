@@ -13,7 +13,7 @@ export default function HomeSeoIntro({ categories = [], products = [] }) {
   return (
     <section
       aria-labelledby="home-seo-title"
-      className="mx-auto flex min-h-[calc(100svh-9rem)] w-full max-w-[1240px] items-start pt-6 sm:min-h-0 sm:pt-12"
+      className="mx-auto flex w-full max-w-[1240px] items-start pt-6 sm:pt-12"
     >
       <div className="relative flex w-full flex-col self-stretch overflow-hidden rounded-[28px] border border-white/80 bg-[linear-gradient(135deg,#ffffff_0%,#fffafb_100%)] px-4 py-5 shadow-[0_24px_60px_-48px_rgba(56,24,35,0.45)] sm:px-7 sm:py-6">
         <div
