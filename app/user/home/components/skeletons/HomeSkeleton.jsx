@@ -81,7 +81,7 @@ export default function HomeSkeleton({ showRecentViewed = false, showHero = true
           </div>
 
           <div className="flex xl:flex-row xs:flex-col mt-10 gap-5 justify-between items-start w-full">
-            <div className="w-full max-w-[670px] xl:max-w-none h-[500px] bg-white rounded-3xl relative overflow-hidden">
+            <div className="w-full max-w-[670px] shrink-0 h-[500px] bg-white rounded-3xl relative overflow-hidden">
               <ProductAdsSliderSkeleton />
             </div>
 
