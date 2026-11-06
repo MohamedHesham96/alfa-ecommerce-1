@@ -21,7 +21,6 @@ const REVIEW_IMAGES = [
     contain: true,
   },
   { src: "/Images/ReviewsClients/6.png", width: 445, height: 82 },
-  { src: "/Images/ReviewsClients/7.png", width: 631, height: 136 },
 ];
 
 export default function ReviewsClients() {
