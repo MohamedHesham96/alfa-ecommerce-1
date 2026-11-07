@@ -4,6 +4,7 @@ import { getProductDetails, getItemRatings } from "../../../../utils/functions";
 import { postRequest } from "../../../../utils/requestsUtils";
 import Image from "next/image";
 import { useLanguage } from "../../../../context/LanguageContext";
+import { useAppConfig, useFeature } from "../../../../context/AppConfigContext";
 import ProductImages from "./ProductImages"
 import ProductInfo from "./ProductInfo"
 import YouMightLike from "./YouMightLike"
@@ -87,6 +88,11 @@ export default function ProductDetails({ itemId, initialProduct, categorySlug })
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState(false);
   const { t, locale } = useLanguage();
+  const reviewsEnabled = useFeature("features.productReviews.enabled");
+  const showSku = useAppConfig("catalog.showSku", true);
+  const showStockStatus = useAppConfig("catalog.showStockStatus", true);
+  const showSpecifications = useAppConfig("product.showSpecifications", true);
+  const galleryLayout = useAppConfig("product.gallery.layout", "THUMBNAILS_SIDE");
   const [product, setProduct] = useState(() => mapProduct(initialProduct));
 
   const productDetails = useCallback(async () => {
@@ -144,8 +150,9 @@ export default function ProductDetails({ itemId, initialProduct, categorySlug })
   }, [initialProduct, itemId, productDetails]);
 
   useEffect(() => {
+    if (!reviewsEnabled) return;
     fetchReviews();
-  }, [fetchReviews]);
+  }, [fetchReviews, reviewsEnabled]);
 
   const categoryName = locale === "ar" ? product.category.nameAr : product.category.nameEn;
   const productName = locale === "ar" ? product.nameAr : product.nameEn;
@@ -202,9 +209,14 @@ export default function ProductDetails({ itemId, initialProduct, categorySlug })
           </div>
         )}
 
-        <ProductImages product={product} />
+        <ProductImages product={product} layout={galleryLayout} />
 
-        <ProductInfo product={product} itemId={itemId} />
+        <ProductInfo
+          product={product}
+          itemId={itemId}
+          showSku={showSku}
+          showStockStatus={showStockStatus}
+        />
 
         <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6 lg:col-start-2 xl:col-start-3 xl:sticky xl:top-6">
           <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
@@ -259,46 +271,50 @@ export default function ProductDetails({ itemId, initialProduct, categorySlug })
 
       <div className="border-t border-gray-100">
         <div className="grid w-full grid-cols-1 items-start p-5 gap-8 py-6 sm:py-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-12 lg:py-10">
-          <div className="flex min-w-0 flex-col">
-            <Specification product={product} />
-          </div>
-
-          <div id="reviews" className="flex w-full min-w-0 scroll-mt-24 flex-col">
-            <h2 className="text-center text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">
-              {t("CustomerReviews")}
-            </h2>
-
-            <div className="mt-6">
-              <ProductRating product={product} itemId={itemId} refreshKey={ratingRefreshKey} />
+          {showSpecifications ? (
+            <div className="flex min-w-0 flex-col">
+              <Specification product={product} />
             </div>
+          ) : null}
 
-            <div className="mt-8">
-              {reviewsLoading ? (
-                <div className="flex flex-col gap-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-[#f6f5f8] rounded-3xl h-32 animate-pulse" />
-                  ))}
-                </div>
-              ) : reviewsError ? (
-                <p className="text-sm text-gray-500">{t("reviews_error")}</p>
-              ) : reviews.length === 0 ? (
-                <p className="text-sm text-gray-500">{t("no_reviews")}</p>
-              ) : (
-                <ReviewsList reviews={reviews} />
-              )}
-            </div>
+          {reviewsEnabled ? (
+            <div id="reviews" className="flex w-full min-w-0 scroll-mt-24 flex-col">
+              <h2 className="text-center text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">
+                {t("CustomerReviews")}
+              </h2>
 
-            <div className="mt-8">
-              <ReviewForm
-                product={product}
-                itemId={itemId}
-                onRatingSubmitted={() => {
-                  setRatingRefreshKey((key) => key + 1);
-                  fetchReviews();
-                }}
-              />
+              <div className="mt-6">
+                <ProductRating product={product} itemId={itemId} refreshKey={ratingRefreshKey} />
+              </div>
+
+              <div className="mt-8">
+                {reviewsLoading ? (
+                  <div className="flex flex-col gap-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="bg-[#f6f5f8] rounded-3xl h-32 animate-pulse" />
+                    ))}
+                  </div>
+                ) : reviewsError ? (
+                  <p className="text-sm text-gray-500">{t("reviews_error")}</p>
+                ) : reviews.length === 0 ? (
+                  <p className="text-sm text-gray-500">{t("no_reviews")}</p>
+                ) : (
+                  <ReviewsList reviews={reviews} />
+                )}
+              </div>
+
+              <div className="mt-8">
+                <ReviewForm
+                  product={product}
+                  itemId={itemId}
+                  onRatingSubmitted={() => {
+                    setRatingRefreshKey((key) => key + 1);
+                    fetchReviews();
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
       </div>
 

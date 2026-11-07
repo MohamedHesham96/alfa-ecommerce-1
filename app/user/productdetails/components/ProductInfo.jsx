@@ -8,17 +8,24 @@ import { useRefresh } from "../../../../context/refreshContext";
 import { useCartDrawerOpen } from "../../../../context/CartDrawerOpenContext";
 import { useState } from "react";
 import { useLanguage } from "../../../../context/LanguageContext";
+import { useFeature } from "../../../../context/AppConfigContext";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import StarRating from "../../components/StarRating";
 import { categoryPath } from "../../../../lib/seo";
 
-export default function ProductInfo({ product, itemId }) {
+export default function ProductInfo({
+    product,
+    itemId,
+    showSku = true,
+    showStockStatus = true,
+}) {
     const navigate = useRouter();
     const { triggerRefresh } = useRefresh();
     const { setIsCartOpen } = useCartDrawerOpen();
     const [count, setCount] = useState(1);
     const { locale, t } = useLanguage();
+    const wishlistEnabled = useFeature("features.wishlist.enabled");
 
     const userId = typeof window !== "undefined" ? localStorage.id : "";
 
@@ -140,10 +147,12 @@ export default function ProductInfo({ product, itemId }) {
                     {locale === "ar" ? product.nameAr : product.nameEn}
                 </h1>
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 sm:text-sm">
-                    <span>
-                        {t("code")}:{" "}
-                        <span className="font-medium text-gray-700">{product.code}</span>
-                    </span>
+                    {showSku ? (
+                        <span>
+                            {t("code")}:{" "}
+                            <span className="font-medium text-gray-700">{product.code}</span>
+                        </span>
+                    ) : null}
                     {product.category.id ? (
                         <span className="inline-flex min-w-0 items-center gap-1">
                             <span>{t("product_category")}:</span>
@@ -187,17 +196,19 @@ export default function ProductInfo({ product, itemId }) {
                 </div>
             ) : null}
 
-            <div className="flex items-center text-xs font-medium sm:text-sm">
-                <span
-                    className={`inline-flex items-center gap-2 ${product.available ? "text-green-600" : "text-red-600"}`}
-                >
+            {showStockStatus ? (
+                <div className="flex items-center text-xs font-medium sm:text-sm">
                     <span
-                        aria-hidden
-                        className={`h-2 w-2 rounded-full ${product.available ? "bg-green-500" : "bg-red-500"}`}
-                    />
-                    {product.available ? t("available_in_store") : t("Currently_unavailable")}
-                </span>
-            </div>
+                        className={`inline-flex items-center gap-2 ${product.available ? "text-green-600" : "text-red-600"}`}
+                    >
+                        <span
+                            aria-hidden
+                            className={`h-2 w-2 rounded-full ${product.available ? "bg-green-500" : "bg-red-500"}`}
+                        />
+                        {product.available ? t("available_in_store") : t("Currently_unavailable")}
+                    </span>
+                </div>
+            ) : null}
 
             {description ? (
                 <div className="min-w-0">
@@ -294,14 +305,18 @@ export default function ProductInfo({ product, itemId }) {
             </div>
 
             <div className="flex items-center justify-between gap-4 border-t border-gray-100 pt-4 text-sm">
-                <button
-                    type="button"
-                    onClick={addFavoriteItems}
-                    className="inline-flex min-w-0 items-center gap-2 text-gray-600 transition-colors hover:text-[#E14A5C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E14A5C]"
-                >
-                    <FaRegHeart className="h-5 w-5 shrink-0" aria-hidden />
-                    <span className="truncate">{t("addToWishList")}</span>
-                </button>
+                {wishlistEnabled ? (
+                    <button
+                        type="button"
+                        onClick={addFavoriteItems}
+                        className="inline-flex min-w-0 items-center gap-2 text-gray-600 transition-colors hover:text-[#E14A5C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E14A5C]"
+                    >
+                        <FaRegHeart className="h-5 w-5 shrink-0" aria-hidden />
+                        <span className="truncate">{t("addToWishList")}</span>
+                    </button>
+                ) : (
+                    <span />
+                )}
                 <button
                     type="button"
                     onClick={handleShare}

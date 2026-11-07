@@ -28,7 +28,7 @@ function useIsDesktop() {
   return isDesktop;
 }
 
-export default function ProductImages({ product }) {
+export default function ProductImages({ product, layout = "THUMBNAILS_SIDE" }) {
   const urlImage = process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL;
   const swiperRef = useRef(null);
   const thumbsSwiperRef = useRef(null);
@@ -36,15 +36,25 @@ export default function ProductImages({ product }) {
   const [failedThumbs, setFailedThumbs] = useState({});
   const { locale } = useLanguage();
   const isDesktop = useIsDesktop();
-  const thumbDirection = isDesktop ? "vertical" : "horizontal";
+  const thumbsAtBottom = layout === "THUMBNAILS_BOTTOM";
+  const showThumbnails = layout !== "SLIDER_ONLY";
+  const thumbDirection = thumbsAtBottom
+    ? "horizontal"
+    : isDesktop
+      ? "vertical"
+      : "horizontal";
   const images = Array.isArray(product.images) ? product.images : [];
   const productName = locale === "ar" ? product.nameAr : product.nameEn;
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-3 sm:gap-4 sm:mx-auto sm:max-w-[620px] lg:sticky md:top-6 lg:mx-0 lg:max-w-none md:flex-row">
-      {images.length > 1 && (
+    <div
+      className={`flex w-full min-w-0 gap-3 sm:gap-4 sm:mx-auto sm:max-w-[620px] lg:sticky md:top-6 lg:mx-0 lg:max-w-none ${
+        thumbsAtBottom ? "flex-col" : "flex-col md:flex-row"
+      }`}
+    >
+      {showThumbnails && images.length > 1 && (
 <Swiper
-          key={`${locale}-${thumbDirection}`}
+          key={`${locale}-${thumbDirection}-${layout}`}
           dir={locale === "ar" ? "rtl" : "ltr"}
           direction={thumbDirection}
           slidesPerView="auto"
@@ -57,7 +67,11 @@ export default function ProductImages({ product }) {
             thumbsSwiperRef.current = swiper;
           }}
           aria-label={`${productName || "Product"} images`}
-          className="lg:order-1 xs:order-2 min-h-0 w-full shrink-0 overflow-hidden md:h-[360px] md:w-[110px] lg:h-[520px]"
+          className={
+            thumbsAtBottom
+              ? "order-2 min-h-0 w-full shrink-0 overflow-hidden h-16"
+              : "lg:order-1 xs:order-2 min-h-0 w-full shrink-0 overflow-hidden md:h-[360px] md:w-[110px] lg:h-[520px]"
+          }
         >
           {images.map((img, index) => (
             <SwiperSlide
@@ -95,7 +109,11 @@ export default function ProductImages({ product }) {
           ))}
         </Swiper>
       )}
-      <div className="lg:order-2 xs:order-1 relative min-w-0 flex-1 overflow-hidden rounded-2xl  bg-white sm:rounded-3xl">
+      <div
+        className={`relative min-w-0 flex-1 overflow-hidden rounded-2xl bg-white sm:rounded-3xl ${
+          thumbsAtBottom ? "order-1" : "lg:order-2 xs:order-1"
+        }`}
+      >
         {images.length > 0 ? (
           <div className="group/swiperImage ">
           <Swiper

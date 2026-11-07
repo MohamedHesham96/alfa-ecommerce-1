@@ -10,6 +10,7 @@ import { FaFacebookF, FaInstagram, FaWhatsapp, FaXTwitter } from "react-icons/fa
 import { MdLocalPhone, MdOutlineMailOutline } from "react-icons/md";
 import { getRequest } from "../../../utils/requestsUtils";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useAppConfig, useFeature } from "../../../context/AppConfigContext";
 import { IoIosArrowDown, IoIosArrowRoundDown } from "react-icons/io";
 
 const EMPTY_CONTACT = {
@@ -36,6 +37,8 @@ const toContactState = (data) => ({
 
 export default function Footer({ initialContact = null }) {
   const { t } = useLanguage();
+  const wishlistEnabled = useFeature("features.wishlist.enabled");
+  const showPoweredBy = useAppConfig("branding.showPoweredBy", false);
   const [contact, setContact] = useState(() =>
     initialContact ? toContactState(initialContact) : EMPTY_CONTACT,
   );
@@ -282,13 +285,15 @@ export default function Footer({ initialContact = null }) {
             >
               {t("view_profile")}{" "}
             </Link>
-            <Link prefetch={false}
-              href={"/user/wishlist"}
-              className="hover:text-gray-800"
-            >
-              {" "}
-              {t("wishlist")}{" "}
-            </Link>
+            {wishlistEnabled ? (
+              <Link prefetch={false}
+                href={"/user/wishlist"}
+                className="hover:text-gray-800"
+              >
+                {" "}
+                {t("wishlist")}{" "}
+              </Link>
+            ) : null}
             <Link prefetch={false}
               href={"/user/cart"}
               className="hover:text-gray-800"
@@ -337,9 +342,11 @@ export default function Footer({ initialContact = null }) {
         </div>
       </div>
       <hr className="h-px  border-0 bg-gray-200 " />
-      <div className="flex justify-center items-center w-full mt-4">
-        <h2> {<div>  Designed & Developed by | <span className="font-semibold">BlueSoft</span> © {new Date().getFullYear()} </div>}   </h2>
-      </div>
+      {showPoweredBy ? (
+        <div className="flex justify-center items-center w-full mt-4">
+          <h2> {<div>  Designed & Developed by | <span className="font-semibold">BlueSoft</span> © {new Date().getFullYear()} </div>}   </h2>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -34,6 +34,7 @@ const FeaturedProducts = dynamic(() => import("./components/FeatuerProducts"));
 // Imports - Contexts / hooks
 // ==============================
 import { useLanguage } from "../../../context/LanguageContext";
+import { useFeature } from "../../../context/AppConfigContext";
 
 // ==============================
 // Imports - Utilities / helpers
@@ -223,6 +224,16 @@ export default function Homepage({
   // Contexts and hooks
   // ==============================
   const { t, locale } = useLanguage();
+  const heroEnabled = useFeature("homepage.sections.hero.enabled");
+  const siteFeaturesEnabled = useFeature("homepage.sections.siteFeatures.enabled");
+  const featuredProductsEnabled = useFeature("homepage.sections.featuredProducts.enabled");
+  const topDiscountedEnabled = useFeature("homepage.sections.topDiscounted.enabled");
+  const top10Enabled = useFeature("homepage.sections.top10.enabled");
+  const promoBannerEnabled = useFeature("homepage.sections.promoBanner.enabled");
+  const recommendedEnabled = useFeature("homepage.sections.recommended.enabled");
+  const reviewsEnabled = useFeature("homepage.sections.reviews.enabled");
+  const recentlyViewedEnabled = useFeature("homepage.sections.recentlyViewed.enabled");
+  const newProductsEnabled = useFeature("homepage.sections.newProducts.enabled");
 
   // ==============================
   // State
@@ -496,16 +507,18 @@ export default function Homepage({
         </div>
       )}
 
-      <HomeHero
-        imagesSliders={imagesSliders}
-        ads={ads}
-        ad1Product={ad1Product}
-        categories={categories}
-        topLast30DayItems={topLast30DayItems}
-        heroLoading={heroLoading}
-        t={t}
-        locale={locale}
-      />
+      {heroEnabled ? (
+        <HomeHero
+          imagesSliders={imagesSliders}
+          ads={ads}
+          ad1Product={ad1Product}
+          categories={categories}
+          topLast30DayItems={topLast30DayItems}
+          heroLoading={heroLoading}
+          t={t}
+          locale={locale}
+        />
+      ) : null}
 
       {contentLoading ? (
         // The hero is already visible. A full skeleton grid here added hundreds
@@ -522,13 +535,14 @@ export default function Homepage({
         <>
 
       {/* ========================= Site Features ========================= */}
-      <SiteFeatures />
+      {siteFeaturesEnabled ? <SiteFeatures /> : null}
 
       {/* ========================= Featured Products ========================= */}
+      {(featuredProductsEnabled || recentlyViewedEnabled || newProductsEnabled || topDiscountedEnabled || top10Enabled) ? (
       <div className=" flex lg:flex-row xs:flex-col my-10 gap-5 items-start w-full mt-20">
         <div className="xs:order-2 lg:order-1 flex flex-col xs:w-full lg:w-auto items-center gap-5">
           {/* بتظهر للمتسجلين دخول بس */}
-          {isLoggedIn && (
+          {recentlyViewedEnabled && isLoggedIn && (
             <ProductShowcase Products={recentWatchedProducts} title={"recentViewed"} />
           )}
           <div className="w-full lg:flex-col sm:flex-row xs:flex-col flex gap-5">
@@ -544,65 +558,75 @@ export default function Homepage({
                 />
               )}
             </div>
-            <section id="newProducts" className="w-full">
-              <div className="w-full h-[660px] ">
-                <ProductShowcase Products={newProducts} title={"latest_products"} />
-              </div>
-            </section>
+            {newProductsEnabled ? (
+              <section id="newProducts" className="w-full">
+                <div className="w-full h-[660px] ">
+                  <ProductShowcase Products={newProducts} title={"latest_products"} />
+                </div>
+              </section>
+            ) : null}
           </div>
         </div>
         <section className="w-full min-w-0 xs:order-1 lg:order-2">
-          <div className="w-full flex xl:flex-row xs:flex-col justify-between items-center gap-2">
-            <div className="w-full">
-              <h2 className="flex items-center font-semibold gap-2 text-2xl mb-1">
-                {t("featured_products")}
-              </h2>
-              {/* <hr className="w-24 h-1 border-0 rounded-full bg-gradient-to-l from-red-200 via-red-400 to-red-200" /> */}
-            </div>
-            <div className="flex items-center gap-5 xl:justify-end xs:justify-start w-full md:text-sm xl:text-base  font-semibold">
-            <button
-                className={`items-center  justify-center rounded-full p-1  hover:text-red-600 hover:scale-105 duration-200 ${productType === "mustWatchedItems" ?"text-red-600" : "text-black"}`}
-                onClick={handleShowMustWatchedItems}
-              >
-                {t("Most_viewed_products")}
-              </button>
-              <button
-                className={` items-center justify-center rounded-full p-1  hover:text-red-600 hover:scale-105 ${productType === "popularProducts" ?"text-red-600" : "text-black"} duration-200`}
-                onClick={handleShowPopularProducts}
-              >
-                {t("popular_products")}
-              </button>
+          {featuredProductsEnabled ? (
+            <>
+              <div className="w-full flex xl:flex-row xs:flex-col justify-between items-center gap-2">
+                <div className="w-full">
+                  <h2 className="flex items-center font-semibold gap-2 text-2xl mb-1">
+                    {t("featured_products")}
+                  </h2>
+                </div>
+                <div className="flex items-center gap-5 xl:justify-end xs:justify-start w-full md:text-sm xl:text-base  font-semibold">
+                  <button
+                    className={`items-center  justify-center rounded-full p-1  hover:text-red-600 hover:scale-105 duration-200 ${productType === "mustWatchedItems" ? "text-red-600" : "text-black"}`}
+                    onClick={handleShowMustWatchedItems}
+                  >
+                    {t("Most_viewed_products")}
+                  </button>
+                  <button
+                    className={` items-center justify-center rounded-full p-1  hover:text-red-600 hover:scale-105 ${productType === "popularProducts" ? "text-red-600" : "text-black"} duration-200`}
+                    onClick={handleShowPopularProducts}
+                  >
+                    {t("popular_products")}
+                  </button>
 
-              <button
-                className={`items-center  justify-center rounded-full p-1  hover:text-red-600 hover:scale-105 duration-200 ${productType === "topSoldItems" ?"text-red-600" : "text-black"}`}
-                onClick={handleShowTopSoldItems}
-              >
-                {t("Top_selling")}
-              </button>
-              
-            </div>
-          </div>
+                  <button
+                    className={`items-center  justify-center rounded-full p-1  hover:text-red-600 hover:scale-105 duration-200 ${productType === "topSoldItems" ? "text-red-600" : "text-black"}`}
+                    onClick={handleShowTopSoldItems}
+                  >
+                    {t("Top_selling")}
+                  </button>
+                </div>
+              </div>
 
-          <div className="xs:mt-6 md:mt-5">
-            <FeaturedProducts Products={items || []} type={"FeaturedProducts"} />
+              <div className="xs:mt-6 md:mt-5">
+                <FeaturedProducts Products={items || []} type={"FeaturedProducts"} />
+              </div>
+            </>
+          ) : null}
+
+          {topDiscountedEnabled ? (
             <TopDiscounted Products={topDiscountedItems || []} />
+          ) : null}
 
-          </div>
           <div className="flex xl:flex-row xs:flex-col mt-10 gap-5 justify-between  items-start w-full">
             <div className="w-full max-w-[670px] shrink-0 h-[500px] bg-white rounded-3xl">
               <ProductAdsSlider offers={offers} />
             </div>
-            <div className="flex flex-col items-center gap-5 w-full">
-              <Top10Products
-                Products={topHomeApplianceItems}
-                section={"top_appliances"}
-                href={TOP_PRODUCTS_HREF}
-              />
-            </div>
+            {top10Enabled ? (
+              <div className="flex flex-col items-center gap-5 w-full">
+                <Top10Products
+                  Products={topHomeApplianceItems}
+                  section={"top_appliances"}
+                  href={TOP_PRODUCTS_HREF}
+                />
+              </div>
+            ) : null}
 
           </div>
         </section>
       </div>
+      ) : null}
         </>
         </DeferredMount>
       )}
@@ -612,15 +636,18 @@ export default function Homepage({
         <>
 
       {/* ========================= Promo Banner ========================= */}
-      <section className="my-20 md:my-28">
-        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
-          <PromoAdCard ad={ads.ad3} product={ad3Product} t={t} locale={locale} />
-          <PromoAdCard ad={ads.ad4} product={ad4Product} t={t} locale={locale} />
-          <PromoAdCard ad={ads.ad5} product={ad5Product} t={t} locale={locale} />
-        </div>
-      </section>
+      {promoBannerEnabled ? (
+        <section className="my-20 md:my-28">
+          <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
+            <PromoAdCard ad={ads.ad3} product={ad3Product} t={t} locale={locale} />
+            <PromoAdCard ad={ads.ad4} product={ad4Product} t={t} locale={locale} />
+            <PromoAdCard ad={ads.ad5} product={ad5Product} t={t} locale={locale} />
+          </div>
+        </section>
+      ) : null}
 
       {/* ========================= More Recommended Products ========================= */}
+      {recommendedEnabled ? (
       <section id="newProducts" className="w-full  mt-20">
         <div className="w-full flex justify-between items-center">
 
@@ -641,7 +668,8 @@ export default function Homepage({
           <FeaturedProducts Products={featuredProducts || []} type={"MoreRecommended"} />
         </div>
       </section>
-      <ReviewsClients/>
+      ) : null}
+      {reviewsEnabled ? <ReviewsClients /> : null}
         </>
         </DeferredMount>
       )}

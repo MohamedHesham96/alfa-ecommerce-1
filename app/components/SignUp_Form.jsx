@@ -5,6 +5,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import axios from "axios";
 import Image from "next/image";
 import { useLanguage } from "../../context/LanguageContext";
+import { useFeature } from "../../context/AppConfigContext";
 import { FaEye, FaPhone } from "react-icons/fa";
 import Link from "next/link";
 import Select from "react-select";
@@ -26,6 +27,9 @@ export default function SignUp({ popUp, setShowSignIn ,setOpenForm}) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { locale, setLocale } = useLanguage("ar");
+  const registrationEnabled = useFeature(
+    "features.customerRegistration.enabled",
+  );
   const input_passwordRef = useRef();
   const input_confirmPasswordRef = useRef();
   const [governorates, setGovernorates] = useState([]);
@@ -128,6 +132,25 @@ setOpenForm(false)
       setLoading(false);
     }
   };
+
+  if (!registrationEnabled) {
+    return (
+      <div className="flex min-h-[320px] w-full items-center justify-center p-8 text-center md:order-1 xs:order-2">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800">
+            {locale === "ar"
+              ? "التسجيل غير متاح حاليًا لهذا المتجر."
+              : "Registration is currently unavailable for this store."}
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">
+            {locale === "ar"
+              ? "يمكنك تسجيل الدخول إذا كان لديك حساب بالفعل."
+              : "You can still sign in if you already have an account."}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     // <div className=w-full h-full flex justify-center items-center">

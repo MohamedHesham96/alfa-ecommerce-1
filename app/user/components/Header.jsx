@@ -1,5 +1,6 @@
 "use client";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useFeature } from "../../../context/AppConfigContext";
 import { IoMdSearch } from "react-icons/io";
 import {
   MdCancel,
@@ -47,6 +48,7 @@ export default function Header() {
   const { isCartOpen, setIsCartOpen } = useCartDrawerOpen();
   const { toggleMenu } = useMenuOpen();
   const { refreshKey } = useRefresh();
+  const wishlistEnabled = useFeature("features.wishlist.enabled");
   const [showSignUp, setShowSignUp] = useState(false);
   const [showSignin, setShowSignIn] = useState(false);
   const [openForm, setOpenForm] = useState(false);
@@ -361,13 +363,14 @@ setSearchInput(decodeSearchInput(lastPort))
           <div className="w-full flex justify-between ">
             <div className="w-full flex"></div>
             <div className="w-full flex justify-end items-center gap-5">
-              <div className="">
-                <Link href="/user/wishlist" prefetch={false} className="xs:hidden lg:flex items-center gap-1">
-                  <FiHeart className="w-5 h-5 " />
-               
-                <span className=" font-semibold ">{t("wishlist")} </span>
- </Link>
-              </div>
+              {wishlistEnabled ? (
+                <div className="">
+                  <Link href="/user/wishlist" prefetch={false} className="xs:hidden lg:flex items-center gap-1">
+                    <FiHeart className="w-5 h-5 " />
+                    <span className=" font-semibold ">{t("wishlist")} </span>
+                  </Link>
+                </div>
+              ) : null}
               <hr className="w-px h-5 bg-gray-50 "></hr>
               <div className=" items-center gap-1 cursor-pointer flex  "
                 onClick={() => {

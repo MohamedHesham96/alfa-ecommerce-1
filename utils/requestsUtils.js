@@ -266,7 +266,7 @@ export const postRequest = async (endpoint, dataBody, message ,toster, options =
       const token = getToken();
 
       const response = await request(token)
-      if(toster) toast.success(response.data.message);
+      if(toster) if (response.data?.message) toast.success(response.data.message);
       invalidateCatalogAfterAdminChange(endpoint);
 
       return response.data;
@@ -300,7 +300,7 @@ export const postRequest = async (endpoint, dataBody, message ,toster, options =
       const token = getToken();
 
       const response = await request(token);
-      toast.success(response.data.message);
+      if (response.data?.message) toast.success(response.data.message);
       invalidateCatalogAfterAdminChange(endpoint);
       return response.data;
 
@@ -316,7 +316,7 @@ export const postRequest = async (endpoint, dataBody, message ,toster, options =
       if (newAccessToken) {
         try {
           const retryResponse = await request(newAccessToken);
-          toast.success(retryResponse.data.message);
+          if (retryResponse.data?.message) toast.success(retryResponse.data.message);
           invalidateCatalogAfterAdminChange(endpoint);
           return retryResponse.data;
         } catch (retryError) {
@@ -364,7 +364,7 @@ export const getRequest = async (endpoint) => {
       if (newAccessToken) {
         try {
           const retryResponse = await request(newAccessToken);
-          toast.success(retryResponse.data.message);
+          if (retryResponse.data?.message) toast.success(retryResponse.data.message);
           return retryResponse.data;
         } catch (retryError) {
           reportApiFailure(retryError);
@@ -400,7 +400,7 @@ export const putRequest = async (endpoint, dataBody, message) => {
   const send = async () => {
     const token = getToken();
     const response = await request(token);
-    toast.success(response.data.message);
+    if (response.data?.message) toast.success(response.data.message);
     invalidateCatalogAfterAdminChange(endpoint);
     return response.data;
   };
@@ -445,7 +445,7 @@ export const putRequest = async (endpoint, dataBody, message) => {
       if (newAccessToken) {
         try {
           const retryResponse = await request(newAccessToken);
-          toast.success(retryResponse.data.message);
+          if (retryResponse.data?.message) toast.success(retryResponse.data.message);
           invalidateCatalogAfterAdminChange(endpoint);
           return retryResponse.data;
         } catch (retryError) {
@@ -461,7 +461,7 @@ export const putRequest = async (endpoint, dataBody, message) => {
   }
 };
 
-export const deleteRequest = async (endpoint, message) => {
+export const deleteRequest = async (endpoint, message, options = {}) => {
   if (isBrowserOffline()) throwOfflineMutationError();
 
   const getToken = () =>
@@ -479,7 +479,22 @@ export const deleteRequest = async (endpoint, message) => {
         },
       })
   }
+
+  const send = async () => {
+    const token = getToken();
+    const response = await request(token);
+    if (response.data?.message) if (response.data?.message) toast.success(response.data.message);
+    invalidateCatalogAfterAdminChange(endpoint);
+    return response.data;
+  };
+
   try {
+    // The admin UI may already own the confirmation dialog. In that case the
+    // caller passes { skipConfirm: true } and the request is sent directly.
+    if (options.skipConfirm) {
+      return await send();
+    }
+
     // 🟡 نستخدم Swal.fire مع icon: 'warning' (مش error)
     const Swal = await loadSweetAlert();
     const result = await Swal.fire({
@@ -501,11 +516,7 @@ export const deleteRequest = async (endpoint, message) => {
     });
 
     if (result.isConfirmed) {
-      const token = getToken();
-      const response = await request(token);
-      toast.success(response.data.message);
-      invalidateCatalogAfterAdminChange(endpoint);
-      return response.data;
+      return await send();
     }
   } catch (error) {
     reportApiFailure(error);
@@ -515,7 +526,7 @@ export const deleteRequest = async (endpoint, message) => {
       if (newAccessToken) {
         try {
           const retryResponse = await request(newAccessToken);
-          toast.success(retryResponse.data.message);
+          if (retryResponse.data?.message) if (retryResponse.data?.message) toast.success(retryResponse.data.message);
           invalidateCatalogAfterAdminChange(endpoint);
           return retryResponse.data;
         } catch (retryError) {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useFeature } from "../../../context/AppConfigContext";
 import { useRefresh } from "../../../context/refreshContext";
 import { useMenuOpen } from "../../../context/MenuOpenContext";
 import { getRequest } from "../../../utils/requestsUtils";
@@ -15,6 +16,7 @@ export default function BottomNav() {
   const navigate = useRouter();
   const { refreshKey } = useRefresh();
   const { toggleMenu } = useMenuOpen();
+  const wishlistEnabled = useFeature("features.wishlist.enabled");
   const [itemNum, setItemNum] = useState(0);
 
   const userId =
@@ -63,15 +65,17 @@ export default function BottomNav() {
           <span className="text-[11px] font-medium">{t("menu")}</span>
         </button>
 
-        <Link prefetch={false}
-          href="/user/wishlist"
-          className="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-gray-700"
-        >
-          <span className="text-[22px] leading-none">
-            <FiHeart />
-          </span>
-          <span className="text-[11px] font-medium">{t("wishlist")}</span>
-        </Link>
+        {wishlistEnabled ? (
+          <Link prefetch={false}
+            href="/user/wishlist"
+            className="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-gray-700"
+          >
+            <span className="text-[22px] leading-none">
+              <FiHeart />
+            </span>
+            <span className="text-[11px] font-medium">{t("wishlist")}</span>
+          </Link>
+        ) : null}
 
         <Link
           prefetch={false}

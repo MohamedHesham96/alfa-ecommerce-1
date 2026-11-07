@@ -10,6 +10,7 @@ import { getThumbnailUrl } from "../../../../utils/functions";
 import { TfiTimer } from "react-icons/tfi";
 import ProductReturnForm from './ProductReturnForm'
 import { useLanguage } from "../../../../context/LanguageContext";
+import { useFeature } from "../../../../context/AppConfigContext";
 export default function OrderDetails({ orderId }) {
   const [order, setOrder] = useState([]);
 
@@ -28,6 +29,9 @@ export default function OrderDetails({ orderId }) {
   const { setSelectedProductId } = useIdContext();
   const navigate = useRouter();
   const { t ,locale} = useLanguage();
+  const orderCancellationEnabled = useFeature(
+    "features.orderCancellation.enabled",
+  );
 
 
   const steps = [
@@ -501,15 +505,17 @@ export default function OrderDetails({ orderId }) {
                   t("currency")}
               </span>
             </div>
-            <button
-              className={`w-full h-8  mt-7 rounded-full text-white ${orderSummary.state === "PENDING"
-                  ? "bg-[#e14a5c] hover:bg-red-600"
-                  : "bg-gray-500 cursor-not-allowed"
-                }`}
-              onClick={orderCancel}
-            >
-              {t("order_cancel")}
-            </button>
+            {orderCancellationEnabled ? (
+              <button
+                className={`w-full h-8  mt-7 rounded-full text-white ${orderSummary.state === "PENDING"
+                    ? "bg-[#e14a5c] hover:bg-red-600"
+                    : "bg-gray-500 cursor-not-allowed"
+                  }`}
+                onClick={orderCancel}
+              >
+                {t("order_cancel")}
+              </button>
+            ) : null}
           </div>
         </div>
       </div>

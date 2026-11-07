@@ -4,6 +4,7 @@ import { Fragment, use, useEffect, useRef, useState } from "react";
 import { postRequest } from "../../../../utils/requestsUtils";
 import ProductCard from "../../components/ProductCard";
 import { useLanguage } from "../../../../context/LanguageContext";
+import { useAppConfig } from "../../../../context/AppConfigContext";
 import Select from "react-select";
 import { MdFilterAlt } from "react-icons/md";
 import { LuColumns2, LuColumns3, LuColumns4 } from "react-icons/lu";
@@ -22,6 +23,8 @@ export default function Searchpage({params}) {
     const searchInput = decodeSearchInput(resolvedParams?.searchInput);
 
   const { t } = useLanguage();
+  const configuredPageSize = useAppConfig("catalog.productsPerPage", 12);
+  const configuredGridColumns = useAppConfig("catalog.gridColumns", 4);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
@@ -56,9 +59,11 @@ export default function Searchpage({params}) {
     setFiltersOpen(false);
   }
 
-  const showOptions = [9, 12, 18, 24];
-  const [showCount, setShowCount] = useState(12);
-  const [gridColumns, setGridColumns] = useState(4);
+  const showOptions = Array.from(
+    new Set([9, 12, 18, 24, configuredPageSize]),
+  ).sort((left, right) => left - right);
+  const [showCount, setShowCount] = useState(configuredPageSize);
+  const [gridColumns, setGridColumns] = useState(configuredGridColumns);
 
   const gridOptions = [
     { value: 2, icon: LuColumns2 },

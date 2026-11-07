@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useFeature } from "../../../context/AppConfigContext";
 import { getCategories } from "../../../utils/functions";
 import { categoryPath } from "../../../lib/seo";
 import { useMenuOpen } from "../../../context/MenuOpenContext";
@@ -36,6 +37,7 @@ export default function Menu() {
   const { t, locale } = useLanguage();
   const { isMenuOpen, closeMenu } = useMenuOpen();
   const { canInstall, openInstallPrompt } = usePwa();
+  const wishlistEnabled = useFeature("features.wishlist.enabled");
   const [activeTab, setActiveTab] = useState("categories");
   const [categoriesList, setCategoriesList] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
@@ -64,7 +66,9 @@ export default function Menu() {
 
   const menuLinks = [
     { href: "/", label: t("homepage"), icon: <PiHouse /> },
-    { href: "/user/wishlist", label: t("wishlist"), icon: <FiHeart /> },
+    ...(wishlistEnabled
+      ? [{ href: "/user/wishlist", label: t("wishlist"), icon: <FiHeart /> }]
+      : []),
     { href: "/user/cart", label: t("cart"), icon: <MdOutlineShoppingCart /> },
     { href: "/user/profile", label: t("my_account"), icon: <PiUser /> },
     { href: "/user/ordershistory", label: t("orders"), icon: <RiShoppingBag4Fill /> },

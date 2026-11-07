@@ -3,6 +3,7 @@ import { use, useCallback, useEffect, useRef, useState } from "react";
 import { getRequest, postRequest } from "../../../../../utils/requestsUtils";
 import ProductCard from "../../../components/ProductCard";
 import { useLanguage } from "../../../../../context/LanguageContext";
+import { useAppConfig } from "../../../../../context/AppConfigContext";
 import { BsList, BsStarFill, BsClockHistory, BsFire } from "react-icons/bs";
 import Select from "react-select";
 import { MdOutlineDownloading } from "react-icons/md";
@@ -12,6 +13,7 @@ export default function ProductsBySection({ params }) {
   const { section } = use(params);
 
   const { t } = useLanguage();
+  const configuredPageSize = useAppConfig("catalog.productsPerPage", 12);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [ascending, setAscending] = useState();
@@ -21,7 +23,7 @@ export default function ProductsBySection({ params }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = configuredPageSize;
 
   const sortOptions = [
     { value: "true,price", label: t("priceLowToHigh") },
@@ -156,7 +158,7 @@ console.log(response)
     } finally {
       setLoading(false);
     }
-  }, [section, sortBy, ascending, normalizePage]);
+  }, [section, sortBy, ascending, normalizePage, PAGE_SIZE]);
 
   useEffect(() => {
     setCurrentPage(0);

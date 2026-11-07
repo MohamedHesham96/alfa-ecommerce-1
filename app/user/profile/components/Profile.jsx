@@ -7,6 +7,7 @@ import { IoLocationSharp } from "react-icons/io5";
 import { MdEmail, MdLock, MdPhoneEnabled } from "react-icons/md";
 import { PiSignOutBold } from "react-icons/pi";
 import { useLanguage } from "../../../../context/LanguageContext";
+import { useFeature } from "../../../../context/AppConfigContext";
 import { RiShoppingBag4Fill } from "react-icons/ri";
 import { TbTruckReturn } from "react-icons/tb";
 import Select from "react-select";
@@ -23,6 +24,7 @@ export default function Profile() {
   const [governorate, setGovernorate] = useState("");
   const navigate = useRouter();
   const { t, locale } = useLanguage();
+  const wishlistEnabled = useFeature("features.wishlist.enabled");
   const [governorates, setGovernorates] = useState([]);
   const [value, setValue] = useState();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -123,14 +125,16 @@ const responce = await getRequest("/api/users")
               <span> {t("returns")} </span>
             </div>
           </Link>
-          <Link href="/user/wishlist">
-            <div className="flex items-center hover:bg-red-600 p-2 rounded-md hover:text-white text-gray-600 gap-3 cursor-pointer">
-              <span className="text-xl">
-                <FaHeart />
-              </span>
-              <span> {t("wishlist")} </span>
-            </div>
-          </Link>
+          {wishlistEnabled ? (
+            <Link href="/user/wishlist">
+              <div className="flex items-center hover:bg-red-600 p-2 rounded-md hover:text-white text-gray-600 gap-3 cursor-pointer">
+                <span className="text-xl">
+                  <FaHeart />
+                </span>
+                <span> {t("wishlist")} </span>
+              </div>
+            </Link>
+          ) : null}
           <hr className="my-5"></hr>
           <div className="flex justify-start cursor-pointer hover:scale-105 duration-200 items-center gap-1  text-red-600">
             <span>

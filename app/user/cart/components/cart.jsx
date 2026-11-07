@@ -1,6 +1,7 @@
 "use client";
 // import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { useLanguage } from "../../../../context/LanguageContext";
+import { useAppConfig } from "../../../../context/AppConfigContext";
 import { usePwa } from "../../../components/pwa/PwaProvider";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -41,9 +42,22 @@ export default function Cart({ setShowSignIn }) {
   const [loading, setLoading] = useState(true);
   const navigate = useRouter();
   const [paymentMethod, setPaymentMethod] = useState();
+  const instapayEnabled = useAppConfig("payments.instapay.enabled", true);
+  const cashOnDeliveryEnabled = useAppConfig(
+    "payments.cashOnDelivery.enabled",
+    true,
+  );
+  const creditCardEnabled = useAppConfig("payments.creditCard.enabled", false);
   const paymentMethodOptions = [
-    { value: "INSTAPAY", label: t("INSTAPAY") },
-    { value: "CASH_ON_DELIVERY", label: t("CASH_ON_DELIVERY") },
+    ...(instapayEnabled
+      ? [{ value: "INSTAPAY", label: t("INSTAPAY") }]
+      : []),
+    ...(cashOnDeliveryEnabled
+      ? [{ value: "CASH_ON_DELIVERY", label: t("CASH_ON_DELIVERY") }]
+      : []),
+    ...(creditCardEnabled
+      ? [{ value: "CREDIT_CARD", label: t("CREDIT_CARD") }]
+      : []),
   ];
   const synced = useRef(false);
 
@@ -53,7 +67,8 @@ export default function Cart({ setShowSignIn }) {
     return locale === "en" ? fallbackEn : fallbackAr;
   };
 
-  const checkoutDisabled = !isOnline || items.length === 0;
+  const checkoutDisabled =
+    !isOnline || items.length === 0 || paymentMethodOptions.length === 0;
 
   const getProductInCart = useCallback(async () => {
     try {

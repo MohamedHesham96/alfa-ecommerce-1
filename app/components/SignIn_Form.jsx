@@ -6,6 +6,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useLanguage } from "../../context/LanguageContext";
+import { useFeature } from "../../context/AppConfigContext";
 import Link from "next/link";
 import { FaEye } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -25,6 +26,9 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
   const [forgotSuccess, setForgotSuccess] = useState("");
   const { locale, setLocale } = useLanguage();
   const { t } = useLanguage();
+  const registrationEnabled = useFeature(
+    "features.customerRegistration.enabled",
+  );
   const input_passwordRef = useRef();
   const router = useRouter();
 
@@ -226,18 +230,20 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
             >
               {loading ? t("loggingIn") : t("login")}
             </button>
-            <div>
-              <Link href={popUp ? "" : "/signup"}>
-                <button
-                  className="text-center w-full text-sm text-gray-500 "
-                  onClick={() =>
-                    popUp ? (setShowSignUp(true), setShowSignIn(false)) : ""
-                  }
-                >
-                  {t("createNewAccount")}
-                </button>
-              </Link>
-            </div>
+            {registrationEnabled ? (
+              <div>
+                <Link href={popUp ? "" : "/signup"}>
+                  <button
+                    className="text-center w-full text-sm text-gray-500 "
+                    onClick={() =>
+                      popUp ? (setShowSignUp(true), setShowSignIn(false)) : ""
+                    }
+                  >
+                    {t("createNewAccount")}
+                  </button>
+                </Link>
+              </div>
+            ) : null}
           </form>
           <form
             id="form_email"

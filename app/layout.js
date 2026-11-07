@@ -7,6 +7,8 @@ import { SearchInputProvider } from "../context/searshInputContext";
 import { RefreshProvider } from "../context/refreshContext";
 import { NamePageInAdminProvider } from "../context/namePageInAdmin";
 import { CartDrawerOpenProvider } from "../context/CartDrawerOpenContext";
+import { AppConfigProvider } from "../context/AppConfigContext";
+import { getPublicConfig } from "../lib/api";
 import { ToastContainer } from "react-toastify";
 import RTLController from './components/RTLController.jsx'
 import GlobalErrorOverlay from './components/GlobalErrorOverlay.jsx'
@@ -193,7 +195,13 @@ export const viewport = {
   themeColor: [{ media: "(prefers-color-scheme: light)", color: "#0d0625" }],
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // Server-render the approved public configuration so the first paint and
+  // client hydration use the same values. A backend outage falls back to the
+  // safe defaults mirrored in lib/appConfigDefaults.js.
+  const { values: initialConfig, version: initialConfigVersion } =
+    await getPublicConfig();
+
   return (
     <html lang="ar" dir="rtl" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
@@ -245,29 +253,34 @@ export default function RootLayout({ children }) {
         <ToastContainer
           position={"bottom-center"} />
 
-        <LanguageProvider>
-          <PwaProvider>
-            <GlobalErrorOverlay />
-            <RTLController>
-              <IdProvider>
+        <AppConfigProvider
+          initialConfig={initialConfig}
+          initialVersion={initialConfigVersion}
+        >
+          <LanguageProvider>
+            <PwaProvider>
+              <GlobalErrorOverlay />
+              <RTLController>
+                <IdProvider>
 
-                <SearchInputProvider>
-                  <RefreshProvider>
-                    <OrderDetailsProvider>
-                      <CartDrawerOpenProvider>
-                        <NamePageInAdminProvider>
-                          {children}
+                  <SearchInputProvider>
+                    <RefreshProvider>
+                      <OrderDetailsProvider>
+                        <CartDrawerOpenProvider>
+                          <NamePageInAdminProvider>
+                            {children}
 
-                        </NamePageInAdminProvider>
-                      </CartDrawerOpenProvider>
+                          </NamePageInAdminProvider>
+                        </CartDrawerOpenProvider>
 
-                    </OrderDetailsProvider>
-                  </RefreshProvider>
-                </SearchInputProvider>
-              </IdProvider>
-            </RTLController>
-          </PwaProvider>
-        </LanguageProvider>
+                      </OrderDetailsProvider>
+                    </RefreshProvider>
+                  </SearchInputProvider>
+                </IdProvider>
+              </RTLController>
+            </PwaProvider>
+          </LanguageProvider>
+        </AppConfigProvider>
       </body>
     </html>
   );

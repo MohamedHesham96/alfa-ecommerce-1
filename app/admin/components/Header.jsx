@@ -42,6 +42,9 @@ export default function Header({ page_title }) {
     case "ShippingCost Management":
       setSelectedNamePage("ShippingCost_management");
       break;
+    case "System Settings":
+      setSelectedNamePage("system_settings");
+      break;
   }
 
   const userId =

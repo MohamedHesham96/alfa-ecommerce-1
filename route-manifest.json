@@ -13,6 +13,7 @@
     "/admin/returnorderdetails/[id]",
     "/admin/Returns",
     "/admin/ShippingCost",
+    "/admin/SystemSettings",
     "/admin/UsersPage/UserInfo/[id]",
     "/admin/UsersPage/Users",
     "/categories/[slug]",

@@ -5,6 +5,7 @@ import { FaHeart } from "react-icons/fa";
 import { MdOutlineAddShoppingCart } from "react-icons/md";
 import { deleteRequest, postRequest } from "../../../utils/requestsUtils";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useAppConfig, useFeature } from "../../../context/AppConfigContext";
 import { useRouter } from "next/navigation";
 import { useRefresh } from "../../../context/refreshContext";
 import { toast } from "react-toastify";
@@ -30,6 +31,9 @@ export default function ProductCard({ productInfo, favorite, priority = false })
   const { locale } = useLanguage();
   const { triggerRefresh } = useRefresh();
   const { setIsCartOpen } = useCartDrawerOpen();
+  const wishlistEnabled = useFeature("features.wishlist.enabled");
+  const discountsEnabled = useFeature("features.discounts.enabled");
+  const showStockStatus = useAppConfig("catalog.showStockStatus", true);
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("id") : null;
 
@@ -215,7 +219,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
             >
               {productInfo?.available ?
                 <div className=" flex flex-col gap-1">
-                  {productInfo?.oldPrice ? (
+                  {discountsEnabled && productInfo?.oldPrice ? (
                     <span className="font-semibold flex justify-center items-center text-center bg-[#557A3A] text-xs min-w-[48px] px-2 h-6 text-white rounded-full whitespace-nowrap">
                       {" - " +
                         (
@@ -236,9 +240,11 @@ export default function ProductCard({ productInfo, favorite, priority = false })
                 </div>
 
 
-                : <span className="font-semibold flex justify-center items-center text-center bg-black text-xs min-w-[56px] px-2 h-6 text-white rounded-full whitespace-nowrap">
-                  {t("soldOut")}
-                </span>}
+                : showStockStatus ? (
+                  <span className="font-semibold flex justify-center items-center text-center bg-black text-xs min-w-[56px] px-2 h-6 text-white rounded-full whitespace-nowrap">
+                    {t("soldOut")}
+                  </span>
+                ) : null}
 
             </div>
             <div className="w-full h-full flex justify-center px-1 items-center rounded-3xl z-10">
@@ -327,9 +333,10 @@ export default function ProductCard({ productInfo, favorite, priority = false })
       "
                       >
                         {/* Wishlist */}
-                        <button
-                          id={`btn_fov_${productInfo?.itemId}`}
-                          className="
+                        {wishlistEnabled ? (
+                          <button
+                            id={`btn_fov_${productInfo?.itemId}`}
+                            className="
           group/wishlist
           flex items-center justify-center
           text-white
@@ -339,20 +346,20 @@ export default function ProductCard({ productInfo, favorite, priority = false })
           transition-all duration-300
           hover:bg-[#CD4354]
         "
-                          onClick={(e) => {
-                            e.stopPropagation();
+                            onClick={(e) => {
+                              e.stopPropagation();
 
-                            if (favorite === true) {
-                              deleteFavoriteItems(productInfo?.itemId);
-                            } else {
-                              addFavoriteItems(productInfo?.itemId);
-                            }
+                              if (favorite === true) {
+                                deleteFavoriteItems(productInfo?.itemId);
+                              } else {
+                                addFavoriteItems(productInfo?.itemId);
+                              }
 
-                            setSelectedProductId(productInfo?.itemId);
-                          }}
-                        >
-                          <IoMdHeart
-                            className="
+                              setSelectedProductId(productInfo?.itemId);
+                            }}
+                          >
+                            <IoMdHeart
+                              className="
             absolute
             w-5 h-5
             lg:scale-0
@@ -362,20 +369,21 @@ export default function ProductCard({ productInfo, favorite, priority = false })
             lg:group-hover/wishlist:scale-100
             xs:scale-100
           "
-                          />
+                            />
 
-                          <span
-                            className="
+                            <span
+                              className="
             transition-all duration-300
             lg:opacity-100
             lg:group-hover/wishlist:-translate-y-5
             lg:group-hover/wishlist:opacity-0
             xs:opacity-0
           "
-                          >
-                            {t("wishlist")}
-                          </span>
-                        </button>
+                            >
+                              {t("wishlist")}
+                            </span>
+                          </button>
+                        ) : null}
 
                         {/* Add To Cart */}
                         {productInfo?.available && (
