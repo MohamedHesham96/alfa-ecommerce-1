@@ -215,19 +215,20 @@ export default function ProductCard({ productInfo, favorite, priority = false })
         <div className="relative w-full aspect-square max-h-[380px] p-1 shrink-0 ">
           <div className="relative w-full h-full">
 
-            <div className="absolute top-3 start-3 text-sm flex flex-col items-start gap-1 z-30 max-w-full "
+            <div className="absolute top-2 start-3 text-sm flex flex-col items-start gap-1 z-30 max-w-full "
             >
               {productInfo?.available ?
                 <div className=" flex flex-col gap-1">
                   {discountsEnabled && productInfo?.oldPrice ? (
-                    <span className="font-semibold flex justify-center items-center text-center bg-[#557A3A] text-xs min-w-[48px] px-2 h-6 text-white rounded-full whitespace-nowrap">
-                      {" - " +
-                        (
-                          ((productInfo?.oldPrice - productInfo?.price) /
-                            productInfo?.oldPrice) *
-                          100
-                        ).toFixed(0)}
-                      %
+                    <span
+                      dir="ltr"
+                      className="font-semibold flex justify-center items-center text-center bg-[#557A3A] text-xs min-w-[48px] px-2 h-6 text-white rounded-full whitespace-nowrap"
+                    >
+                      {`-${(
+                        ((productInfo?.oldPrice - productInfo?.price) /
+                          productInfo?.oldPrice) *
+                        100
+                      ).toFixed(0)}%`}
                     </span>
                   ) : (
                     ""

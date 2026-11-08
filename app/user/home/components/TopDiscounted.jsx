@@ -39,7 +39,7 @@ const swiperRef = useRef()
    <div className=" md:order-1 xs:order-2 flex justify-end  ">
      <div className="w-20 h-20 rounded-full bg-red-700 shadow-lg shadow-red-700/40 flex flex-col items-center justify-center text-white gap-1">
        <span className="text-[10px] font-medium leading-none tracking-wide">Save up to</span>
-       <span className="text-xl font-bold leading-none">-45%</span>
+       <span dir="ltr" className="text-xl font-bold leading-none">-45%</span>
      </div>
    </div>
    <div className=" md:order-2 xs:order-1 w-full flex flex-col md:items-center xs:items-start justify-center">

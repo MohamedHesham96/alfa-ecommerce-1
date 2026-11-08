@@ -189,7 +189,10 @@ export default function ProductInfo({
                         </span>
                     ) : null}
                     {discount > 0 ? (
-                        <span className="rounded-full bg-[#557A3A] px-2.5 py-1 text-xs font-semibold text-white">
+                        <span
+                            dir="ltr"
+                            className="rounded-full bg-[#557A3A] px-2.5 py-1 text-xs font-semibold text-white"
+                        >
                             -{discount}%
                         </span>
                     ) : null}
