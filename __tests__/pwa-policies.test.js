@@ -94,6 +94,11 @@ describe("PWA caching policies", () => {
     expect(
       policies.getApiCachePolicy("/api/public/governorates", "GET").maxAgeMs,
     ).toBe(24 * 60 * 60 * 1000);
+    // Slider changes are admin-managed and must revalidate on every load;
+    // the cached copy is only an offline fallback.
+    expect(
+      policies.getApiCachePolicy("/api/public/sliderImages", "GET").maxAgeMs,
+    ).toBe(0);
   });
 
   it("allowlists only public pages for offline navigation", () => {

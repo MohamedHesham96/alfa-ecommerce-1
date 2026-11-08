@@ -108,7 +108,7 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
         try {
             const res = await postRequest(
                 "/api/public/items/search",
-                { searchText: query },
+                { page: 0, size: 100, searchText: query },
                 ""
             );
 

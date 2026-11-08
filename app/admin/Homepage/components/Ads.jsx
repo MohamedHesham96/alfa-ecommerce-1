@@ -3,7 +3,7 @@ import { IoCloudUploadSharp } from "react-icons/io5"
 import { useLanguage } from "../../../../context/LanguageContext"
 import AdsForm from "./AdsForm"
 import { useEffect, useState } from "react"
-import { deleteRequest, getRequest } from "../../../../utils/requestsUtils"
+import { deleteRequest, getRequest, postRequest } from "../../../../utils/requestsUtils"
 import { useRefresh } from "../../../../context/refreshContext.jsx";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { BsMegaphone } from "react-icons/bs";
@@ -75,9 +75,20 @@ export default function Ads() {
   const [options, setOptions] = useState([]);
   const [ads, setAds] = useState(emptyAds)
 
-  const fetchRecentItems = async () => {
-    const res = await getRequest("/api/public/items/recent");
-    const products = res?.data || [];
+  const fetchProducts = async () => {
+    // Load the catalog for the product picker instead of the 10 recent
+    // storefront items, which made only a handful of products selectable.
+    const res = await postRequest(
+      "/api/public/items/search",
+      {
+        page: 0,
+        size: 100,
+        sortBy: locale === "ar" ? "nameAr" : "nameEn",
+        ascending: true,
+      },
+      ""
+    );
+    const products = res?.data?.content || res?.data || [];
     setOptions(
       products.map((product) => ({
         value: product.itemId,
@@ -108,7 +119,7 @@ export default function Ads() {
   const openAdForm = (number, id) => {
     setIsFormOpen(true)
     setAdNumber(number)
-    fetchRecentItems()
+    fetchProducts()
     setOfferId(id)
   }
 

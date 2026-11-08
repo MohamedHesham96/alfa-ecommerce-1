@@ -4,16 +4,15 @@ import { MdCancel } from "react-icons/md";
 import { IoCloudUploadSharp } from "react-icons/io5";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../../../context/LanguageContext.js";
-import { getRequest, postRequest, putRequest } from "../../../../utils/requestsUtils.js";
+import { postRequest, putRequest } from "../../../../utils/requestsUtils.js";
 import { useRefresh } from "../../../../context/refreshContext.jsx";
 import { getProductDetails, getThumbnailUrl } from "../../../../utils/functions.jsx";
 import Select from "react-select";
 
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL;
 
-// The public search endpoint returns a paginated object (`data.content`),
-// while `/items/recent` returns a plain array. Normalise both shapes so the
-// dropdown can render whichever one the API sends.
+// The search endpoint returns a paginated object (`data.content`), but keep
+// accepting a plain array too so the dropdown can render either shape.
 const extractProducts = (payload) => {
     const data = payload?.data ?? payload;
     if (Array.isArray(data)) return data;
@@ -47,7 +46,7 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [searchLoading, setSearchLoading] = useState(false);
     const [focusedOption, setFocusedOption] = useState(null);
-    const recentOptionsRef = useRef([]);
+    const initialOptionsRef = useRef([]);
     const searchTimerRef = useRef(null);
     const searchRequestIdRef = useRef(0);
     const searchValueRef = useRef("");
@@ -72,19 +71,31 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
         clearTimeout(searchTimerRef.current);
     }, []);
 
-    const fetchRecentItems = useCallback(async () => {
+    const fetchInitialItems = useCallback(async () => {
         try {
-            const res = await getRequest("/api/public/items/recent");
-            const recentOptions = extractProducts(res).map((product) =>
+            // Load the catalog, not just the 10 recent products shown on the
+            // storefront. The request carries the admin token, so the public
+            // search also returns inactive items (size is capped at 100).
+            const res = await postRequest(
+                "/api/public/items/search",
+                {
+                    page: 0,
+                    size: 100,
+                    sortBy: locale === "ar" ? "nameAr" : "nameEn",
+                    ascending: true,
+                },
+                ""
+            );
+            const initialOptions = extractProducts(res).map((product) =>
                 mapProductToOption(product, locale)
             );
-            recentOptionsRef.current = recentOptions;
+            initialOptionsRef.current = initialOptions;
             // Don't overwrite results if the user already started typing.
             if (!searchValueRef.current.trim()) {
-                setOptions(recentOptions);
+                setOptions(initialOptions);
             }
         } catch (error) {
-            recentOptionsRef.current = [];
+            initialOptionsRef.current = [];
             if (!searchValueRef.current.trim()) {
                 setOptions([]);
             }
@@ -101,7 +112,7 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
 
             setItemId(itemIdValue);
 
-            const match = recentOptionsRef.current.find(
+            const match = initialOptionsRef.current.find(
                 (option) => String(option.value) === String(itemIdValue)
             );
             if (match) {
@@ -153,11 +164,11 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
     useEffect(() => {
         if (!isFormOpen) return;
         resetForm();
-        fetchRecentItems();
+        fetchInitialItems();
         if (isUpdateMode && sliderData) {
             loadSliderData(sliderData);
         }
-    }, [isFormOpen, isUpdateMode, sliderData, resetForm, fetchRecentItems, loadSliderData]);
+    }, [isFormOpen, isUpdateMode, sliderData, resetForm, fetchInitialItems, loadSliderData]);
 
     const searchProducts = useCallback(
         async (value) => {
@@ -166,7 +177,7 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
 
             if (!query) {
                 setSearchLoading(false);
-                setOptions(recentOptionsRef.current);
+                setOptions(initialOptionsRef.current);
                 return;
             }
 
@@ -176,7 +187,7 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
                     "/api/public/items/search",
                     {
                         page: 0,
-                        size: 50,
+                        size: 100,
                         searchText: query,
                     },
                     ""
@@ -210,7 +221,7 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
         if (!search.trim()) {
             searchRequestIdRef.current++;
             setSearchLoading(false);
-            setOptions(recentOptionsRef.current);
+            setOptions(initialOptionsRef.current);
             return;
         }
 

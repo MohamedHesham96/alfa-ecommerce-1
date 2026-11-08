@@ -281,6 +281,7 @@ export default function Homepage({
   const offersRef = useRef(initialOffers);
   const slidersRef = useRef(initialSliderImages);
   const categoriesRef = useRef(initialCategories);
+  const sliderRefreshInFlightRef = useRef(false);
   const [productType, setProductType] = useState("mustWatchedItems");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const isLoggedInRef = useRef(false);
@@ -288,6 +289,25 @@ export default function Homepage({
   // ==============================
   // API / data fetching logic
   // ==============================
+  // The slider list is admin-managed, so it must not be served from the
+  // 5-minute ISR snapshot or the service-worker cache. Refresh it after
+  // hydration and whenever the visitor returns to the tab.
+  const refreshSliderImages = useCallback(async (shouldApply = () => true) => {
+    if (sliderRefreshInFlightRef.current) return;
+    sliderRefreshInFlightRef.current = true;
+    try {
+      const sliderRes = await getSliderImage();
+      if (!shouldApply() || !Array.isArray(sliderRes)) return;
+      if (JSON.stringify(sliderRes) === JSON.stringify(slidersRef.current)) return;
+      slidersRef.current = sliderRes;
+      setImagesSliders(sliderRes);
+    } catch (error) {
+      // Keep the current slider on transient failures.
+    } finally {
+      sliderRefreshInFlightRef.current = false;
+    }
+  }, []);
+
   const fetchHomepageData = useCallback(async () => {
     const requestId = ++requestIdRef.current;
     const isStale = () => requestId !== requestIdRef.current;
@@ -309,17 +329,10 @@ export default function Homepage({
       setHeroLoading(true);
       setContentLoading(true);
 
-      // app/page.js already provides the server-rendered slider, but the route
-      // shell is cached for a few minutes. Refresh the slider after hydration
-      // so a product linked from the admin is reflected in the hero link
-      // immediately instead of falling back to /products until the next ISR
-      // revalidation.
-      safeRequest("sliderImages", () => getSliderImage(), null).then((sliderRes) => {
-        if (isStale() || !Array.isArray(sliderRes)) return;
-        if (JSON.stringify(sliderRes) === JSON.stringify(slidersRef.current)) return;
-        slidersRef.current = sliderRes;
-        setImagesSliders(sliderRes);
-      });
+      // app/page.js provides the server-rendered slider for LCP, but the
+      // route shell is cached for a few minutes. Refresh it right after
+      // hydration so admin adds/deletes/edits appear immediately.
+      refreshSliderImages(() => !isStale());
 
       let offersList = offersRef.current;
       if (!offersList.length) {
@@ -456,7 +469,7 @@ export default function Homepage({
         setContentLoading(false);
       }
     }
-  }, []);
+  }, [refreshSliderImages]);
 
   // ==============================
   // Event handlers
@@ -491,6 +504,24 @@ export default function Homepage({
       requestIdRef.current += 1;
     };
   }, [fetchHomepageData]);
+
+  // The admin edits sliders in another tab. When the visitor comes back to
+  // the storefront, pick up the new list instead of showing the old hero.
+  useEffect(() => {
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        refreshSliderImages();
+      }
+    };
+
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+
+    return () => {
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [refreshSliderImages]);
 
   // Return / JSX
   // ==============================

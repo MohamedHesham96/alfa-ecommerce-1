@@ -138,10 +138,12 @@
     var maxAgeMs = 5 * 60 * 1000;
     if (path.indexOf("/api/public/itemCategory") === 0) {
       maxAgeMs = 30 * 60 * 1000;
-    } else if (
-      path.indexOf("/api/public/sliderImages") === 0 ||
-      path.indexOf("/api/public/offers") === 0
-    ) {
+    } else if (path.indexOf("/api/public/sliderImages") === 0) {
+      // Admin-managed hero content: always revalidate so added, edited and
+      // deleted slides appear on the next load. The cached copy is still used
+      // as an offline fallback.
+      maxAgeMs = 0;
+    } else if (path.indexOf("/api/public/offers") === 0) {
       maxAgeMs = 15 * 60 * 1000;
     } else if (
       path.indexOf("/api/public/contact") === 0 ||

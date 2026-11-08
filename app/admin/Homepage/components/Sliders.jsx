@@ -35,10 +35,13 @@ export default function Sliders({setIsFormOpen, setEditingSlider}) {
   const deleteSlideImage = async (deletedSliderImageId) => {
     try {
       setLoading(true);
-      await deleteRequest(
+      const res = await deleteRequest(
         `/api/admin/sliderImages/${deletedSliderImageId}`,
         t("message")
       );
+      // `deleteRequest` resolves with no value when the user cancels the
+      // confirmation dialog; don't refetch in that case.
+      if (!res) return;
       await getSliderImages();
     } catch (error) {
     } finally {
