@@ -13,6 +13,8 @@ import { useLanguage } from "../../../../context/LanguageContext";
 import { useFeature } from "../../../../context/AppConfigContext";
 export default function OrderDetails({ orderId }) {
   const [order, setOrder] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const [orderSummary, setOrderSummary] = useState({
     total: "",
@@ -23,6 +25,12 @@ export default function OrderDetails({ orderId }) {
     totalOrder: "",
     paymentMethod: "",
     shippingCost: "",
+    fulfillmentType: "DELIVERY",
+    pickupPlaceName: "",
+    pickupPlaceDescription: "",
+    pickupPlaceAddress: "",
+    pickupPlacePhone: "",
+    pickupPlaceWorkingHours: "",
   });
   
   const [isOpenPopup, setOpenPopup] = useState(false);
@@ -49,20 +57,34 @@ export default function OrderDetails({ orderId }) {
     quantity: "",
   });
   const getOrder = useCallback(async () => {
-    const res = await getRequest(`/api/orders/${orderId}`);
-    const resData = res.data;
-    setOrder(resData.orderItemLines);
-    setOrderSummary((prev) => ({
-      ...prev,
-      total: resData.total,
-      state: resData.state,
-      createdDate: resData.createdDate,
-      itemsNum: resData.orderItemLines.length,
-      totalDiscount: resData.totalDiscount,
-      totalOrder: resData.netTotal,
-      paymentMethod: resData.paymentMethod,
-      shippingCost: resData.shippingCost,
-    }));
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const res = await getRequest(`/api/orders/${orderId}`);
+      const resData = res.data;
+      setOrder(resData.orderItemLines);
+      setOrderSummary((prev) => ({
+        ...prev,
+        total: resData.total,
+        state: resData.state,
+        createdDate: resData.createdDate,
+        itemsNum: resData.orderItemLines.length,
+        totalDiscount: resData.totalDiscount,
+        totalOrder: resData.netTotal,
+        paymentMethod: resData.paymentMethod,
+        shippingCost: resData.shippingCost,
+        fulfillmentType: resData.fulfillmentType || "DELIVERY",
+        pickupPlaceName: resData.pickupPlaceName || "",
+        pickupPlaceDescription: resData.pickupPlaceDescription || "",
+        pickupPlaceAddress: resData.pickupPlaceAddress || "",
+        pickupPlacePhone: resData.pickupPlacePhone || "",
+        pickupPlaceWorkingHours: resData.pickupPlaceWorkingHours || "",
+      }));
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   }, [orderId]);
   const orderCancel = async () => {
     try {
@@ -103,6 +125,38 @@ export default function OrderDetails({ orderId }) {
 
   const date = new Date(orderSummary.createdDate);
   const dateOnly = date.toLocaleDateString("en-GB");
+
+  if (loading) {
+    return (
+      <div className="w-full h-full p-5" aria-busy="true">
+        <div className="mb-6 h-16 animate-pulse rounded-2xl bg-white" />
+        <div className="flex md:flex-row xs:flex-col gap-7">
+          <div className="h-[420px] w-full animate-pulse rounded-3xl bg-white md:w-[60%]" />
+          <div className="h-[420px] w-full animate-pulse rounded-3xl bg-white md:w-[40%]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="w-full h-full p-5">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
+          <p className="text-sm font-semibold text-red-700">
+            {t("orderDetailsLoadError")}
+          </p>
+          <button
+            type="button"
+            onClick={getOrder}
+            className="mt-4 rounded-lg bg-[#e14a5c] px-4 py-2 text-sm font-semibold text-white hover:bg-red-600"
+          >
+            {t("retry")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full p-5">
       <ProductReturnForm productdata ={productdata}  isOpenPopup ={isOpenPopup} setOpenPopup={setOpenPopup}/>
@@ -308,7 +362,7 @@ export default function OrderDetails({ orderId }) {
         </div>
 
         {/* ── Desktop / Tablet table layout ───────────────────────── */}
-        <div className="xs:hidden md:flex w-full min-w-0 overflow-x-auto rounded-3xl bg-white">
+        <div className="xs:hidden md:flex items-start w-full min-w-0 overflow-x-auto rounded-3xl bg-white">
           <table className="w-full ">
             <thead className="text-justify uppercase tracking-wide">
               <tr className="h-20 border-b border-b-gray-200 border-gray-100">
@@ -478,7 +532,7 @@ export default function OrderDetails({ orderId }) {
               </span>
 
               <span className="font-semibold">
-                {(orderSummary.total - orderSummary.totalDiscount).toLocaleString("en-US") +
+                {Number(orderSummary.total ?? 0).toLocaleString("en-US") +
                   " " +
                   t("currency")}
               </span>
@@ -489,10 +543,59 @@ export default function OrderDetails({ orderId }) {
               <span className="font-semibold">{t(orderSummary.paymentMethod)}</span>
             </div>
 
+            <div className="flex justify-between items-center mb-5">
+              <span className="text-gray-600">{t("fulfillment_type")}</span>
+              <span className="font-semibold">
+                {t(
+                  orderSummary.fulfillmentType === "PICKUP"
+                    ? "pickup"
+                    : "delivery",
+                )}
+              </span>
+            </div>
+
+            {orderSummary.fulfillmentType === "PICKUP" ? (
+              <div className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <h2 className="text-sm font-bold text-gray-900">
+                  {t("pickup_details")}
+                </h2>
+                <p className="mt-2 text-sm font-semibold text-gray-800">
+                  {orderSummary.pickupPlaceName || "—"}
+                </p>
+                {orderSummary.pickupPlaceDescription ? (
+                  <p className="mt-1 text-xs leading-5 text-gray-600">
+                    {orderSummary.pickupPlaceDescription}
+                  </p>
+                ) : null}
+                <div className="mt-3 space-y-1.5 text-xs text-gray-700">
+                  <p>
+                    <span className="font-semibold">{t("address")}:</span>{" "}
+                    {orderSummary.pickupPlaceAddress || "—"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">
+                      {t("contact_phone")}:
+                    </span>{" "}
+                    <span dir="ltr">
+                      {orderSummary.pickupPlacePhone || "—"}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="font-semibold">
+                      {t("working_hours")}:
+                    </span>{" "}
+                    {orderSummary.pickupPlaceWorkingHours || "—"}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
             <div className="flex justify-between items-center">
               <span className="text-gray-600">{t("shippingCost")} </span>
               <span className="font-semibold">
-                {orderSummary.shippingCost + " " + t("currency")}
+                {Number(orderSummary.shippingCost ?? 0).toLocaleString("en-US") +
+                  " " +
+                  t("currency")}
               </span>
             </div>
 

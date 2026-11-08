@@ -98,6 +98,10 @@ const router = useRouter();
           setLocale(language);
           localStorage.setItem("role", response.data.userDetails.role);
           localStorage.setItem(
+            "systemSettingsAccess",
+            String(response.data.userDetails.systemSettingsAccess === true),
+          );
+          localStorage.setItem(
             "governorateId",
             response.data.userDetails.governorate.governorateId,
           );

@@ -9,6 +9,7 @@
     "/admin/Homepage",
     "/admin/orders",
     "/admin/orders/OrdersDetails/[id]",
+    "/admin/PickupPlaces",
     "/admin/Products",
     "/admin/returnorderdetails/[id]",
     "/admin/Returns",

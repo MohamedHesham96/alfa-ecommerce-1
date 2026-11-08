@@ -216,6 +216,11 @@ export default function OrdersHistory() {
                     <span className="p-1 text-sm text-gray-700 rounded-md font-semibold bg-gray-100">
                       {order.code}
                     </span>
+                    {order.fulfillmentType === "PICKUP" ? (
+                      <span className="p-1 text-xs rounded-md font-semibold bg-green-100 text-green-700">
+                        {t("pickup")}
+                      </span>
+                    ) : null}
                     <div className="flex items-center gap-2">
                        <span className=" text-sm text-gray-700 rounded-md font-semibold flex  items-center gap-2">
                       <FaRegCalendar /> {dateOnly}

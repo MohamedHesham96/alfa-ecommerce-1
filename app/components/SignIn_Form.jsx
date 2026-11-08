@@ -59,9 +59,16 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
       setLocale(language);
       localStorage.setItem("role", response.data.userDetails.role);
       localStorage.setItem(
-        "governorateId",
-        response.data.userDetails.governorate.governorateId,
+        "systemSettingsAccess",
+        String(response.data.userDetails.systemSettingsAccess === true),
       );
+      const governorateId =
+        response.data.userDetails.governorate?.governorateId;
+      if (governorateId !== undefined && governorateId !== null) {
+        localStorage.setItem("governorateId", governorateId);
+      } else {
+        localStorage.removeItem("governorateId");
+      }
 
       // A different account may be signing in on this device. Drop any
       // previously cached page/API data before navigating.

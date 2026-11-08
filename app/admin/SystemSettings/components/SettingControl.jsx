@@ -257,8 +257,8 @@ export default function SettingControl({
         }`}
       >
         <span
-          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-            checked ? "translate-x-6" : "translate-x-1"
+          className={`absolute top-1/2 inline-block h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow transition-all ${
+            checked ? "start-6" : "start-1"
           }`}
         />
         <span className="sr-only">

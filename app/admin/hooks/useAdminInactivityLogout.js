@@ -18,6 +18,7 @@ const AUTH_STORAGE_KEYS = [
   "email",
   "phone",
   "role",
+  "systemSettingsAccess",
   "username",
   "governorateId",
 ];

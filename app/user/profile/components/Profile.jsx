@@ -148,6 +148,7 @@ const responce = await getRequest("/api/users")
                 localStorage.setItem("refreshToken", "");
                 localStorage.setItem("firstName", "");
                 localStorage.setItem("role", "");
+                localStorage.setItem("systemSettingsAccess", "false");
        
                 navigate.push("/");
               }}

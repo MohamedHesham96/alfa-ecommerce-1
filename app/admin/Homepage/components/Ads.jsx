@@ -3,40 +3,76 @@ import { IoCloudUploadSharp } from "react-icons/io5"
 import { useLanguage } from "../../../../context/LanguageContext"
 import AdsForm from "./AdsForm"
 import { useEffect, useState } from "react"
-import { getRequest } from "../../../../utils/requestsUtils"
+import { deleteRequest, getRequest } from "../../../../utils/requestsUtils"
 import { useRefresh } from "../../../../context/refreshContext.jsx";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import Image from "next/image"
 
+const emptyAds = {
+  ad1: {
+    img: "",
+    id: "",
+  },
+  ad2: {
+    img: "",
+    id: "",
+  },
+  ad3: {
+    img: "",
+    id: "",
+  },
+  ad4: {
+    img: "",
+    id: "",
+  },
+  ad5: {
+    img: "",
+    id: "",
+  },
+}
+
+function AdActions({ offerId, editLabel, deleteLabel, onEdit, onDelete }) {
+  if (!offerId) return null
+
+  return (
+    <div className="absolute top-2 right-2 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <button
+        type="button"
+        className="bg-white p-2 rounded-full text-red-600 hover:bg-red-50 shadow"
+        title={editLabel}
+        aria-label={editLabel}
+        onClick={(e) => {
+          e.stopPropagation()
+          onEdit()
+        }}
+      >
+        <FaEdit />
+      </button>
+      <button
+        type="button"
+        className="bg-white p-2 rounded-full text-red-600 hover:bg-red-50 shadow"
+        title={deleteLabel}
+        aria-label={deleteLabel}
+        onClick={(e) => {
+          e.stopPropagation()
+          onDelete()
+        }}
+      >
+        <FaTrash />
+      </button>
+    </div>
+  )
+}
+
 export default function Ads() {
-  const { refreshKey } = useRefresh();
+  const { refreshKey, triggerRefresh } = useRefresh();
 
   const { t, locale } = useLanguage()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [adNumber, setAdNumber] = useState()
   const [offerId, setOfferId] = useState()
   const [options, setOptions] = useState([]);
-  const [ads, setAds] = useState({
-    ad1: {
-      img: "",
-      id: "",
-    },
-    ad2: {
-      img: "",
-      id: "",
-    },
-    ad3: {
-      img: "",
-      id: "",
-    },
-    ad4: {
-      img: "",
-      id: "",
-    },
-    ad5: {
-      img: "",
-      id: "",
-    },
-  })
+  const [ads, setAds] = useState(emptyAds)
 
   const fetchRecentItems = async () => {
     const res = await getRequest("/api/public/items/recent");
@@ -52,45 +88,35 @@ export default function Ads() {
 
   const getAdsData = async () => {
     const res = await getRequest("/api/public/offers")
-    console.log(res)
-    const respose = res.data
-    respose.forEach((res) => {
-      if (res.number === 1) setAds((prev) => ({
-        ...prev,
-        ad1: {
-          img: res.imageUrl,
-          id: res.offerId
+    const offers = res?.data || []
+    const nextAds = { ...emptyAds }
+
+    offers.forEach((offer) => {
+      const number = Number(offer.number)
+      if (number >= 1 && number <= 5) {
+        nextAds[`ad${number}`] = {
+          img: offer.imageUrl,
+          id: offer.offerId,
         }
-      }))
-      if (res.number === 2) setAds((prev) => ({
-        ...prev,
-        ad2: {
-          img: res.imageUrl,
-          id: res.offerId
-        }
-      }))
-      if (res.number === 3) setAds((prev) => ({
-        ...prev,
-        ad3: {
-          img: res.imageUrl,
-          id: res.offerId
-        }
-      }))
-      if (res.number === 4) setAds((prev) => ({
-        ...prev,
-        ad4: {
-          img: res.imageUrl,
-          id: res.offerId
-        }
-      }))
-      if (res.number === 5) setAds((prev) => ({
-        ...prev,
-        ad5: {
-          img: res.imageUrl,
-          id: res.offerId
-        }
-      }))
+      }
     })
+
+    setAds(nextAds)
+  }
+
+  const openAdForm = (number, id) => {
+    setIsFormOpen(true)
+    setAdNumber(number)
+    fetchRecentItems()
+    setOfferId(id)
+  }
+
+  const handleDelete = async (id) => {
+    if (!id) return
+    try {
+      await deleteRequest(`/api/admin/offers/${id}`, t("message"))
+      triggerRefresh()
+    } catch (error) {}
   }
 
   useEffect(() => {
@@ -102,13 +128,8 @@ export default function Ads() {
       <div className="w-full h-full grid md:grid-cols-5 xs:grid-cols-1 gap-5">
         <div className="w-full h-full">
           <h1 className="mb-4 text-xl font-semibold">{t("Advert1")} </h1>
-          <div className="w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
-            onClick={() => {
-              setIsFormOpen(true)
-              setAdNumber(1)
-              fetchRecentItems()
-              setOfferId(ads.ad1.id)
-            }}
+          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
+            onClick={() => openAdForm(1, ads.ad1.id)}
           >
             {ads.ad1.img ? <div className="w-full h-full relative">
               <Image
@@ -116,6 +137,13 @@ export default function Ads() {
                 alt=""
                 fill
                 className="object-fill rounded-3xl"
+              />
+              <AdActions
+                offerId={ads.ad1.id}
+                editLabel={t("edit")}
+                deleteLabel={t("delete")}
+                onEdit={() => openAdForm(1, ads.ad1.id)}
+                onDelete={() => handleDelete(ads.ad1.id)}
               />
             </div> :
               <label className="border-dashed flex justify-center p-5 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
@@ -150,13 +178,8 @@ export default function Ads() {
         </div>
         <div className="w-full h-full">
           <h1 className="mb-4 text-xl font-semibold ">{t("Advert2")} </h1>
-          <div className="w-full max-w-[200px] h-[300px] rounded-3xl bg-white p-5   cursor-pointer"
-            onClick={() => {
-              setIsFormOpen(true)
-              setAdNumber(2)
-              fetchRecentItems()
-              setOfferId(ads.ad2.id)
-            }}
+          <div className="group w-full max-w-[200px] h-[300px] rounded-3xl bg-white p-5 cursor-pointer"
+            onClick={() => openAdForm(2, ads.ad2.id)}
           >
             {ads.ad2.img ? <div className="w-full h-full relative">
               <Image
@@ -164,6 +187,13 @@ export default function Ads() {
                 alt=""
                 fill
                 className="object-fill rounded-3xl"
+              />
+              <AdActions
+                offerId={ads.ad2.id}
+                editLabel={t("edit")}
+                deleteLabel={t("delete")}
+                onEdit={() => openAdForm(2, ads.ad2.id)}
+                onDelete={() => handleDelete(ads.ad2.id)}
               />
             </div> : <label className="border-dashed flex justify-center p-5 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
               <div
@@ -197,14 +227,9 @@ export default function Ads() {
         
         <div className="w-full h-full">
           <h1 className="mb-4 text-xl font-semibold">{t("Advert3")} </h1>
-          <div className="w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
-            onClick={() => {
-              setIsFormOpen(true)
-              setAdNumber(3)
-              fetchRecentItems()
-              setOfferId(ads.ad3.id)
-
-            }}>
+          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
+            onClick={() => openAdForm(3, ads.ad3.id)}
+          >
             {
               ads.ad3.img ? <div className="w-full h-full relative">
                 <Image
@@ -212,6 +237,13 @@ export default function Ads() {
                   alt=""
                   fill
                   className="object-fill rounded-3xl"
+                />
+                <AdActions
+                  offerId={ads.ad3.id}
+                  editLabel={t("edit")}
+                  deleteLabel={t("delete")}
+                  onEdit={() => openAdForm(3, ads.ad3.id)}
+                  onDelete={() => handleDelete(ads.ad3.id)}
                 />
               </div> :
                 <label className="border-dashed flex justify-center p-5 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
@@ -246,14 +278,9 @@ export default function Ads() {
         </div>
         <div className="w-full h-full">
           <h1 className="mb-4 text-xl font-semibold">{t("Advert4")} </h1>
-          <div className="w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
-            onClick={() => {
-              setIsFormOpen(true)
-              setAdNumber(4)
-              fetchRecentItems()
-              setOfferId(ads.ad4.id)
-
-            }}>
+          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
+            onClick={() => openAdForm(4, ads.ad4.id)}
+          >
             {
               ads.ad4.img? <div className="w-full h-full relative">
                 <Image
@@ -261,6 +288,13 @@ export default function Ads() {
                   alt=""
                   fill
                   className="object-fill rounded-3xl"
+                />
+                <AdActions
+                  offerId={ads.ad4.id}
+                  editLabel={t("edit")}
+                  deleteLabel={t("delete")}
+                  onEdit={() => openAdForm(4, ads.ad4.id)}
+                  onDelete={() => handleDelete(ads.ad4.id)}
                 />
               </div>
                 :
@@ -296,14 +330,9 @@ export default function Ads() {
         </div>
         <div className="w-full h-full">
           <h1 className="mb-4 text-xl font-semibold">{t("Advert5")} </h1>
-          <div className="w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
-            onClick={() => {
-              setIsFormOpen(true)
-              setAdNumber(5)
-              fetchRecentItems()
-              setOfferId(ads.ad5.id)
-
-            }}>
+          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
+            onClick={() => openAdForm(5, ads.ad5.id)}
+          >
             {
               ads.ad5.img ? <div className="w-full h-full relative">
                 <Image
@@ -311,6 +340,13 @@ export default function Ads() {
                   alt=""
                   fill
                   className="object-fill rounded-3xl"
+                />
+                <AdActions
+                  offerId={ads.ad5.id}
+                  editLabel={t("edit")}
+                  deleteLabel={t("delete")}
+                  onEdit={() => openAdForm(5, ads.ad5.id)}
+                  onDelete={() => handleDelete(ads.ad5.id)}
                 />
               </div> :
                 <label className="border-dashed flex justify-center p-5 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">

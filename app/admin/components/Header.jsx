@@ -45,6 +45,9 @@ export default function Header({ page_title }) {
     case "System Settings":
       setSelectedNamePage("system_settings");
       break;
+    case "Pickup Places Management":
+      setSelectedNamePage("pickup_places_management");
+      break;
   }
 
   const userId =

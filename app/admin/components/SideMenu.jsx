@@ -9,6 +9,7 @@ import { RiMoneyDollarCircleLine, RiPagesFill } from "react-icons/ri";
 import { MdElectricBolt } from "react-icons/md";
 import { MdCategory } from "react-icons/md";
 import { MdSettings } from "react-icons/md";
+import { MdStorefront } from "react-icons/md";
 import Link from "next/link";
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import { useLanguage } from "../../../context/LanguageContext.js";
@@ -16,6 +17,7 @@ import Image from "next/image.js";
 import { PiSignOutBold } from "react-icons/pi";
 
 import { useNamePageInAdminContext } from "../../../context/namePageInAdmin.jsx";
+import { useAppConfig } from "../../../context/AppConfigContext.jsx";
 import { useRouter } from "next/navigation.js";
 import { logoutRequest } from "../../../utils/requestsUtils";
 import { TbTruckReturn } from "react-icons/tb";
@@ -23,7 +25,16 @@ export default function SideMenu() {
   const navigate = useRouter();
 
   const [username, setUsername] = useState();
+  const [systemSettingsAccess, setSystemSettingsAccess] = useState(false);
   const { selectedNamePage, setSelectedNamePage } = useNamePageInAdminContext();
+  const pickupEnabled = useAppConfig("pickup.enabled", false);
+  useEffect(() => {
+    // Only BlueSoft-managed accounts may see the System Settings entry.
+    setSystemSettingsAccess(
+      typeof window !== "undefined" &&
+        localStorage.getItem("systemSettingsAccess") === "true",
+    );
+  }, []);
   useEffect(() => {
     // جلب اسم المستخدم من localStorage
     const savedUsername =
@@ -45,6 +56,8 @@ export default function SideMenu() {
         ? "Returns Management"
         : window.location.pathname.includes("SystemSettings")
         ? "System Settings"
+        : window.location.pathname.includes("PickupPlaces")
+        ? "Pickup Places Management"
         : lastPort + " " + "Management"
     );
   }, [setSelectedNamePage]);
@@ -220,24 +233,47 @@ export default function SideMenu() {
               <h1 className="text-md xs:hidden xl:block">{t("shippingcost")}</h1>
             </div>
           </Link>
-          <Link
-            href="/admin/SystemSettings"
-            onClick={() => setSelectedNamePage("System Settings")}
-          >
-            <div
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "system_settings"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
+          {systemSettingsAccess ? (
+            <Link
+              href="/admin/SystemSettings"
+              onClick={() => setSelectedNamePage("System Settings")}
             >
-              <span className="text-2xl">
-                <MdSettings />
-              </span>
-              <h1 className="text-md xs:hidden xl:block">{t("system_settings")}</h1>
-            </div>
-          </Link>
+              <div
+                className={`flex gap-4 mx-3 xs:justify-center xl:justify-start items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
+                   ${
+                     selectedNamePage === "system_settings"
+                       ? "bg-red-100 text-red-500"
+                       : ""
+                   }`}
+              >
+                <span className="text-2xl">
+                  <MdSettings />
+                </span>
+                <h1 className="text-md xs:hidden xl:block">{t("system_settings")}</h1>
+              </div>
+            </Link>
+          ) : null}
+
+          {pickupEnabled ? (
+            <Link
+              href="/admin/PickupPlaces"
+              onClick={() => setSelectedNamePage("Pickup Places Management")}
+            >
+              <div
+                className={`flex gap-4 mx-3 xs:justify-center xl:justify-start items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
+                   ${
+                     selectedNamePage === "pickup_places_management"
+                       ? "bg-red-100 text-red-500"
+                       : ""
+                   }`}
+              >
+                <span className="text-2xl">
+                  <MdStorefront />
+                </span>
+                <h1 className="text-md xs:hidden xl:block">{t("pickup_places")}</h1>
+              </div>
+            </Link>
+          ) : null}
 
           <Link
             href="/admin/UsersPage/Users"
@@ -312,6 +348,7 @@ export default function SideMenu() {
               localStorage.setItem("lastName", "");
               localStorage.setItem("phone", "");
               localStorage.setItem("role", "");
+              localStorage.setItem("systemSettingsAccess", "false");
               localStorage.setItem("username", "");
               navigate.push("/");
             }}

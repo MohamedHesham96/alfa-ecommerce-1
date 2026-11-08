@@ -164,7 +164,7 @@ export default function CartTable({
       </div>
 
       {/* ── Desktop / Tablet table layout ───────────────────────── */}
-      <div className="xs:hidden md:flex w-full min-w-0 h-[400px]  rounded-3xl bg-white">
+      <div className="xs:hidden md:flex items-start w-full min-w-0 h-[400px]  rounded-3xl bg-white">
         <table className="w-full min-w-[640px] h-auto">
           <thead className="text-center uppercase tracking-wide">
             <tr className="h-20 border-b border-b-gray-200 border-gray-100">

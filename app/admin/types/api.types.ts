@@ -110,6 +110,18 @@ export interface ShippingRateRow {
   modifiedDate?: string | null;
 }
 
+export interface PickupPlaceRow {
+  pickupPlaceId: number;
+  name: string;
+  description: string;
+  address: string;
+  phone: string;
+  workingHours: string;
+  active: boolean;
+  createdDate?: string | null;
+  modifiedDate?: string | null;
+}
+
 export interface PendingOrderRow {
   orderId: number;
   orderCode: string;

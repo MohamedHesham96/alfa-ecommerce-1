@@ -309,15 +309,17 @@ export default function Homepage({
       setHeroLoading(true);
       setContentLoading(true);
 
-      // app/page.js already provides the server-rendered slider. Only fall
-      // back to a client request when the server could not load it.
-      if (!slidersRef.current.length) {
-        safeRequest("sliderImages", () => getSliderImage(), []).then((sliderRes) => {
-          if (isStale() || !sliderRes?.length) return;
-          slidersRef.current = sliderRes;
-          setImagesSliders(sliderRes);
-        });
-      }
+      // app/page.js already provides the server-rendered slider, but the route
+      // shell is cached for a few minutes. Refresh the slider after hydration
+      // so a product linked from the admin is reflected in the hero link
+      // immediately instead of falling back to /products until the next ISR
+      // revalidation.
+      safeRequest("sliderImages", () => getSliderImage(), null).then((sliderRes) => {
+        if (isStale() || !Array.isArray(sliderRes)) return;
+        if (JSON.stringify(sliderRes) === JSON.stringify(slidersRef.current)) return;
+        slidersRef.current = sliderRes;
+        setImagesSliders(sliderRes);
+      });
 
       let offersList = offersRef.current;
       if (!offersList.length) {

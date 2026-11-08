@@ -7,6 +7,7 @@ import ProductAds from './components/ProductAds'
 import { useState } from 'react';
 export default function Homepage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingSlider, setEditingSlider] = useState(null);
   
     const role =
     typeof window !== "undefined" ? localStorage.getItem("role") : null;
@@ -14,8 +15,8 @@ export default function Homepage() {
  <div className="w-full ">
  
           <div className=" relative   ">
-            <SliderForm setIsFormOpen={setIsFormOpen} isFormOpen={isFormOpen}/>
-          <Sliders setIsFormOpen={setIsFormOpen}/>
+            <SliderForm setIsFormOpen={setIsFormOpen} isFormOpen={isFormOpen} sliderData={editingSlider}/>
+          <Sliders setIsFormOpen={setIsFormOpen} setEditingSlider={setEditingSlider}/>
           <hr className="h-1  my-10"></hr>
           <div className=" w-full px-5 ">
           {/* <FeatuersProducts/> */}

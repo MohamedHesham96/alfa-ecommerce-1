@@ -17,6 +17,13 @@ import { toast } from "react-toastify";
 // import Link from "next/link";
 import CartTable from "./CartTable";
 import Select from "react-select";
+import FulfillmentOptions from "./FulfillmentOptions";
+import {
+  FULFILLMENT_TYPE,
+  buildOrderPayload,
+  calculateCheckoutTotals,
+  isPickupSelectionMissing,
+} from "./checkoutFulfillment";
 import { beginCriticalOperation } from "../../../../lib/pwa/criticalOperation";
 import { getCrossTabCoordinator } from "../../../../lib/pwa/crossTab";
 export default function Cart({ setShowSignIn }) {
@@ -48,6 +55,14 @@ export default function Cart({ setShowSignIn }) {
     true,
   );
   const creditCardEnabled = useAppConfig("payments.creditCard.enabled", false);
+  const pickupEnabled = useAppConfig("pickup.enabled", false);
+  const [fulfillmentType, setFulfillmentType] = useState(
+    FULFILLMENT_TYPE.DELIVERY,
+  );
+  const [pickupPlaceId, setPickupPlaceId] = useState(null);
+  const [pickupPlaces, setPickupPlaces] = useState([]);
+  const [pickupLoading, setPickupLoading] = useState(false);
+  const [pickupError, setPickupError] = useState(false);
   const paymentMethodOptions = [
     ...(instapayEnabled
       ? [{ value: "INSTAPAY", label: t("INSTAPAY") }]
@@ -68,7 +83,77 @@ export default function Cart({ setShowSignIn }) {
   };
 
   const checkoutDisabled =
-    !isOnline || items.length === 0 || paymentMethodOptions.length === 0;
+    !isOnline ||
+    items.length === 0 ||
+    paymentMethodOptions.length === 0 ||
+    (Boolean(userId) &&
+      pickupEnabled &&
+      fulfillmentType === FULFILLMENT_TYPE.PICKUP &&
+      (isPickupSelectionMissing({
+        pickupEnabled,
+        fulfillmentType,
+        pickupPlaceId,
+      }) ||
+        pickupLoading ||
+        pickupError ||
+        pickupPlaces.length === 0));
+
+  const selectedPickupPlace = pickupPlaces.find(
+    (place) => String(place.pickupPlaceId) === String(pickupPlaceId),
+  );
+  const isPickupSelected =
+    pickupEnabled && fulfillmentType === FULFILLMENT_TYPE.PICKUP;
+  const checkoutTotals = calculateCheckoutTotals({
+    total: summery.totalOrder,
+    shippingCost: summery.shappingCost,
+    netTotal: summery.netTotal,
+    fulfillmentType: isPickupSelected
+      ? FULFILLMENT_TYPE.PICKUP
+      : FULFILLMENT_TYPE.DELIVERY,
+  });
+
+  const loadPickupPlaces = useCallback(async () => {
+    setPickupLoading(true);
+    setPickupError(false);
+    try {
+      const res = await getRequest("/api/pickup-places/active");
+      setPickupPlaces(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setPickupPlaces([]);
+      setPickupError(true);
+    } finally {
+      setPickupLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!pickupEnabled) {
+      setFulfillmentType(FULFILLMENT_TYPE.DELIVERY);
+      setPickupPlaceId(null);
+      setPickupPlaces([]);
+      setPickupError(false);
+      return;
+    }
+    if (fulfillmentType === FULFILLMENT_TYPE.PICKUP) {
+      if (userId) {
+        loadPickupPlaces();
+      } else {
+        setPickupPlaces([]);
+        setPickupError(false);
+      }
+    }
+  }, [pickupEnabled, fulfillmentType, loadPickupPlaces, userId]);
+
+  useEffect(() => {
+    if (
+      pickupPlaceId &&
+      !pickupPlaces.some(
+        (place) => String(place.pickupPlaceId) === String(pickupPlaceId),
+      )
+    ) {
+      setPickupPlaceId(null);
+    }
+  }, [pickupPlaces, pickupPlaceId]);
 
   const getProductInCart = useCallback(async () => {
     try {
@@ -103,19 +188,24 @@ export default function Cart({ setShowSignIn }) {
         );
         setItems(items); // 👈 مهم
         setItemNum(items.length);
-        const total = items.reduce((acc, item) => {
-          const totalPrice = Number(item.oldPrice) * Number(item.quantity || 0);
-
-          return acc + totalPrice;
+        // `totalOrder` must be the sum of the actual selling price (after the
+        // item discount), matching the backend's `total`. `totalDiscount` is
+        // informational and must not be subtracted again.
+        const subtotal = items.reduce((acc, item) => {
+          const unitPrice = Number(item.unitPrice ?? item.price ?? 0);
+          return acc + unitPrice * Number(item.quantity ?? 0);
         }, 0);
         const totalDiscount = items.reduce((acc, item) => {
-          return acc + Number(item.oldPrice - item.price || 0);
+          const unitPrice = Number(item.unitPrice ?? item.price ?? 0);
+          const oldUnitPrice = Number(item.oldUnitPrice ?? item.oldPrice ?? 0);
+          const discount = Math.max(oldUnitPrice - unitPrice, 0);
+          return acc + discount * Number(item.quantity ?? 0);
         }, 0);
         setSummery((prev) => ({
           ...prev,
-          totalOrder: total,
+          totalOrder: subtotal,
           totalDiscount: totalDiscount,
-          netTotal: total - totalDiscount,
+          netTotal: subtotal,
         }));
       }
     } catch (error) {
@@ -220,6 +310,10 @@ export default function Cart({ setShowSignIn }) {
             toast.error(t("selectPaymentMethod"));
             return;
           }
+          if (isPickupSelected && !pickupPlaceId) {
+            toast.error(t("select_pickup_place"));
+            return;
+          }
           setLoading(true);
           // Hold a cross-tab checkout lock. The update gate cannot be acquired
           // while this lock is held, even from another tab.
@@ -228,9 +322,13 @@ export default function Cart({ setShowSignIn }) {
           }
           await postRequest(
             `/api/users/orders/place-order`,
-            {
-              paymentMethod: paymentMethod.value,
-            },
+            buildOrderPayload({
+              paymentMethod,
+              fulfillmentType: isPickupSelected
+                ? FULFILLMENT_TYPE.PICKUP
+                : FULFILLMENT_TYPE.DELIVERY,
+              pickupPlaceId,
+            }),
             "",
           );
           navigate.push("/user/ordershistory");
@@ -365,26 +463,73 @@ export default function Cart({ setShowSignIn }) {
                   {t("Subtotal") + " " + ` [${itemNum}]`}
                 </span>
                 <span className="font-semibold text-gray-600">
-                  {(summery.totalOrder - summery.totalDiscount).toLocaleString("en-US") +
+                  {checkoutTotals.subtotal.toLocaleString("en-US") +
                     " " +
                     t("currency")}{" "}
                 </span>
               </div>
               <hr className="my-5" />
 
+              {pickupEnabled ? (
+                <FulfillmentOptions
+                  pickupEnabled={pickupEnabled}
+                  fulfillmentType={fulfillmentType}
+                  onChange={(nextType) => {
+                    setFulfillmentType(nextType);
+                    if (nextType !== FULFILLMENT_TYPE.PICKUP) {
+                      setPickupPlaceId(null);
+                    }
+                  }}
+                  pickupPlaces={pickupPlaces}
+                  pickupPlaceId={pickupPlaceId}
+                  onSelectPickupPlace={(place) =>
+                    setPickupPlaceId(place.pickupPlaceId)
+                  }
+                  pickupLoading={pickupLoading}
+                  pickupError={pickupError}
+                  onRetry={loadPickupPlaces}
+                  signedIn={Boolean(userId)}
+                />
+              ) : null}
+
               {
                 userId ?
                   (<div>
-                    <div className="flex justify-between items-center mb-5">
-                      <span className="">{t("ShippingTo")} </span>
-                      <span className="font-semibold text-gray-600">{summery.address} </span>
-                    </div>
+                    {isPickupSelected ? (
+                      <div className="mb-5 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                        <div className="flex justify-between items-start gap-3">
+                          <span>{t("pickup_location")}</span>
+                          <span className="font-semibold text-gray-600 text-end">
+                            {selectedPickupPlace?.name || "—"}
+                          </span>
+                        </div>
+                        {selectedPickupPlace?.address ? (
+                          <p className="mt-1 text-xs leading-5 text-gray-500">
+                            {selectedPickupPlace.address}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center mb-5">
+                        <span className="">{t("ShippingTo")} </span>
+                        <span className="font-semibold text-gray-600">{summery.address} </span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center mb-5">
                       <span className="">{t("shippingCost")} </span>
                       <span className="font-semibold text-gray-600">
-                        {items.length === 0 ? 0 : summery.shappingCost + " " + t("currency")}
+                        {items.length === 0
+                          ? 0
+                          : checkoutTotals.shippingCost.toLocaleString("en-US") +
+                            " " +
+                            t("currency")}
                       </span>
                     </div>
+                    {isPickupSelected ? (
+                      <p className="mb-5 rounded-lg bg-green-50 px-3 py-2 text-xs font-semibold text-green-700">
+                        {t("pickup_shipping_free")}
+                      </p>
+                    ) : null}
                   </div>
 
                   ) : (
@@ -451,7 +596,11 @@ export default function Cart({ setShowSignIn }) {
               <div className="flex justify-between items-center text-xl font-semibold">
                 <span>{t("Total")} </span>
                 <span className="text-[#da643b]">
-                  {items.length === 0 ? 0 : summery.netTotal + " " + t("currency")}
+                  {items.length === 0
+                    ? 0
+                    : checkoutTotals.netTotal.toLocaleString("en-US") +
+                      " " +
+                      t("currency")}
                 </span>
               </div>
               <button

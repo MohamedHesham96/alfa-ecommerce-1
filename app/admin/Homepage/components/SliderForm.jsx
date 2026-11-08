@@ -4,9 +4,9 @@ import { MdCancel } from "react-icons/md";
 import { IoCloudUploadSharp } from "react-icons/io5";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../../../context/LanguageContext.js";
-import { getRequest, postRequest } from "../../../../utils/requestsUtils.js";
+import { getRequest, postRequest, putRequest } from "../../../../utils/requestsUtils.js";
 import { useRefresh } from "../../../../context/refreshContext.jsx";
-import { getThumbnailUrl } from "../../../../utils/functions.jsx";
+import { getProductDetails, getThumbnailUrl } from "../../../../utils/functions.jsx";
 import Select from "react-select";
 
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL;
@@ -32,7 +32,7 @@ const mapProductToOption = (product, locale) => ({
     product,
 });
 
-export default function SliderForm({ isFormOpen, setIsFormOpen }) {
+export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = null }) {
     const [photo, setPhoto] = useState({
         imageFile: "",
         image: "",
@@ -51,6 +51,9 @@ export default function SliderForm({ isFormOpen, setIsFormOpen }) {
     const searchTimerRef = useRef(null);
     const searchRequestIdRef = useRef(0);
     const searchValueRef = useRef("");
+    const loadRequestIdRef = useRef(0);
+
+    const isUpdateMode = Boolean(sliderData?.sliderImageId);
 
     useEffect(() => {
         searchValueRef.current = search;
@@ -65,6 +68,7 @@ export default function SliderForm({ isFormOpen, setIsFormOpen }) {
         setSearchLoading(false);
         searchValueRef.current = "";
         searchRequestIdRef.current++;
+        loadRequestIdRef.current++;
         clearTimeout(searchTimerRef.current);
     }, []);
 
@@ -87,11 +91,73 @@ export default function SliderForm({ isFormOpen, setIsFormOpen }) {
         }
     }, [locale]);
 
+    const selectSliderItem = useCallback(
+        async (itemIdValue, requestId) => {
+            if (itemIdValue === null || itemIdValue === undefined || itemIdValue === "") {
+                setItemId("");
+                setSelectedProduct(null);
+                return;
+            }
+
+            setItemId(itemIdValue);
+
+            const match = recentOptionsRef.current.find(
+                (option) => String(option.value) === String(itemIdValue)
+            );
+            if (match) {
+                setSelectedProduct(match);
+                return;
+            }
+
+            // Show the linked product immediately while its details load.
+            setSelectedProduct({
+                value: itemIdValue,
+                label: `#${itemIdValue}`,
+                product: null,
+            });
+
+            try {
+                const res = await getProductDetails(itemIdValue);
+                if (requestId !== loadRequestIdRef.current) return;
+                const product = res?.data;
+                if (!product) return;
+
+                const option = mapProductToOption(product, locale);
+                setOptions((prev) =>
+                    prev.some((o) => String(o.value) === String(option.value))
+                        ? prev
+                        : [option, ...prev]
+                );
+                setSelectedProduct(option);
+            } catch (error) {
+                // Keep the placeholder label if the details request fails.
+            }
+        },
+        [locale]
+    );
+
+    const loadSliderData = useCallback(
+        (data) => {
+            const requestId = ++loadRequestIdRef.current;
+            setPhoto({
+                imageFile: "",
+                image: data?.imageUrl
+                    ? IMAGE_BASE_URL + getThumbnailUrl(data.imageUrl)
+                    : "",
+            });
+            selectSliderItem(data?.itemId, requestId);
+        },
+        [selectSliderItem]
+    );
+
     useEffect(() => {
         if (!isFormOpen) return;
         resetForm();
         fetchRecentItems();
-    }, [isFormOpen, resetForm, fetchRecentItems]);
+        if (isUpdateMode && sliderData) {
+            loadSliderData(sliderData);
+        }
+    }, [isFormOpen, isUpdateMode, sliderData, resetForm, fetchRecentItems, loadSliderData]);
 
     const searchProducts = useCallback(
         async (value) => {
@@ -195,25 +261,30 @@ export default function SliderForm({ isFormOpen, setIsFormOpen }) {
  
     const handleSubmit = async () => {
         if (loading) return;
-        if (!photo.imageFile) {
+        // The image is only required when creating; an edit may keep the
+        // current image and only change the linked product.
+        if (!isUpdateMode && !photo.imageFile) {
             alert(t("please_fill_all_fields"));
             return;
         }
 
         const formData = new FormData();
-        formData.append("imageFile", photo.imageFile);
-        formData.append("itemId", itemId);
+        if (photo.imageFile) {
+            formData.append("imageFile", photo.imageFile);
+        }
+        formData.append("itemId", itemId ?? "");
 
         try {
             setLoading(true);
-            const res = await postRequest(
-                "/api/admin/sliderImages",
-                formData,
-                t("message")
-            );
+            const endpoint = isUpdateMode
+                ? `/api/admin/sliderImages/${sliderData.sliderImageId}`
+                : "/api/admin/sliderImages";
+            const res = isUpdateMode
+                ? await putRequest(endpoint, formData, t("message"))
+                : await postRequest(endpoint, formData, t("message"));
 
-            // `postRequest` resolves with no value when the user cancels the
-            // confirmation dialog, so don't close or refresh in that case.
+            // Both helpers resolve with a falsy value when the user cancels
+            // the confirmation dialog, so don't close or refresh in that case.
             if (!res) return;
 
             triggerRefresh();
@@ -246,7 +317,7 @@ export default function SliderForm({ isFormOpen, setIsFormOpen }) {
             <div className="bg-white shadow-md shadow-slate-400 min-h-[450px] h-auto w-[95%] max-w-[500px] flex flex-col border rounded-md max-h-[90vh] overflow-y-auto">
                 <div className="m-4 flex justify-between items-center">
                     <h1 id="nameFormCategory" className="text-lg font-semibold">
-                        {t("add_slider")}
+                        {isUpdateMode ? t("edit_slider") : t("add_slider")}
                     </h1>
                     <button
                         className="text-3xl text-red-950  hover:text-red-800"
@@ -279,14 +350,21 @@ export default function SliderForm({ isFormOpen, setIsFormOpen }) {
                                         </span>
                                     </div>
                                 ) : (
-                                    // 🖼️ Image Preview
-                                    <div className="w-[100px] h-[100px] ">
-                                        <Image
-                                            alt=""
-                                            src={photo.image}
-                                            fill
-                                            className="w-full h-full object-contain rounded-lg"
-                                        />
+                                    // 🖼️ Image Preview — clicking it picks a replacement image.
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className="relative w-[100px] h-[100px]">
+                                            <Image
+                                                alt=""
+                                                src={photo.image}
+                                                fill
+                                                className="w-full h-full object-contain rounded-lg"
+                                            />
+                                        </div>
+                                        {isUpdateMode && (
+                                            <span className="text-[10px] text-gray-500">
+                                                {t("upload-new-img")}
+                                            </span>
+                                        )}
                                     </div>
                                 )}
                             </div>

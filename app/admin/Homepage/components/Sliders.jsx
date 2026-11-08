@@ -4,7 +4,7 @@ import { IoCloudUploadSharp } from "react-icons/io5";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "../../../../context/LanguageContext.js";
-import { FaTimes } from "react-icons/fa";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import "swiper/css";
 import "swiper/css/pagination";
 import LivePreview from "./LivePreview.jsx";
@@ -18,7 +18,7 @@ import {
 } from "../../../../utils/functions.jsx";
 import { useRefresh } from "../../../../context/refreshContext.jsx";
 
-export default function Sliders({setIsFormOpen}) {
+export default function Sliders({setIsFormOpen, setEditingSlider}) {
   const { t } = useLanguage();
   const [sliderImages, setSliderImages] = useState([]);
   const { refreshKey } = useRefresh();
@@ -120,6 +120,7 @@ export default function Sliders({setIsFormOpen}) {
         <div className="bg-white  rounded-3xl min-h-[170px] h-auto w-full flex flex-col gap-3 p-4 cursor-pointer">
           <div className=" border-dashed flex justify-center p-5 items-center border-2 rounded-3xl border-red-400 bg-gray-50  hover:bg-gray-100 w-full h-full "
           onClick={()=>{
+            setEditingSlider(null)
             setIsFormOpen(true)
           }}
           >
@@ -152,20 +153,40 @@ export default function Sliders({setIsFormOpen}) {
           </div>
         </div>
         {sliderImages.map((img, index) => {
+          const editSlider = () => {
+            setEditingSlider(img);
+            setIsFormOpen(true);
+          };
+
           return (
             <div
-              key={index}
-              className="bg-white  h-[170px]  p-2 rounded-3xl"
+              key={img.sliderImageId ?? index}
+              className="relative bg-white h-[170px] p-2 rounded-3xl"
             >
-              <span className="flex justify-end mb-1">
-                <button
-                  className="text-sm text-gray-500 hover:text-gray-600"
-                  onClick={() => deleteSlideImage(img.sliderImageId)}
-                >
-                  <FaTimes />
-                </button>
-              </span>
-              <div className="flex justify-center items-center ">
+              <button
+                type="button"
+                title={t("edit")}
+                aria-label={t("edit")}
+                className="absolute top-3 left-3 z-10 bg-white p-2 rounded-full text-red-600 hover:bg-red-50 shadow"
+                onClick={editSlider}
+              >
+                <FaEdit />
+              </button>
+              <button
+                type="button"
+                title={t("delete")}
+                aria-label={t("delete")}
+                className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full text-red-600 hover:bg-red-50 shadow"
+                onClick={() => deleteSlideImage(img.sliderImageId)}
+              >
+                <FaTrash />
+              </button>
+              <button
+                type="button"
+                title={t("edit")}
+                className="flex justify-center items-center w-full"
+                onClick={editSlider}
+              >
                 <Image
                   src={`${
                     process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL
@@ -175,7 +196,7 @@ export default function Sliders({setIsFormOpen}) {
                   height={100}
                   className="h-[140px] w-full rounded-3xl"
                 />
-              </div>
+              </button>
             </div>
           );
         })}
