@@ -113,7 +113,7 @@ export default function ProductAds() {
         <div className="w-full grid lg:grid-cols-5 md:grid-cols-3 xs:grid-cols-2 gap-4">
           {/* add tile */}
           <div
-            className="bg-white rounded-xl min-h-[220px] h-auto w-full flex flex-col gap-3 p-4 cursor-pointer"
+            className="bg-white rounded-xl min-h-[220px] h-auto w-full flex flex-col gap-3 p-4 cursor-pointer shadow-sm transition-shadow hover:shadow-md"
             onClick={() => {
               setEditOffer(null);
               setIsFormOpen(true);
@@ -141,7 +141,7 @@ export default function ProductAds() {
             return (
               <div
                 key={ad.offerId || index}
-                className="bg-white border rounded-xl overflow-hidden relative group"
+                className="bg-white border rounded-xl overflow-hidden relative group shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="relative w-full h-[150px]">
                   {image ? (

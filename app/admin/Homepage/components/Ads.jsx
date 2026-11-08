@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { deleteRequest, getRequest } from "../../../../utils/requestsUtils"
 import { useRefresh } from "../../../../context/refreshContext.jsx";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { BsMegaphone } from "react-icons/bs";
 import Image from "next/image"
 
 const emptyAds = {
@@ -125,10 +126,19 @@ export default function Ads() {
   return (
     <>
       <AdsForm setIsFormOpen={setIsFormOpen} isFormOpen={isFormOpen} productsOptions={options} adNumber={adNumber} offerId={offerId} mode={offerId ? "update" : "create"} />
-      <div className="w-full h-full grid md:grid-cols-5 xs:grid-cols-1 gap-5">
+      <div className="w-full">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-xl text-red-600">
+              <BsMegaphone />
+            </span>
+            <h1 className="md:text-xl xs:text-lg font-semibold">{t("adverts")}</h1>
+          </div>
+        </div>
+        <div className="w-full h-full grid md:grid-cols-5 xs:grid-cols-1 gap-5">
         <div className="w-full h-full">
-          <h1 className="mb-4 text-xl font-semibold">{t("Advert1")} </h1>
-          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
+          <h1 className="mb-3 text-xl font-semibold">{t("Advert1")} </h1>
+          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer shadow-sm transition-shadow hover:shadow-md"
             onClick={() => openAdForm(1, ads.ad1.id)}
           >
             {ads.ad1.img ? <div className="w-full h-full relative">
@@ -136,7 +146,8 @@ export default function Ads() {
                 src={process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL + ads.ad1.img}
                 alt=""
                 fill
-                className="object-fill rounded-3xl"
+                sizes="200px"
+                className="object-cover rounded-3xl"
               />
               <AdActions
                 offerId={ads.ad1.id}
@@ -146,7 +157,7 @@ export default function Ads() {
                 onDelete={() => handleDelete(ads.ad1.id)}
               />
             </div> :
-              <label className="border-dashed flex justify-center p-5 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
+              <label className="border-dashed flex justify-center p-3 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
                 <div
                   id="label-uplod"
                   className="flex flex-col justify-center items-center "
@@ -155,7 +166,7 @@ export default function Ads() {
                     <IoCloudUploadSharp />
                   </span>
                   <span className="flex flex-col gap-2 items-center">
-                    <div className="text-center text-sm">
+                    <div className="text-center text-xs">
                       <h1 className="mb-2">{t("click_to_upload")}</h1>
                       <h2 className="text-[10px] text-gray-500">
                         PNG, JPG or GIF
@@ -177,8 +188,8 @@ export default function Ads() {
           </div>
         </div>
         <div className="w-full h-full">
-          <h1 className="mb-4 text-xl font-semibold ">{t("Advert2")} </h1>
-          <div className="group w-full max-w-[200px] h-[300px] rounded-3xl bg-white p-5 cursor-pointer"
+          <h1 className="mb-3 text-xl font-semibold ">{t("Advert2")} </h1>
+          <div className="group w-full max-w-[200px] h-[300px] rounded-3xl bg-white p-5 cursor-pointer shadow-sm transition-shadow hover:shadow-md"
             onClick={() => openAdForm(2, ads.ad2.id)}
           >
             {ads.ad2.img ? <div className="w-full h-full relative">
@@ -186,7 +197,8 @@ export default function Ads() {
                 src={process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL + ads.ad2.img}
                 alt=""
                 fill
-                className="object-fill rounded-3xl"
+                sizes="200px"
+                className="object-cover rounded-3xl"
               />
               <AdActions
                 offerId={ads.ad2.id}
@@ -195,7 +207,7 @@ export default function Ads() {
                 onEdit={() => openAdForm(2, ads.ad2.id)}
                 onDelete={() => handleDelete(ads.ad2.id)}
               />
-            </div> : <label className="border-dashed flex justify-center p-5 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
+            </div> : <label className="border-dashed flex justify-center p-3 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
               <div
                 id="label-uplod"
                 className="flex flex-col justify-center items-center "
@@ -204,7 +216,7 @@ export default function Ads() {
                   <IoCloudUploadSharp />
                 </span>
                 <span className="flex flex-col gap-2 items-center">
-                  <div className="text-center text-sm">
+                  <div className="text-center text-xs">
                     <h1 className="mb-2">{t("click_to_upload")}</h1>
                     <h2 className="text-[10px] text-gray-500">
                       PNG, JPG or GIF
@@ -226,8 +238,8 @@ export default function Ads() {
         </div>
         
         <div className="w-full h-full">
-          <h1 className="mb-4 text-xl font-semibold">{t("Advert3")} </h1>
-          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
+          <h1 className="mb-3 text-xl font-semibold">{t("Advert3")} </h1>
+          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer shadow-sm transition-shadow hover:shadow-md"
             onClick={() => openAdForm(3, ads.ad3.id)}
           >
             {
@@ -236,7 +248,8 @@ export default function Ads() {
                   src={process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL + ads.ad3.img}
                   alt=""
                   fill
-                  className="object-fill rounded-3xl"
+                  sizes="200px"
+                  className="object-cover rounded-3xl"
                 />
                 <AdActions
                   offerId={ads.ad3.id}
@@ -246,7 +259,7 @@ export default function Ads() {
                   onDelete={() => handleDelete(ads.ad3.id)}
                 />
               </div> :
-                <label className="border-dashed flex justify-center p-5 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
+                <label className="border-dashed flex justify-center p-3 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
                   <div
                     id="label-uplod"
                     className="flex flex-col justify-center items-center "
@@ -255,7 +268,7 @@ export default function Ads() {
                       <IoCloudUploadSharp />
                     </span>
                     <span className="flex flex-col gap-2 items-center">
-                      <div className="text-center text-sm">
+                      <div className="text-center text-xs">
                         <h1 className="mb-2">{t("click_to_upload")}</h1>
                         <h2 className="text-[10px] text-gray-500">
                           PNG, JPG or GIF
@@ -277,8 +290,8 @@ export default function Ads() {
           </div>
         </div>
         <div className="w-full h-full">
-          <h1 className="mb-4 text-xl font-semibold">{t("Advert4")} </h1>
-          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
+          <h1 className="mb-3 text-xl font-semibold">{t("Advert4")} </h1>
+          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer shadow-sm transition-shadow hover:shadow-md"
             onClick={() => openAdForm(4, ads.ad4.id)}
           >
             {
@@ -287,7 +300,8 @@ export default function Ads() {
                   src={process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL + ads.ad4.img}
                   alt=""
                   fill
-                  className="object-fill rounded-3xl"
+                  sizes="200px"
+                  className="object-cover rounded-3xl"
                 />
                 <AdActions
                   offerId={ads.ad4.id}
@@ -298,7 +312,7 @@ export default function Ads() {
                 />
               </div>
                 :
-                <label className="border-dashed flex justify-center p-5 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
+                <label className="border-dashed flex justify-center p-3 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
                   <div
                     id="label-uplod"
                     className="flex flex-col justify-center items-center "
@@ -307,7 +321,7 @@ export default function Ads() {
                       <IoCloudUploadSharp />
                     </span>
                     <span className="flex flex-col gap-2 items-center">
-                      <div className="text-center text-sm">
+                      <div className="text-center text-xs">
                         <h1 className="mb-2">{t("click_to_upload")}</h1>
                         <h2 className="text-[10px] text-gray-500">
                           PNG, JPG or GIF
@@ -329,8 +343,8 @@ export default function Ads() {
           </div>
         </div>
         <div className="w-full h-full">
-          <h1 className="mb-4 text-xl font-semibold">{t("Advert5")} </h1>
-          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer"
+          <h1 className="mb-3 text-xl font-semibold">{t("Advert5")} </h1>
+          <div className="group w-full max-w-[200px] h-[200px] rounded-3xl bg-white p-5 cursor-pointer shadow-sm transition-shadow hover:shadow-md"
             onClick={() => openAdForm(5, ads.ad5.id)}
           >
             {
@@ -339,7 +353,8 @@ export default function Ads() {
                   src={process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL + ads.ad5.img}
                   alt=""
                   fill
-                  className="object-fill rounded-3xl"
+                  sizes="200px"
+                  className="object-cover rounded-3xl"
                 />
                 <AdActions
                   offerId={ads.ad5.id}
@@ -349,7 +364,7 @@ export default function Ads() {
                   onDelete={() => handleDelete(ads.ad5.id)}
                 />
               </div> :
-                <label className="border-dashed flex justify-center p-5 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
+                <label className="border-dashed flex justify-center p-3 items-center border-2 h-full w-full rounded-3xl cursor-pointer hover:bg-gray-100">
                   <div
                     id="label-uplod"
                     className="flex flex-col justify-center items-center "
@@ -358,7 +373,7 @@ export default function Ads() {
                       <IoCloudUploadSharp />
                     </span>
                     <span className="flex flex-col gap-2 items-center">
-                      <div className="text-center text-sm">
+                      <div className="text-center text-xs">
                         <h1 className="mb-2">{t("click_to_upload")}</h1>
                         <h2 className="text-[10px] text-gray-500">
                           PNG, JPG or GIF
@@ -376,6 +391,7 @@ export default function Ads() {
               id="fileInput"
             />
           </div>
+        </div>
         </div>
       </div>
     </>

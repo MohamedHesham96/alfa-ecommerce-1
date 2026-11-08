@@ -27,22 +27,21 @@ export default function Sliders({setIsFormOpen, setEditingSlider}) {
 
   const getSliderImages = async () => {
     const res = await getSliderImage();
-    setSliderImages(res);
+    setSliderImages(Array.isArray(res) ? res : []);
   };
 
  
 
   const deleteSlideImage = async (deletedSliderImageId) => {
     try {
-          setLoading(true);
-
-      const res = await deleteRequest(
+      setLoading(true);
+      await deleteRequest(
         `/api/admin/sliderImages/${deletedSliderImageId}`,
         t("message")
       );
-      getSliderImages();
+      await getSliderImages();
     } catch (error) {
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -66,45 +65,47 @@ export default function Sliders({setIsFormOpen, setEditingSlider}) {
         </div>
       )}
       <div className=" w-[100%] ">
-        <div className="flex items-center justify-between  gap-2 mb-3 ">
+        <div className="flex items-center justify-between gap-2 mb-3 ">
           <div className="flex items-center gap-3">
             <span className="text-xl text-red-600">
               <TfiLayoutSliderAlt />
             </span>
             <h1 className="md:text-xl xs:text-lg font-semibold ">{t("sliders")}</h1>
           </div>
-          <button
-            id="btn-livePreview"
-            className="p-2  bg-[#CD4354] text-white hover:bg-red-300 text-sm rounded-md"
-            onClick={() => {
-              const LivePreview = document.querySelector("#LivePreview");
-              LivePreview.classList.remove("hidden");
-              LivePreview.classList.add("flex");
-              const btn_hide = document.querySelector("#btn-hide");
-              btn_hide.classList.remove("hidden");
-              const btn_livePreview =
-                document.querySelector("#btn-livePreview");
-              btn_livePreview.classList.add("hidden");
-            }}
-          >
-            {t("live_previwe")}
-          </button>
-          <button
-            id="btn-hide"
-            className="hidden p-2 bg-red-600 text-white hover:bg-red-300 text-sm rounded-md"
-            onClick={() => {
-              const btn_hide = document.querySelector("#btn-hide");
-              btn_hide.classList.add("hidden");
-              const btn_livePreview =
-                document.querySelector("#btn-livePreview");
-              btn_livePreview.classList.remove("hidden");
-              const LivePreview = document.querySelector("#LivePreview");
-              LivePreview.classList.add("hidden");
-              LivePreview.classList.remove("flex");
-            }}
-          >
-            {t("hide")}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              id="btn-livePreview"
+              className="p-2 bg-[#CD4354] text-white hover:bg-red-300 text-sm rounded-md transition-colors"
+              onClick={() => {
+                const LivePreview = document.querySelector("#LivePreview");
+                LivePreview.classList.remove("hidden");
+                LivePreview.classList.add("flex");
+                const btn_hide = document.querySelector("#btn-hide");
+                btn_hide.classList.remove("hidden");
+                const btn_livePreview =
+                  document.querySelector("#btn-livePreview");
+                btn_livePreview.classList.add("hidden");
+              }}
+            >
+              {t("live_previwe")}
+            </button>
+            <button
+              id="btn-hide"
+              className="hidden p-2 bg-red-600 text-white hover:bg-red-300 text-sm rounded-md transition-colors"
+              onClick={() => {
+                const btn_hide = document.querySelector("#btn-hide");
+                btn_hide.classList.add("hidden");
+                const btn_livePreview =
+                  document.querySelector("#btn-livePreview");
+                btn_livePreview.classList.remove("hidden");
+                const LivePreview = document.querySelector("#LivePreview");
+                LivePreview.classList.add("hidden");
+                LivePreview.classList.remove("flex");
+              }}
+            >
+              {t("hide")}
+            </button>
+          </div>
         </div>
         <div
           id="LivePreview"
@@ -116,13 +117,14 @@ export default function Sliders({setIsFormOpen, setEditingSlider}) {
 
         {/* </div> */}
       </div>
-      <div className="w-full grid lg:grid-cols-5 md:grid-cols-3  xs:grid-cols-2 gap-3  ">
-        <div className="bg-white  rounded-3xl min-h-[170px] h-auto w-full flex flex-col gap-3 p-4 cursor-pointer">
-          <div className=" border-dashed flex justify-center p-5 items-center border-2 rounded-3xl border-red-400 bg-gray-50  hover:bg-gray-100 w-full h-full "
-          onClick={()=>{
-            setEditingSlider(null)
-            setIsFormOpen(true)
-          }}
+      <div className="w-full grid md:grid-cols-5 xs:grid-cols-1 gap-5">
+        <div className="w-full max-w-[200px] h-[200px] bg-white rounded-3xl p-5 shadow-sm transition-shadow hover:shadow-md">
+          <div
+            className="border-dashed flex justify-center p-3 items-center border-2 rounded-3xl border-red-400 bg-gray-50 hover:bg-gray-100 w-full h-full cursor-pointer"
+            onClick={() => {
+              setEditingSlider(null)
+              setIsFormOpen(true)
+            }}
           >
             <label >
               <div
@@ -133,7 +135,7 @@ export default function Sliders({setIsFormOpen, setEditingSlider}) {
                   <IoCloudUploadSharp />
                 </span>
                 <span className="flex flex-col gap-2 items-center">
-                  <div className="text-center text-sm">
+                  <div className="text-center text-xs">
                     <h1 className="mb-2">{t("click_to_upload")}</h1>
                     <h2 className="text-[10px] text-gray-500">
                       PNG, JPG or GIF
@@ -161,42 +163,46 @@ export default function Sliders({setIsFormOpen, setEditingSlider}) {
           return (
             <div
               key={img.sliderImageId ?? index}
-              className="relative bg-white h-[170px] p-2 rounded-3xl"
+              className="group relative w-full max-w-[200px] h-[200px] bg-white rounded-3xl p-5 shadow-sm transition-shadow hover:shadow-md"
             >
-              <button
-                type="button"
-                title={t("edit")}
-                aria-label={t("edit")}
-                className="absolute top-3 left-3 z-10 bg-white p-2 rounded-full text-red-600 hover:bg-red-50 shadow"
-                onClick={editSlider}
-              >
-                <FaEdit />
-              </button>
-              <button
-                type="button"
-                title={t("delete")}
-                aria-label={t("delete")}
-                className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full text-red-600 hover:bg-red-50 shadow"
-                onClick={() => deleteSlideImage(img.sliderImageId)}
-              >
-                <FaTrash />
-              </button>
-              <button
-                type="button"
-                title={t("edit")}
-                className="flex justify-center items-center w-full"
-                onClick={editSlider}
-              >
-                <Image
-                  src={`${
-                    process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL
-                  }${getThumbnailUrl(img.imageUrl)}`}
-                  alt=""
-                  width={100}
-                  height={100}
-                  className="h-[140px] w-full rounded-3xl"
-                />
-              </button>
+              <div className="relative w-full h-full">
+                <button
+                  type="button"
+                  title={t("edit")}
+                  className="relative flex justify-center items-center w-full h-full overflow-hidden rounded-3xl"
+                  onClick={editSlider}
+                >
+                  <Image
+                    src={`${
+                      process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL
+                    }${getThumbnailUrl(img.imageUrl)}`}
+                    alt=""
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                  />
+                </button>
+                <div className="absolute top-2 right-2 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    type="button"
+                    title={t("edit")}
+                    aria-label={t("edit")}
+                    className="bg-white p-2 rounded-full text-red-600 hover:bg-red-50 shadow"
+                    onClick={editSlider}
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    type="button"
+                    title={t("delete")}
+                    aria-label={t("delete")}
+                    className="bg-white p-2 rounded-full text-red-600 hover:bg-red-50 shadow"
+                    onClick={() => deleteSlideImage(img.sliderImageId)}
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
             </div>
           );
         })}
