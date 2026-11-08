@@ -8,7 +8,7 @@ export default function BestPickSkeleton() {
   return (
     <div className="w-full bg-white rounded-2xl p-4">
       <SectionHeaderSkeleton titleClassName="h-5 w-48" />
-      <div className="w-full mt-5 grid grid-cols-1 sm:grid-cols-4">
+      <div className="w-full mt-10 grid grid-cols-1 sm:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={`best-pick-${i}`} className="flex items-center gap-1 w-full px-5">
             <Skeleton className="w-[50px] h-[50px] rounded-full shrink-0" />

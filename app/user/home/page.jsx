@@ -139,15 +139,15 @@ function HomeHero({
 
   return (
     <div className="py-7">
-      <div className="flex lg:flex-row xs:flex-col justify-around gap-4 items-center w-full">
+      <div className="flex lg:flex-row xs:flex-col justify-around gap-4 items-stretch w-full">
         {/* Slider */}
-        <div className="lg:w-[40%] xs:w-full">
+        <div className="flex w-full lg:w-[40%] xs:w-full">
           <ImageSlider sliderImages={imagesSliders} />
         </div>
 
         <div className="flex flex-col  gap-3 lg:w-[60%] xs:w-full">
           <div className="w-full h-full">
-            <div className="flex md:flex-row xs:flex-col gap-3 justify-center items-center h-full  w-full">
+            <div className="flex md:flex-row xs:flex-col gap-3 justify-center items-stretch h-full  w-full">
               {heroLoading && !hasAd ? (
                 <AdHeroSkeleton />
               ) : (

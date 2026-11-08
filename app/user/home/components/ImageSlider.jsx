@@ -27,7 +27,7 @@ export default function ImageSlider({ sliderImages = [] }) {
   if (!sliderImages.length) {
     return (
       <div
-        className="w-full lg:h-[510px] xs:h-[470px] rounded-3xl bg-white"
+        className="w-full h-[470px] lg:h-full rounded-3xl bg-white"
         aria-hidden="true"
       />
     );
@@ -39,7 +39,7 @@ export default function ImageSlider({ sliderImages = [] }) {
   if (sliderImages.length === 1) {
     const image = sliderImages[0];
     return (
-      <div className="w-full lg:h-[510px] xs:h-[470px] rounded-3xl">
+      <div className="w-full h-[470px] lg:h-full rounded-3xl">
         <Link
           href={heroHref(image)}
           prefetch={false}
@@ -61,7 +61,7 @@ export default function ImageSlider({ sliderImages = [] }) {
   }
 
   return (
-    <div className="w-full lg:h-[510px] xs:h-[470px] rounded-3xl">
+    <div className="w-full h-[470px] lg:h-full rounded-3xl">
       <Swiper
         key={locale}
         dir={locale === "ar" ? "rtl" : "ltr"}
