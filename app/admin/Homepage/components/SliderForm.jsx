@@ -405,6 +405,10 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
                                     filterOption={() => true}
                                     formatOptionLabel={formatOptionLabel}
                                     placeholder={t("search")}
+                                    // Render the menu outside the scrollable modal
+                                    // so the results list is never clipped.
+                                    menuPortalTarget={typeof document !== "undefined" ? document.body : undefined}
+                                    menuPosition="fixed"
                                     onInputChange={(value, actionMeta) => {
                                         if (actionMeta.action === "input-change") {
                                             setSearch(value);
@@ -439,16 +443,13 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
                       height: "100%",
                       width: "100%",
                     }),
-                    option: (provided) => ({
-                      ...provided,
-                      // backgroundColor: '#b91c1c',
-                      color: "white",
-                      fontSize: "18px",
-                      fontWeight: "600",
-                    }),
                     input: (base) => ({
                       ...base,
                       color: "#374151",
+                    }),
+                    menuPortal: (base) => ({
+                      ...base,
+                      zIndex: 9999,
                     }),
                     option: (base, state) => ({
                       ...base,
