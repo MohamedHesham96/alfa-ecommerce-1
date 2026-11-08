@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { resolveLanguage } from "../../utils/languageUtils";
 import { clearUserScopedCaches } from "../../lib/pwa/client";
 
-export default function SignUp({ popUp, setShowSignIn ,setOpenForm}) {
+export default function SignUp({ popUp, setShowSignIn, setShowSignUp, setOpenForm }) {
   const navigate = useRouter();
   const { t } = useLanguage();
   const [username, setUsername] = useState("");
@@ -107,8 +107,8 @@ const router = useRouter();
           );
           await clearUserScopedCaches().catch(() => {});
 
-router.refresh();    
-setOpenForm(false)
+router.refresh();
+setOpenForm?.(false)
 }
       } else {
         const response = await axios.post(
@@ -179,6 +179,7 @@ setOpenForm(false)
           </h4>
         </div>
        <button
+          type="button"
           onClick={() => {
             const newLocale = locale === "ar" ? "en" : "ar";
             setLocale(newLocale);
@@ -466,14 +467,25 @@ setOpenForm(false)
               {loading ? t("loggingIn") : t("create_account")}
             </button>
           </form>
-          <Link href={popUp ? "" : "/signin"}>
+          {popUp ? (
             <button
-              className="flex justify-center items-center text-sm text-gray-500 "
-              onClick={() => (popUp ? setShowSignIn(true) : "")}
+              type="button"
+              className="flex justify-center items-center text-sm text-gray-500"
+              onClick={() => {
+                setShowSignIn(true);
+                setShowSignUp?.(false);
+              }}
             >
               {t("login")}
             </button>
-          </Link>
+          ) : (
+            <Link
+              href="/signin"
+              className="flex justify-center items-center text-sm text-gray-500"
+            >
+              {t("login")}
+            </Link>
+          )}
         </div>
       </div>
     </div>

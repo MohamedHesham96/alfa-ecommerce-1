@@ -341,6 +341,7 @@ setSearchInput(decodeSearchInput(lastPort))
                   if (userId) {
                     navigate.push("/user/profile");
                   } else {
+                    setShowSignUp(false);
                     setShowSignIn(true);
                     setOpenForm(true);
 
@@ -377,6 +378,7 @@ setSearchInput(decodeSearchInput(lastPort))
                   if (userId) {
                     navigate.push("/user/profile");
                   } else {
+                    setShowSignUp(false);
                     setShowSignIn(true);
                     setOpenForm(true);
 
@@ -438,6 +440,8 @@ setSearchInput(decodeSearchInput(lastPort))
             className="w-6 h-6 cursor-pointer hover:text-red-600 absolute top-2 right-2 "
             onClick={() => {
               setOpenForm(false);
+              setShowSignIn(false);
+              setShowSignUp(false);
             }}
           />
           {showSignin ? (

@@ -78,7 +78,7 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
         navigate.replace("/admin/Dashboard");
       } else if (popUp) {
         router.refresh();
-        setOpenForm(false)
+        setOpenForm?.(false)
       } else {
         navigate.replace("/");
       }
@@ -239,16 +239,25 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
             </button>
             {registrationEnabled ? (
               <div>
-                <Link href={popUp ? "" : "/signup"}>
+                {popUp ? (
                   <button
-                    className="text-center w-full text-sm text-gray-500 "
-                    onClick={() =>
-                      popUp ? (setShowSignUp(true), setShowSignIn(false)) : ""
-                    }
+                    type="button"
+                    className="text-center w-full text-sm text-gray-500"
+                    onClick={() => {
+                      setShowSignUp(true);
+                      setShowSignIn(false);
+                    }}
                   >
                     {t("createNewAccount")}
                   </button>
-                </Link>
+                ) : (
+                  <Link
+                    href="/signup"
+                    className="block text-center w-full text-sm text-gray-500"
+                  >
+                    {t("createNewAccount")}
+                  </Link>
+                )}
               </div>
             ) : null}
           </form>
