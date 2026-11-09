@@ -11,6 +11,10 @@ export default async function LegacyCategoryPage({ params }) {
     permanentRedirect("/products");
   }
 
+  if (!/^\d+$/.test(String(id))) {
+    notFound();
+  }
+
   const category = await getCategoryById(id);
 
   if (!category?.seoCode) {

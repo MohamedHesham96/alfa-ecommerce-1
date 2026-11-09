@@ -8,6 +8,11 @@ import { getProductById } from "../../../../../lib/api";
  */
 export default async function LegacyProductPage({ params }) {
   const { id } = await params;
+
+  if (!/^\d+$/.test(String(id))) {
+    notFound();
+  }
+
   const product = await getProductById(id);
 
   if (!product) {
