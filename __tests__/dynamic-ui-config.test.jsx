@@ -113,6 +113,27 @@ describe("dynamic UI configuration", () => {
     expect(screen.getByText("available_in_store")).toBeInTheDocument();
   });
 
+  it("preserves the line breaks entered in the admin product description", () => {
+    render(
+      wrap(
+        <ProductInfo
+          product={{
+            ...product,
+            descriptionAr: "• السطر الأول\n• السطر الثاني",
+          }}
+          itemId={1}
+        />,
+        {
+          "features.wishlist.enabled": true,
+        },
+      ),
+    );
+
+    expect(screen.getByText(/السطر الأول/)).toHaveClass(
+      "whitespace-pre-line",
+    );
+  });
+
   it("removes the wishlist navigation entry when the feature is disabled", async () => {
     render(wrap(<BottomNav />, { "features.wishlist.enabled": false }));
 

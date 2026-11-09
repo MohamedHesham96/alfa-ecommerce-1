@@ -39,7 +39,11 @@ export default function ProductInfo({
 
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
-    const canExpandDescription = description && description.length > 220;
+    const descriptionLineCount = description
+        ? description.split(/\r?\n/).length
+        : 0;
+    const canExpandDescription =
+        description && (description.length > 220 || descriptionLineCount > 6);
 
     const addFavoriteItems = async () => {
         if (userId) {
@@ -216,7 +220,7 @@ export default function ProductInfo({
             {description ? (
                 <div className="min-w-0">
                     <p
-                        className={`break-words text-xs leading-relaxed text-gray-500 sm:text-sm ${
+                        className={`whitespace-pre-line break-words text-xs leading-relaxed text-gray-500 sm:text-sm ${
                             descriptionExpanded ? "" : "line-clamp-6"
                         }`}
                     >
