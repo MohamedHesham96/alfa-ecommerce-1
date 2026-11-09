@@ -212,6 +212,9 @@ BUILD=/home/alfa-project/build
 RELEASES=/home/alfa-project/releases
 BRANCH=__BRANCH__
 
+# Remove the previous hardlinked build tree before npm touches node_modules.
+rm -rf "$BUILD"
+
 cd "$CHECKOUT"
 
 # Discard lockfile noise left by previous manual installs.
@@ -264,6 +267,12 @@ echo "BUILD_OK"
 '@
         $buildScript = $buildScript.Replace("__REMOTE_PATH__", $RemotePath)
         $buildScript = $buildScript.Replace("__BRANCH__", $Branch)
+
+        Write-Step "Preparing the server build user..."
+        $prepareScript = @'
+install -d -o springuser -g springuser -m 755 /home/springuser
+'@
+        Invoke-RemoteScript -Runner "bash -s" -Script $prepareScript -Label "Prepare"
 
         Write-Step "Building the new release on the server (live traffic stays on the active color)..."
         Invoke-RemoteScript -Runner "runuser -u springuser -- bash -s" -Script $buildScript -Label "Build"
