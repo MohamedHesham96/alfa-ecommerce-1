@@ -80,6 +80,10 @@ if (allowsLocalImageIP) {
 }
 
 const nextConfig = {
+  // Release builds use a separate output dir and standalone output so a new
+  // build never touches the .next directory served by the live process.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+  ...(process.env.NEXT_STANDALONE === "true" ? { output: "standalone" } : {}),
   poweredByHeader: false,
   trailingSlash: false,
   async redirects() {
