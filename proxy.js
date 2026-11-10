@@ -104,6 +104,13 @@ function legacyProductRedirect(pathname) {
   return null;
 }
 
+// Valid Server Action IDs are exactly 42 characters long. Scanners routinely
+// POST to public Next.js sites with a bogus `Next-Action: x` header, which
+// makes the App Router throw and log "The Server Reference ID did not match
+// the expected format" for every probe. Reject malformed IDs at the edge so
+// they never reach the action handler (and never spam the production logs).
+const SERVER_REFERENCE_ID_LENGTH = 42;
+
 /**
  * Permanent (301) redirects for legacy id/name URLs and old product slugs.
  *
@@ -113,6 +120,14 @@ function legacyProductRedirect(pathname) {
  * so canonical product views pay no middleware lookup cost.
  */
 export async function proxy(request) {
+  const actionId = request.headers.get("next-action");
+  if (actionId !== null && actionId.length !== SERVER_REFERENCE_ID_LENGTH) {
+    return new NextResponse("Bad Request", {
+      status: 400,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+
   const { pathname } = request.nextUrl;
 
   // One canonical hostname: https://alfagrouptech.com (not www). Read the
