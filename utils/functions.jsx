@@ -33,11 +33,26 @@ export const getProductDetails = async (productId) => {
   return await response;
 };
 
-export const getTopRatedByCategory = async (categoryId, size) => {
-  const response = await getRequest(
-    `/api/public/items/topRated/category/${categoryId}?page=0&size=${size}`
-  );
-  return response.data?.content || [];
+// Homepage "top appliances" card. The public top-rated endpoint only returns
+// in-stock products, so a category with a few available products leaves the
+// card's fixed grid mostly empty. Start from that ranking and fill the missing
+// rows with the category's remaining active products. Out-of-stock rows are
+// marked in the UI.
+export const getTopApplianceProducts = async (categoryId, size) => {
+  const [rankedResult, categoryResult] = await Promise.allSettled([
+    getRequest(`/api/public/items/topRated/category/${categoryId}?page=0&size=${size}`),
+    postRequest("/api/public/items/search", { page: 0, size, categoryId }, ""),
+  ]);
+
+  const ranked =
+    rankedResult.status === "fulfilled" ? rankedResult.value.data?.content || [] : [];
+  const categoryItems =
+    categoryResult.status === "fulfilled" ? categoryResult.value.data?.content || [] : [];
+
+  const seen = new Set(ranked.map((item) => item.itemId));
+  const fillers = categoryItems.filter((item) => !seen.has(item.itemId));
+
+  return [...ranked, ...fillers].slice(0, size);
 };
 
 export const submitItemRating = async (itemId, rating, comment = "") => {

@@ -5,8 +5,13 @@ import StarRating from "../../components/StarRating";
 import Link from "next/link";
 import { productPath } from "../../../../lib/seo";
 
+const MAX_VISIBLE_PRODUCTS = 8;
+
 export default function Top10Products({ Products, section, href }) {
     const { t , locale } = useLanguage()
+    // The card matches the ad slider height. Two columns of up to eight
+    // products fill the four rows; an odd last row simply has one product.
+    const products = (Products || []).slice(0, MAX_VISIBLE_PRODUCTS);
     return (
         <div className="w-full h-auto bg-white rounded-3xl p-5 ">
             <div className="w-full h-full flex justify-between items-center">
@@ -16,14 +21,14 @@ export default function Top10Products({ Products, section, href }) {
                     <hr className="bg-red-500 h-[2px] border-none w-auto " />
                 </div>
             </div>
-            <div className="w-full xs:h-auto md:h-[430px]  xs:grid-cols-1 sm:grid-cols-2 grid gap-1">
+            <div className="w-full xs:h-auto md:h-[430px] grid gap-4 xs:grid-cols-1 sm:grid-cols-2">
 
-                {Products?.map((product, index) => {
+                {products.map((product, index) => {
                     return (
 
                         <Link prefetch={false}
                         href={productPath(product)}
-                        key={index} className={`${index < 8 ? "flex" :"hidden"} gap-2 items-center cursor-pointer w-full`}>
+                        key={index} className="flex gap-2 items-center cursor-pointer w-full">
                             <div className="relative w-[60px] h-[60px] ">
                                 <Image src={
                                     process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL +
@@ -34,9 +39,16 @@ export default function Top10Products({ Products, section, href }) {
                                     sizes="60px"
                                     className="object-fill rounded-full" />
                             </div>
-                            <div>
+                            <div className="min-w-0">
 
-                                <span className="text-sm font-semibold">{locale === "ar" ? product.nameAr : product.nameEn}</span>
+                                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                                    <span className="text-sm font-semibold">{locale === "ar" ? product.nameAr : product.nameEn}</span>
+                                    {product.available === false ? (
+                                        <span className="whitespace-nowrap rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-gray-600">
+                                            {t("soldOut")}
+                                        </span>
+                                    ) : null}
+                                </div>
                                 <div className={product.averageRating ? "block" : "hidden"}>
                                     <StarRating rating={product.averageRating} /></div>
 

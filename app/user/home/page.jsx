@@ -43,7 +43,7 @@ import {
   getFeatuerProducts,
   getProductDetails,
   getSliderImage,
-  getTopRatedByCategory,
+  getTopApplianceProducts,
 } from "../../../utils/functions";
 import { getRequest } from "../../../utils/requestsUtils";
 import { productPath } from "../../../lib/seo";
@@ -425,8 +425,8 @@ export default function Homepage({
         safeRequest("featuredProducts", () => getFeatuerProducts(12), EMPTY_CONTENT),
         safeRequest("recentItems", () => getRequest("/api/public/items/recent"), EMPTY_LIST),
         safeRequest(
-          "topRatedByCategory",
-          () => getTopRatedByCategory(HOME_APPLIANCES_CATEGORY_ID, TOP_PRODUCTS_COUNT),
+          "topApplianceProducts",
+          () => getTopApplianceProducts(HOME_APPLIANCES_CATEGORY_ID, TOP_PRODUCTS_COUNT),
           [],
         ),
         safeRequest("topRated", () => getRequest("/api/public/items/topRated"), EMPTY_CONTENT),
