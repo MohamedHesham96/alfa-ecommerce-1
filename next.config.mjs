@@ -32,7 +32,10 @@ const legacyProductRedirects = [
 ].map(([source, destination]) => ({
   source,
   destination,
-  permanent: true,
+  // 301 is the conventional permanent redirect for retired product URLs.
+  // `permanent: true` emits 308; both are permanent, but 301 is what most
+  // crawlers and SEO tools expect for a slug migration.
+  statusCode: 301,
 }));
 
 const allowsLocalImageIP =
@@ -94,7 +97,7 @@ const nextConfig = {
               source: "/:path*",
               has: [{ type: "host", value: wwwHost }],
               destination: `${canonicalSiteUrl}/:path*`,
-              permanent: true,
+              statusCode: 301,
             },
           ]
         : []),

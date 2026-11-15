@@ -81,7 +81,12 @@ function mapProduct(data) {
   };
 }
 
-export default function ProductDetails({ itemId, initialProduct, categorySlug }) {
+export default function ProductDetails({
+  itemId,
+  initialProduct,
+  categorySlug,
+  relatedProducts = [],
+}) {
   const [loading, setLoading] = useState(!initialProduct);
   const [ratingRefreshKey, setRatingRefreshKey] = useState(0);
   const [reviews, setReviews] = useState([]);
@@ -318,7 +323,12 @@ export default function ProductDetails({ itemId, initialProduct, categorySlug })
         </div>
       </div>
 
-      <YouMightLike categoryId={product.category.id} />
+      <YouMightLike
+        key={product.itemId ?? itemId}
+        categoryId={product.category.id}
+        initialProducts={relatedProducts}
+        excludeItemId={product.itemId ?? itemId}
+      />
     </div>
   );
 }

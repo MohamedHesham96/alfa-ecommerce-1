@@ -75,7 +75,17 @@ describe("SEO metadata", () => {
     expect(metadata.openGraph.images[0].url).toBe(
       `${SITE_URL}/images/items/item-images/lens.jpg`,
     );
-    expect(metadata.robots).toEqual({ index: true, follow: true });
+    expect(metadata.robots).toMatchObject({ index: true, follow: true });
+    expect(metadata.robots.googleBot).toMatchObject({
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    });
+  });
+
+  it("adds the real category to very short product titles", () => {
+    const metadata = buildProductMetadata({ ...product, nameAr: "بانورما" });
+    expect(metadata.title).toBe("بانورما - عدسات");
   });
 
   it("indexes a non-empty category page and makes an empty one noindex", () => {
@@ -89,7 +99,8 @@ describe("SEO metadata", () => {
     expect(indexable.robots.index).toBe(true);
 
     const empty = buildCategoryMetadata(category, { itemsCount: 0 });
-    expect(empty.robots).toEqual({ index: false, follow: true });
+    expect(empty.robots).toMatchObject({ index: false, follow: true });
+    expect(empty.robots.googleBot.index).toBe(false);
   });
 
   it("gives paginated category pages self-referencing canonicals", () => {
@@ -140,6 +151,21 @@ describe("Structured data", () => {
     expect(jsonLd.brand).toBeUndefined();
     expect(validBrand("Kyocera")).toBe("Kyocera");
     expect(validBrand("gdfgdf")).toBeNull();
+  });
+
+  it("emits aggregateRating only for real, visible ratings", () => {
+    const jsonLd = buildProductJsonLd({
+      ...product,
+      averageRating: 4.5,
+      ratingCount: 12,
+    });
+    expect(jsonLd.aggregateRating).toEqual({
+      "@type": "AggregateRating",
+      ratingValue: "4.5",
+      reviewCount: 12,
+      bestRating: 5,
+      worstRating: 1,
+    });
   });
 
   it("emits breadcrumb names and URLs that match navigation", () => {
