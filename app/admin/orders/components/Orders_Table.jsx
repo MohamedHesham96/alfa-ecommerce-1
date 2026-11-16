@@ -60,7 +60,7 @@ export default function Orders_Table({ mode = "admin", userId }) {
     async (orderId) => {
       try {
         const res = await postRequest(
-          `/api/orders/${orderId}/cancel`,
+          `/api/admin/orders/${orderId}/changeState/CANCELLED`,
           "",
           t("message"),
         );

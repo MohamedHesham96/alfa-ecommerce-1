@@ -491,10 +491,14 @@ export default function Homepage({
   // useEffect
   // ==============================
   useEffect(() => {
-    const loggedIn = Boolean(localStorage.getItem("id"));
+    const hasSession = Boolean(localStorage.getItem("id"));
+    const isAdmin = localStorage.getItem("role") === "ADMIN";
+    // Recently viewed products are customer-account data. Do not request
+    // /api/users/recentWatchedItems with an admin session.
+    const loggedInCustomer = hasSession && !isAdmin;
 
-    isLoggedInRef.current = loggedIn;
-    setIsLoggedIn(loggedIn);
+    isLoggedInRef.current = loggedInCustomer;
+    setIsLoggedIn(loggedInCustomer);
   }, []);
 
   useEffect(() => {

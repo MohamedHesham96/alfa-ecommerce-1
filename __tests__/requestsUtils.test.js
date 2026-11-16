@@ -1,6 +1,7 @@
 import axios from "axios";
 import Swal from "sweetalert2";
-import { putRequest } from "../utils/requestsUtils";
+import { toast } from "react-toastify";
+import { getRequest, putRequest } from "../utils/requestsUtils";
 
 jest.mock("axios", () => ({
   __esModule: true,
@@ -56,5 +57,42 @@ describe("putRequest", () => {
 
     expect(result).toBeNull();
     expect(axios.put).not.toHaveBeenCalled();
+  });
+});
+
+describe("forbidden customer operations", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.NEXT_PUBLIC_API_BASE_URL = "http://api.test";
+    localStorage.clear();
+  });
+
+  it("keeps the ADMIN session intact and never refreshes after a 403", async () => {
+    localStorage.setItem("accessToken", "admin-access");
+    localStorage.setItem("refreshToken", "admin-refresh");
+    localStorage.setItem("role", "ADMIN");
+
+    axios.get.mockRejectedValue({
+      response: {
+        status: 403,
+        data: {
+          success: false,
+          error: {
+            code: "ADMIN_OPERATION_FORBIDDEN",
+            message: "This action is unavailable for administrator accounts.",
+          },
+        },
+      },
+    });
+
+    await expect(getRequest("/api/shopCarts")).rejects.toBeTruthy();
+
+    expect(axios.post).not.toHaveBeenCalled();
+    expect(localStorage.getItem("accessToken")).toBe("admin-access");
+    expect(localStorage.getItem("refreshToken")).toBe("admin-refresh");
+    expect(localStorage.getItem("role")).toBe("ADMIN");
+    expect(toast.error).toHaveBeenCalledWith(
+      "This action is unavailable for administrator accounts.",
+    );
   });
 });

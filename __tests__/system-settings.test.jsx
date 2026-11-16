@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { toast } from "react-toastify";
 
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 
@@ -145,6 +146,40 @@ const galleryLayout = setting(
   { value: "THUMBNAILS_SIDE" },
 );
 
+const orderNotificationEmail = setting(
+  {
+    key: "notifications.orderNotificationEmail",
+    category: "notifications",
+    type: "EMAIL",
+    displayName: "Order Notification Email",
+    displayNameAr: "بريد إشعارات الطلبات",
+    description:
+      "Email address that receives notifications whenever a new order is placed.",
+    descriptionAr:
+      "عنوان البريد الإلكتروني الذي يستقبل الإشعارات عند إنشاء طلب جديد.",
+    defaultValue: "old-admin@example.com",
+    featureFlag: false,
+    frontendExposed: false,
+    publicExposed: false,
+    authenticatedExposed: false,
+    constraints: {
+      min: null,
+      max: null,
+      minLength: null,
+      maxLength: null,
+      pattern: null,
+      required: false,
+      nullable: true,
+      multiline: false,
+      elementType: null,
+      requiredJsonFields: [],
+    },
+    subsystem: "notifications",
+    order: 10,
+  },
+  { value: "old-admin@example.com" },
+);
+
 const configurationResponse = {
   categories: [
     {
@@ -253,6 +288,88 @@ describe("system settings admin screen", () => {
       );
     });
     expect(mockRefresh).toHaveBeenCalled();
+  });
+
+  it("loads, validates, and saves the order notification email", async () => {
+    const user = userEvent.setup();
+    fetchSystemConfiguration.mockResolvedValue({
+      categories: [
+        {
+          code: "notifications",
+          displayName: "Notifications",
+          displayNameAr: "الإشعارات",
+          description: "",
+          descriptionAr: "",
+          order: 150,
+          settingCount: 1,
+        },
+      ],
+      settings: [orderNotificationEmail],
+      generatedAt: Date.now(),
+      cacheTtlSeconds: 30,
+    });
+    updateSystemConfiguration.mockResolvedValue({
+      ...orderNotificationEmail,
+      value: "new-admin@example.com",
+      source: "DATABASE",
+      overridden: true,
+      storedVersion: 0,
+    });
+
+    render(<SystemSettingsPage />);
+    await screen.findByText("بريد إشعارات الطلبات");
+
+    const card = screen.getByText("بريد إشعارات الطلبات").closest("article");
+    const input = within(card).getByDisplayValue("old-admin@example.com");
+    expect(input).toHaveAttribute("type", "email");
+
+    await user.clear(input);
+    await user.type(input, "new-admin@example.com");
+    await user.click(within(card).getByRole("button", { name: "حفظ" }));
+
+    await waitFor(() => {
+      expect(updateSystemConfiguration).toHaveBeenCalledWith(
+        "notifications.orderNotificationEmail",
+        "new-admin@example.com",
+        0,
+      );
+    });
+    expect(toast.success).toHaveBeenCalledWith("تم حفظ الإعداد.");
+  });
+
+  it("shows the backend validation error for an invalid notification email", async () => {
+    const user = userEvent.setup();
+    fetchSystemConfiguration.mockResolvedValue({
+      categories: [],
+      settings: [orderNotificationEmail],
+      generatedAt: Date.now(),
+      cacheTtlSeconds: 30,
+    });
+    updateSystemConfiguration.mockRejectedValue({
+      response: {
+        data: {
+          error: {
+            details: {
+              "notifications.orderNotificationEmail":
+                "value is not a valid email address",
+            },
+          },
+        },
+      },
+    });
+
+    render(<SystemSettingsPage />);
+    await screen.findByText("بريد إشعارات الطلبات");
+
+    const card = screen.getByText("بريد إشعارات الطلبات").closest("article");
+    const input = within(card).getByDisplayValue("old-admin@example.com");
+    await user.clear(input);
+    await user.type(input, "bad-email");
+    await user.click(within(card).getByRole("button", { name: "حفظ" }));
+
+    expect(
+      await screen.findByText("value is not a valid email address"),
+    ).toBeInTheDocument();
   });
 
   it("shows backend validation errors", async () => {

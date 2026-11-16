@@ -22,6 +22,7 @@ import { LuShieldCheck } from "react-icons/lu";
 import { IoIosCalendar } from "react-icons/io";
 import Link from "next/link";
 import { categoryPath } from "../../../../lib/seo";
+import { useAuthRole } from "../../../../utils/authRole";
 
 const EMPTY_PRODUCT = {
   nameEn: "",
@@ -93,6 +94,7 @@ export default function ProductDetails({
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState(false);
   const { t, locale } = useLanguage();
+  const { isAdmin } = useAuthRole();
   const reviewsEnabled = useFeature("features.productReviews.enabled");
   const showSku = useAppConfig("catalog.showSku", true);
   const showStockStatus = useAppConfig("catalog.showStockStatus", true);
@@ -128,6 +130,7 @@ export default function ProductDetails({
 
   // عند فتح صفحة المنتج نضيفه لـ recentWatched (للمستخدم المسجل فقط)
   const recordRecentWatched = useCallback(async () => {
+    if (isAdmin) return;
     const userId =
       typeof window !== "undefined" ? localStorage.getItem("id") : "";
     if (!userId) return;
@@ -136,7 +139,7 @@ export default function ProductDetails({
     } catch (error) {
       console.error("Failed to record recent watched item:", error);
     }
-  }, [itemId]);
+  }, [itemId, isAdmin]);
 
   useEffect(() => {
     const track = setTimeout(() => {
@@ -309,14 +312,23 @@ export default function ProductDetails({
               </div>
 
               <div className="mt-8">
-                <ReviewForm
-                  product={product}
-                  itemId={itemId}
-                  onRatingSubmitted={() => {
-                    setRatingRefreshKey((key) => key + 1);
-                    fetchReviews();
-                  }}
-                />
+                {isAdmin ? (
+                  <p
+                    role="status"
+                    className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900"
+                  >
+                    {t("adminActionUnavailable")}
+                  </p>
+                ) : (
+                  <ReviewForm
+                    product={product}
+                    itemId={itemId}
+                    onRatingSubmitted={() => {
+                      setRatingRefreshKey((key) => key + 1);
+                      fetchReviews();
+                    }}
+                  />
+                )}
               </div>
             </div>
           ) : null}

@@ -7,6 +7,8 @@ import { useFeature } from "../../../context/AppConfigContext";
 import { useRefresh } from "../../../context/refreshContext";
 import { useMenuOpen } from "../../../context/MenuOpenContext";
 import { getRequest } from "../../../utils/requestsUtils";
+import { isAdminSession, useAuthRole } from "../../../utils/authRole";
+import { toast } from "react-toastify";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { FiHeart } from "react-icons/fi";
 import { PiHouse, PiListBold, PiUser } from "react-icons/pi";
@@ -17,6 +19,7 @@ export default function BottomNav() {
   const { refreshKey } = useRefresh();
   const { toggleMenu } = useMenuOpen();
   const wishlistEnabled = useFeature("features.wishlist.enabled");
+  const { isAdmin, ready: roleReady } = useAuthRole();
   const [itemNum, setItemNum] = useState(0);
 
   const userId =
@@ -24,6 +27,11 @@ export default function BottomNav() {
 
   const getProductInCart = useCallback(async () => {
     try {
+      if (!roleReady) return;
+      if (isAdmin) {
+        setItemNum(0);
+        return;
+      }
       if (userId) {
         const res = await getRequest(`/api/shopCarts`);
         const rseData = res.data;
@@ -35,18 +43,28 @@ export default function BottomNav() {
     } catch (err) {
       console.error("Failed to get product in cart", err);
     }
-  }, [userId]);
+  }, [userId, isAdmin, roleReady]);
 
   useEffect(() => {
     getProductInCart();
   }, [getProductInCart, refreshKey]);
 
   const goToAccount = () => {
-    if (userId) {
+    if (isAdmin) {
+      navigate.push("/admin/Dashboard");
+    } else if (userId) {
       navigate.push("/user/profile");
     } else {
       navigate.push("/signin");
     }
+  };
+
+  const openCart = () => {
+    if (isAdmin || isAdminSession()) {
+      toast.info(t("adminActionUnavailable"));
+      return;
+    }
+    navigate.push("/user/cart");
   };
 
   return (
@@ -65,7 +83,7 @@ export default function BottomNav() {
           <span className="text-[11px] font-medium">{t("menu")}</span>
         </button>
 
-        {wishlistEnabled ? (
+        {wishlistEnabled && !isAdmin ? (
           <Link prefetch={false}
             href="/user/wishlist"
             className="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-gray-700"
@@ -88,20 +106,24 @@ export default function BottomNav() {
           <span className="text-[11px] font-medium">{t("home")}</span>
         </Link>
 
-        <Link prefetch={false}
-          href="/user/cart"
-          className="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-gray-700 relative"
+        <button
+          type="button"
+          onClick={openCart}
+          aria-disabled={isAdmin}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 py-1 relative ${
+            isAdmin ? "cursor-not-allowed text-gray-400" : "text-gray-700"
+          }`}
         >
           <span className="relative text-[22px] leading-none">
             <MdOutlineShoppingCart />
-            {itemNum > 0 && (
+            {!isAdmin && itemNum > 0 && (
               <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[10px] font-semibold flex items-center justify-center leading-none">
                 {itemNum > 99 ? "99+" : itemNum}
               </span>
             )}
           </span>
           <span className="text-[11px] font-medium">{t("cart")}</span>
-        </Link>
+        </button>
 
         <button
           type="button"
@@ -111,7 +133,9 @@ export default function BottomNav() {
           <span className="text-[22px] leading-none">
             <PiUser />
           </span>
-          <span className="text-[11px] font-medium">{t("my_account")}</span>
+          <span className="text-[11px] font-medium">
+            {isAdmin ? t("dashboard") : t("my_account")}
+          </span>
         </button>
       </div>
     </nav>

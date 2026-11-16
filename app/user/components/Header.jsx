@@ -14,6 +14,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { getRequest, postRequest, deleteRequest } from "../../../utils/requestsUtils";
 import { decodeSearchInput } from "../../../utils/functions";
+import { isAdminSession, useAuthRole } from "../../../utils/authRole";
+import { toast } from "react-toastify";
 import { useRefresh } from "../../../context/refreshContext";
 import { useMenuOpen } from "../../../context/MenuOpenContext";
 import { FiHeart } from "react-icons/fi";
@@ -52,6 +54,7 @@ export default function Header() {
   const [showSignUp, setShowSignUp] = useState(false);
   const [showSignin, setShowSignIn] = useState(false);
   const [openForm, setOpenForm] = useState(false);
+  const { isAdmin, ready: roleReady } = useAuthRole();
 
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("id") : "";
@@ -74,6 +77,14 @@ export default function Header() {
   };
   const getProductInCart = useCallback(async () => {
     try {
+      if (!roleReady) return;
+      if (isAdmin) {
+        setNetTotal(0);
+        setItemNum(0);
+        setCartItems([]);
+        setShippingCost(0);
+        return;
+      }
       if (userId) {
         const res = await getRequest(`/api/shopCarts`);
         const resData = res.data;
@@ -108,9 +119,13 @@ export default function Header() {
     } catch (err) {
       console.error("Failed to get product in cart", err);
     }
-  }, [userId]);
+  }, [userId, isAdmin, roleReady]);
   const deleteItemFormCart = async (itemLineId, productID) => {
     try {
+      if (isAdmin || isAdminSession()) {
+        toast.info(t("adminActionUnavailable"));
+        return;
+      }
       if (userId) {
         await deleteRequest(
           `/api/shopCarts/deleteLine/${itemLineId}`,
@@ -128,6 +143,10 @@ export default function Header() {
   };
   const changeQuantity = async (itemLineId, itemId, newQuantity) => {
     try {
+      if (isAdmin || isAdminSession()) {
+        toast.info(t("adminActionUnavailable"));
+        return;
+      }
       if (userId) {
         await postRequest(
           `/api/shopCarts/changeQuantity`,
@@ -194,24 +213,38 @@ setSearchInput(decodeSearchInput(lastPort))
           <hr
             className="w-[1px] h-4 border-0  bg-gray-300"
           />
-          <Link
-            href={"/user/ordershistory"}
-            prefetch={false}
-            className="hover:text-gray-100"
-          >
-            {t("orders")}{" "}
-          </Link>
+          {isAdmin ? (
+            <Link
+              href={"/admin/Dashboard"}
+              prefetch={false}
+              className="font-semibold text-red-300 hover:text-white"
+            >
+              {t("dashboard")}{" "}
+            </Link>
+          ) : (
+            <Link
+              href={"/user/ordershistory"}
+              prefetch={false}
+              className="hover:text-gray-100"
+            >
+              {t("orders")}{" "}
+            </Link>
+          )}
         </div>
         <div className="flex flex-wrap justify-start items-center gap-2">
-          <Link
-            href={"/user/returnorders"}
-            prefetch={false}
-            className="hover:text-gray-1000"
-          >
-            {t("returns")}{" "}
-          </Link><hr
-            className="w-[1px] h-4 border-0  bg-gray-300"
-          />
+          {isAdmin ? null : (
+            <>
+              <Link
+                href={"/user/returnorders"}
+                prefetch={false}
+                className="hover:text-gray-1000"
+              >
+                {t("returns")}{" "}
+              </Link><hr
+                className="w-[1px] h-4 border-0  bg-gray-300"
+              />
+            </>
+          )}
           <Link
             href={"/user/about#Guarantee_Policy"}
             prefetch={false}
@@ -310,27 +343,36 @@ setSearchInput(decodeSearchInput(lastPort))
               <MdLanguage className="w-7 h-7 text-white" />
             </button>
             <div
-               onClick={() => setIsCartOpen(true)}
-              className=" items-center justify-center gap-2 xs:hidden lg:flex cursor-pointer"
+              onClick={() => {
+                if (isAdmin || isAdminSession()) {
+                  toast.info(t("adminActionUnavailable"));
+                  return;
+                }
+                setIsCartOpen(true);
+              }}
+              aria-disabled={isAdmin}
+              title={isAdmin ? t("adminActionUnavailable") : undefined}
+              className={`items-center justify-center gap-2 xs:hidden lg:flex ${
+                isAdmin ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+              }`}
             >
                <span className="relative">
                <MdOutlineShoppingCart className="w-9 h-9"
                   />
-               {/* {itemNum > 0 && (
-                 <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[10px] font-semibold flex items-center justify-center leading-none">
-                   {itemNum > 99 ? "99+" : itemNum}
-                 </span>
-               )} */}
              </span>
             <hr
               className="w-[1px] h-7 border-0  bg-gray-500"
             />
             <div className="flex flex-col text-sm justify-start items-start">
               <span className="text-[#E76E7D]">
-                {itemNum === 0 ? 0 : netTotal.toLocaleString("en-US") + " " + t("currency")}
+                {isAdmin
+                  ? t("admin")
+                  : itemNum === 0
+                    ? 0
+                    : netTotal.toLocaleString("en-US") + " " + t("currency")}
               </span>
                <span className=" text-xs">
-                {itemNum }{" "}{t("Items")}
+                {isAdmin ? t("dashboard") : `${itemNum} ${t("Items")}`}
               </span>
             </div>
             </div>
@@ -338,7 +380,9 @@ setSearchInput(decodeSearchInput(lastPort))
 
             <div className="xs:flex lg:hidden items-center gap-1 cursor-pointer "
              onClick={() => {
-                  if (userId) {
+                  if (isAdmin) {
+                    navigate.push("/admin/Dashboard");
+                  } else if (userId) {
                     navigate.push("/user/profile");
                   } else {
                     setShowSignUp(false);
@@ -364,7 +408,7 @@ setSearchInput(decodeSearchInput(lastPort))
           <div className="w-full flex justify-between ">
             <div className="w-full flex"></div>
             <div className="w-full flex justify-end items-center gap-5">
-              {wishlistEnabled ? (
+              {wishlistEnabled && !isAdmin ? (
                 <div className="">
                   <Link href="/user/wishlist" prefetch={false} className="xs:hidden lg:flex items-center gap-1">
                     <FiHeart className="w-5 h-5 " />
@@ -375,7 +419,9 @@ setSearchInput(decodeSearchInput(lastPort))
               <hr className="w-px h-5 bg-gray-50 "></hr>
               <div className=" items-center gap-1 cursor-pointer flex  "
                 onClick={() => {
-                  if (userId) {
+                  if (isAdmin) {
+                    navigate.push("/admin/Dashboard");
+                  } else if (userId) {
                     navigate.push("/user/profile");
                   } else {
                     setShowSignUp(false);
@@ -389,7 +435,11 @@ setSearchInput(decodeSearchInput(lastPort))
                   <PiUser className="w-full h-full " />
                 </span>
                 <span className=" font-semibold  text-center ">
-                  {username ? username : t("login") + " / " +t("register")}
+                  {isAdmin
+                    ? t("dashboard")
+                    : username
+                      ? username
+                      : t("login") + " / " + t("register")}
                 </span>
               </div>
             </div>

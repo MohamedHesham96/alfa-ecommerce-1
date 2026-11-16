@@ -335,6 +335,14 @@ export default function SideMenu() {
 
           
           <hr className="my-6"></hr>
+          <Link href="/" className="block">
+            <div className="flex gap-4 mx-3 mb-2 xs:justify-center xl:justify-start items-center rounded-md cursor-pointer text-green-300 hover:bg-red-100 hover:text-red-500">
+              <span className="text-2xl">
+                <MdStorefront />
+              </span>
+              <h1 className="text-md xs:hidden xl:block">{t("view_storefront")}</h1>
+            </div>
+          </Link>
           <div
             className={`flex gap-4 mx-3 mb-5  xs:justify-center xl:justify-start items-center rounded-md cursor-pointer text-red-500 `}
             onClick={async () => {

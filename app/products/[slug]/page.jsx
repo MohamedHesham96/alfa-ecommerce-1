@@ -22,7 +22,9 @@ export const revalidate = 300;
  * and the route still works on demand (dynamicParams defaults to true).
  */
 export async function generateStaticParams() {
-  const catalogue = await getSeoSitemap();
+  // Use an uncached sitemap during the build: a stale cached catalogue must
+  // not make the build prerender product pages while the backend is offline.
+  const catalogue = await getSeoSitemap({ fresh: true });
   return (catalogue.products || [])
     .map((product) => product?.slug)
     .filter(

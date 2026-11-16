@@ -88,6 +88,19 @@ export default function ProductsBySection({ params }) {
 
   const getAllProducts = useCallback(async (loading, requestedPage) => {
     try {
+      if (
+        section === "recentWatched" &&
+        typeof window !== "undefined" &&
+        localStorage.getItem("role") === "ADMIN"
+      ) {
+        setProducts([]);
+        setCurrentPage(0);
+        setTotalPages(0);
+        setTotalElements(0);
+        setLoading(false);
+        return;
+      }
+
       setLoading(loading);
 
       const page = requestedPage ?? currentPageRef.current;

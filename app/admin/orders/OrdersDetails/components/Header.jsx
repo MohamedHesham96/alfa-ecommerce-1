@@ -19,7 +19,7 @@ export default function Orders_Details({ orderId, orderType }) {
   const orderCancel = async () => {
     try {
       if(orderType === "orders"){
-              await postRequest(`/api/orders/${orderId}/cancel`, "", t("message"));
+              await postRequest(`/api/admin/orders/${orderId}/changeState/CANCELLED`, "", t("message"));
       }
       else {
         

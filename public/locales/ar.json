@@ -513,5 +513,11 @@
   "field_required": "هذا الحقل مطلوب.",
   "pickup_place_saved": "تم حفظ مكان الاستلام بنجاح.",
   "loading": "جارٍ التحميل...",
-  "orderDetailsLoadError": "تعذر تحميل تفاصيل الطلب. حاول مرة أخرى."
+  "orderDetailsLoadError": "تعذر تحميل تفاصيل الطلب. حاول مرة أخرى.",
+  "adminActionUnavailable": "هذا الإجراء غير متاح لحسابات المسؤولين.",
+  "adminActionUnavailableTitle": "إجراءات العملاء غير متاحة لحساب المسؤول",
+  "adminActionUnavailableDescription": "يمكنك تصفح المتجر بحرية، لكن السلة وإتمام الطلب والطلبات والمرتجعات وقائمة الأمنيات والتقييمات والملف الشخصي مخصصة لحسابات العملاء. تظل جلسة المسؤول نشطة.",
+  "goToAdminDashboard": "الانتقال إلى لوحة التحكم",
+  "backToStorefront": "العودة إلى المتجر",
+  "view_storefront": "عرض المتجر"
 }

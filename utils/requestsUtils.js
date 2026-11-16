@@ -111,8 +111,11 @@ const showRequestError = (error) => {
 
 let refreshInFlight = null;
 
-const isAuthFailure = (error) =>
-  error?.response?.status === 401 || error?.response?.status === 403;
+// A 401 means the access token must be refreshed. A 403 is a valid session
+// without permission (for example an ADMIN calling a customer-only API): it
+// must never trigger a refresh, clear the token, or log the user out.
+const isUnauthorized = (error) => error?.response?.status === 401;
+const isForbidden = (error) => error?.response?.status === 403;
 
 const isBrowserOffline = () =>
   typeof navigator !== "undefined" && navigator.onLine === false;
@@ -171,7 +174,7 @@ const getRefreshedAccessToken = async () => {
         return accessToken;
       })
       .catch((error) => {
-        if (isAuthFailure(error)) {
+        if (isUnauthorized(error)) {
           clearAuthStorage().finally(() => {
             redirectToSignIn();
           });
@@ -210,7 +213,7 @@ export const logoutRequest = async () => {
     } catch (error) {
       // If the access token already expired, refresh once before revoking so
       // the server still drops the user's active refresh tokens.
-      if (isAuthFailure(error)) {
+      if (isUnauthorized(error)) {
         const newAccessToken = await getRefreshedAccessToken();
         if (newAccessToken) {
           try {
@@ -311,7 +314,7 @@ export const postRequest = async (endpoint, dataBody, message ,toster, options =
     }
     reportApiFailure(error);
 
-    if (isAuthFailure(error)) {
+    if (isUnauthorized(error)) {
       const newAccessToken = await getRefreshedAccessToken();
       if (newAccessToken) {
         try {
@@ -359,7 +362,7 @@ export const getRequest = async (endpoint) => {
   } catch (error) {
     reportApiFailure(error);
 
-    if (isAuthFailure(error)) {
+    if (isUnauthorized(error)) {
       const newAccessToken = await getRefreshedAccessToken();
       if (newAccessToken) {
         try {
@@ -371,6 +374,9 @@ export const getRequest = async (endpoint) => {
           showRequestError(retryError);
         }
       }
+    } else if (isForbidden(error)) {
+      // Keep the admin/customer session intact and explain the restriction.
+      showRequestError(error);
     }
 
     throw error;
@@ -440,7 +446,7 @@ export const putRequest = async (endpoint, dataBody, message) => {
   } catch (error) {
     reportApiFailure(error);
 
-    if (isAuthFailure(error)) {
+    if (isUnauthorized(error)) {
       const newAccessToken = await getRefreshedAccessToken();
       if (newAccessToken) {
         try {
@@ -521,7 +527,7 @@ export const deleteRequest = async (endpoint, message, options = {}) => {
   } catch (error) {
     reportApiFailure(error);
 
-    if (isAuthFailure(error)) {
+    if (isUnauthorized(error)) {
       const newAccessToken = await getRefreshedAccessToken();
       if (newAccessToken) {
         try {

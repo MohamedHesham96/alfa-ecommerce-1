@@ -512,5 +512,11 @@
   "field_required": "This field is required.",
   "pickup_place_saved": "Pickup place saved successfully.",
   "loading": "Loading...",
-  "orderDetailsLoadError": "The order details could not be loaded. Please try again."
+  "orderDetailsLoadError": "The order details could not be loaded. Please try again.",
+  "adminActionUnavailable": "This action is unavailable for administrator accounts.",
+  "adminActionUnavailableTitle": "Administrator accounts cannot use customer actions",
+  "adminActionUnavailableDescription": "You can browse the storefront freely, but cart, checkout, orders, returns, wishlist, reviews and profile actions are reserved for customer accounts. Your administrator session remains active.",
+  "goToAdminDashboard": "Go to Admin Dashboard",
+  "backToStorefront": "Back to Storefront",
+  "view_storefront": "View Storefront"
 }

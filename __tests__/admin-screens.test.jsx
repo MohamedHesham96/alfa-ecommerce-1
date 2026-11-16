@@ -126,6 +126,8 @@ describe("admin screens use the shared server table contract", () => {
         <OrderItems orderId="9" orderType="orders" />
       </OrderDetailsProvider>,
     );
-    await waitFor(() => expect(getRequest).toHaveBeenCalledWith("/api/orders/9"));
+    await waitFor(() =>
+      expect(getRequest).toHaveBeenCalledWith("/api/admin/orders/9"),
+    );
   });
 });

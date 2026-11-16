@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import StarRating from "../../components/StarRating";
 import { categoryPath } from "../../../../lib/seo";
+import { isAdminSession, useAuthRole } from "../../../../utils/authRole";
 
 export default function ProductInfo({
     product,
@@ -26,6 +27,7 @@ export default function ProductInfo({
     const [count, setCount] = useState(1);
     const { locale, t } = useLanguage();
     const wishlistEnabled = useFeature("features.wishlist.enabled");
+    const { isAdmin } = useAuthRole();
 
     const userId = typeof window !== "undefined" ? localStorage.id : "";
 
@@ -46,6 +48,10 @@ export default function ProductInfo({
         description && (description.length > 220 || descriptionLineCount > 6);
 
     const addFavoriteItems = async () => {
+        if (isAdmin || isAdminSession()) {
+            toast.info(t("adminActionUnavailable"));
+            return;
+        }
         if (userId) {
             await postRequest(
                 `/api/users/${userId}/favoriteItems/${itemId}`,
@@ -90,6 +96,10 @@ export default function ProductInfo({
 
     const addToCart = async (buyNow) => {
         try {
+            if (isAdmin || isAdminSession()) {
+                toast.info(t("adminActionUnavailable"));
+                return;
+            }
             if (userId) {
                 if (product.available) {
                     await postRequest(
@@ -261,7 +271,7 @@ export default function ProductInfo({
                     <button
                         type="button"
                         aria-label={`${t("quantity")} -`}
-                        disabled={!product.available || count <= 1}
+                        disabled={isAdmin || !product.available || count <= 1}
                         onClick={() => setCount((value) => Math.max(1, value - 1))}
                         className={`${quantityButtonClass} rounded-s-full`}
                     >
@@ -276,7 +286,7 @@ export default function ProductInfo({
                     <button
                         type="button"
                         aria-label={`${t("quantity")} +`}
-                        disabled={!product.available}
+                        disabled={isAdmin || !product.available}
                         onClick={() => setCount((value) => value + 1)}
                         className={`${quantityButtonClass} rounded-e-full`}
                     >
@@ -286,10 +296,11 @@ export default function ProductInfo({
 
                 <button
                     type="button"
-                    disabled={!product.available}
+                    disabled={isAdmin || !product.available}
                     onClick={() => addToCart(false)}
+                    title={isAdmin ? t("adminActionUnavailable") : undefined}
                     className={`flex h-12 flex-auto items-center justify-center rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E14A5C] focus-visible:ring-offset-2 ${
-                        product.available
+                        !isAdmin && product.available
                             ? "bg-[#E14A5C] text-white hover:bg-[#CD4354]"
                             : "cursor-not-allowed bg-gray-300 text-white"
                     }`}
@@ -299,10 +310,11 @@ export default function ProductInfo({
 
                 <button
                     type="button"
-                    disabled={!product.available}
+                    disabled={isAdmin || !product.available}
                     onClick={() => addToCart(true)}
+                    title={isAdmin ? t("adminActionUnavailable") : undefined}
                     className={`flex h-12 w-full items-center justify-center rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E14A5C] focus-visible:ring-offset-2 sm:w-auto sm:flex-auto ${
-                        product.available
+                        !isAdmin && product.available
                             ? "bg-[#F9DBDF] text-[#E14A5C] hover:bg-[#EDD0D3]"
                             : "cursor-not-allowed bg-gray-200 text-gray-400"
                     }`}
@@ -311,8 +323,18 @@ export default function ProductInfo({
                 </button>
             </div>
 
+            {isAdmin ? (
+                <p
+                    role="status"
+                    data-testid="admin-purchase-notice"
+                    className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900"
+                >
+                    {t("adminActionUnavailable")}
+                </p>
+            ) : null}
+
             <div className="flex items-center justify-between gap-4 border-t border-gray-100 pt-4 text-sm">
-                {wishlistEnabled ? (
+                {wishlistEnabled && !isAdmin ? (
                     <button
                         type="button"
                         onClick={addFavoriteItems}

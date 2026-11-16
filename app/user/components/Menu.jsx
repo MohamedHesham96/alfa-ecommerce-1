@@ -6,7 +6,9 @@ import { useFeature } from "../../../context/AppConfigContext";
 import { getCategories } from "../../../utils/functions";
 import { categoryPath } from "../../../lib/seo";
 import { useMenuOpen } from "../../../context/MenuOpenContext";
+import { useAuthRole } from "../../../utils/authRole";
 import {
+  MdDashboard,
   MdDevices,
   MdInstallMobile,
   MdOutlineKitchen,
@@ -38,6 +40,7 @@ export default function Menu() {
   const { isMenuOpen, closeMenu } = useMenuOpen();
   const { canInstall, openInstallPrompt } = usePwa();
   const wishlistEnabled = useFeature("features.wishlist.enabled");
+  const { isAdmin } = useAuthRole();
   const [activeTab, setActiveTab] = useState("categories");
   const [categoriesList, setCategoriesList] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
@@ -64,8 +67,7 @@ export default function Menu() {
     }
   }, [isMenuOpen, getCategoriesList]);
 
-  const menuLinks = [
-    { href: "/", label: t("homepage"), icon: <PiHouse /> },
+  const customerMenuLinks = [
     ...(wishlistEnabled
       ? [{ href: "/user/wishlist", label: t("wishlist"), icon: <FiHeart /> }]
       : []),
@@ -73,6 +75,13 @@ export default function Menu() {
     { href: "/user/profile", label: t("my_account"), icon: <PiUser /> },
     { href: "/user/ordershistory", label: t("orders"), icon: <RiShoppingBag4Fill /> },
     { href: "/user/returnorders", label: t("returns"), icon: <RiTruckLine /> },
+  ];
+
+  const menuLinks = [
+    { href: "/", label: t("homepage"), icon: <PiHouse /> },
+    ...(isAdmin
+      ? [{ href: "/admin/Dashboard", label: t("dashboard"), icon: <MdDashboard /> }]
+      : customerMenuLinks),
     { href: "/user/about", label: t("about_us") },
     { href: "/#footer", label: t("contact_us") },
   ];

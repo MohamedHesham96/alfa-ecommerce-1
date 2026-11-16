@@ -2,6 +2,7 @@
 import Cartpage from "./components/cart";
 import SignIn_Form from "../../components/SignIn_Form";
 import SignUp_Form from "../../components/SignUp_Form";
+import RequireCustomer from "../components/RequireCustomer";
 import { MdCancel } from "react-icons/md";
 import { useState } from "react";
 
@@ -20,6 +21,7 @@ export default function Cart() {
   const isAuthOpen = showSignin || showSignUp;
 
   return (
+    <RequireCustomer>
     <div className="">
       <div
         className={`fixed inset-0 bg-black/40 items-center justify-center z-50 ${isAuthOpen ? "flex" : "hidden"}`}
@@ -49,5 +51,6 @@ export default function Cart() {
 
       <Cartpage setShowSignIn={setShowSignIn} />
     </div>
+    </RequireCustomer>
   );
 }

@@ -1,16 +1,17 @@
 import Profile from "./components/Profile"
-import ResetPasswordForm from './components/ResetPasswordForm'
 import RequireAuth from "../components/RequireAuth";
+import RequireCustomer from "../components/RequireCustomer";
 
 export default function ProfilePage() {  
 
 return(
 <RequireAuth>
-  <div   className=" relative ">
-      
-     <div>
-      <Profile/>
-     </div>
-  </div>
+  <RequireCustomer>
+    <div className=" relative ">
+      <div>
+        <Profile/>
+      </div>
+    </div>
+  </RequireCustomer>
 </RequireAuth>
 )}

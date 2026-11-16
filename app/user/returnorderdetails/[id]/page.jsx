@@ -1,13 +1,16 @@
 import ReturnOrderDetails from'../components/returnOrderDetails'
 import RequireAuth from "../../components/RequireAuth";
+import RequireCustomer from "../../components/RequireCustomer";
 
 export default async function ReturnOrderDetailsPage({params}) {
   const { id } = await params;
 
 return(
 <RequireAuth>
-  <div className=''>
+  <RequireCustomer>
+    <div className=''>
       <ReturnOrderDetails returnOrderId={id}/>
-  </div>
+    </div>
+  </RequireCustomer>
 </RequireAuth>
 )}

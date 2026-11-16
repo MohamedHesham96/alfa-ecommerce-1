@@ -1,5 +1,6 @@
 import OrderDetails from'../components/OrderDetails'
 import RequireAuth from "../../components/RequireAuth";
+import RequireCustomer from "../../components/RequireCustomer";
 
 
 
@@ -8,8 +9,10 @@ export default async function OrderDetailsPage({params}) {
 
 return(
 <RequireAuth>
-  <div className=''>
+  <RequireCustomer>
+    <div className=''>
       <OrderDetails orderId={id}/>
-  </div>
+    </div>
+  </RequireCustomer>
 </RequireAuth>
 )}

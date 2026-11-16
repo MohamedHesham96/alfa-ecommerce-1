@@ -25,7 +25,9 @@ export default function Orders_Details({ orderId , orderType }) {
     setLoading(true);
     setLoadError(false);
     try {
-      const res= await getRequest(`/api/${orderType}/${orderId}`)
+      const adminBasePath =
+        orderType === "orders" ? "/api/admin/orders" : "/api/admin/return-orders";
+      const res= await getRequest(`${adminBasePath}/${orderId}`)
       const resData = res.data
       setOrderUser(resData.user);
       setPaymentMethod(resData.paymentMethod)

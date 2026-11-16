@@ -18,6 +18,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { useRef } from "react";
 import { productPath, categoryPath } from "../../../lib/seo";
+import { isAdminSession, useAuthRole } from "../../../utils/authRole";
 
 export default function ProductCard({ productInfo, favorite, priority = false }) {
   const { setSelectedProductId } = useIdContext();
@@ -33,6 +34,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
   const { setIsCartOpen } = useCartDrawerOpen();
   const wishlistEnabled = useFeature("features.wishlist.enabled");
   const discountsEnabled = useFeature("features.discounts.enabled");
+  const { isAdmin } = useAuthRole();
   const showStockStatus = useAppConfig("catalog.showStockStatus", true);
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("id") : null;
@@ -65,6 +67,10 @@ export default function ProductCard({ productInfo, favorite, priority = false })
 
   const addToCart = async (productId) => {
     try {
+      if (isAdmin || isAdminSession()) {
+        toast.info(t("adminActionUnavailable"));
+        return false;
+      }
       if (userId) {
         if (productInfo.available) {
           await postRequest(
@@ -141,6 +147,10 @@ export default function ProductCard({ productInfo, favorite, priority = false })
     }
   };
   const addFavoriteItems = async (productId) => {
+    if (isAdmin || isAdminSession()) {
+      toast.info(t("adminActionUnavailable"));
+      return;
+    }
     if (userId) {
       await postRequest(
         `/api/users/favoriteItems/${productId}`,
@@ -170,6 +180,10 @@ export default function ProductCard({ productInfo, favorite, priority = false })
   };
 
   const deleteFavoriteItems = async (productId) => {
+    if (isAdmin || isAdminSession()) {
+      toast.info(t("adminActionUnavailable"));
+      return;
+    }
     try {
       setLoading(true);
 
@@ -311,12 +325,12 @@ export default function ProductCard({ productInfo, favorite, priority = false })
   "
                   >
                     {/* Indicators */}
-                    <div className="w-full ">
-                      <div className="w-full flex justify-between gap-1">
+                    <div className="w-full">
+                      <div className="w-full flex items-center justify-between gap-1">
                         {productInfo?.images?.map((img, index) => (
                           <span
                             key={img?.imageUrl || index}
-                            className="w-full h-1 rounded-full bg-gray-300 "
+                            className="h-1 min-w-0 flex-1 rounded-full bg-gray-300"
                           />
                         ))}
                       </div>
