@@ -25,6 +25,14 @@ jest.mock("../utils/requestsUtils", () => ({
   logoutRequest: jest.fn(),
 }));
 
+jest.mock("../app/admin/context/SystemSettingsAccessContext", () => ({
+  useSystemSettingsAccess: () => ({
+    status: "ready",
+    canAccess: true,
+    access: { canAccessSettings: true },
+  }),
+}));
+
 import { AppConfigProvider } from "../context/AppConfigContext";
 import { LanguageProvider } from "../context/LanguageContext";
 import { NamePageInAdminProvider } from "../context/namePageInAdmin";

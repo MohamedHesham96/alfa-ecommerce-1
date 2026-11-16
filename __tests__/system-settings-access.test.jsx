@@ -14,7 +14,12 @@ jest.mock("../context/LanguageContext", () => ({
   useLanguage: () => ({ locale: "en", t: (key) => key }),
 }));
 
+jest.mock("../app/admin/context/SystemSettingsAccessContext", () => ({
+  useSystemSettingsAccess: jest.fn(),
+}));
+
 import SystemSettingsLayout from "../app/admin/SystemSettings/layout";
+import { useSystemSettingsAccess } from "../app/admin/context/SystemSettingsAccessContext";
 
 function renderLayout() {
   return render(
@@ -26,39 +31,46 @@ function renderLayout() {
 
 describe("system settings route gate", () => {
   beforeEach(() => {
-    localStorage.clear();
+    jest.clearAllMocks();
   });
 
-  it("renders the screen for BlueSoft-managed accounts", async () => {
-    localStorage.setItem("role", "ADMIN");
-    localStorage.setItem("systemSettingsAccess", "true");
+  it("renders the screen when the backend grants access", async () => {
+    useSystemSettingsAccess.mockReturnValue({
+      status: "ready",
+      canAccess: true,
+      access: { canAccessSettings: true },
+    });
 
     renderLayout();
 
     expect(await screen.findByText("settings body")).toBeInTheDocument();
   });
 
-  it("blocks client administrators and customers", async () => {
-    localStorage.setItem("role", "ADMIN");
-    localStorage.setItem("systemSettingsAccess", "false");
+  it("blocks client administrators when the backend denies access", async () => {
+    useSystemSettingsAccess.mockReturnValue({
+      status: "ready",
+      canAccess: false,
+      access: { canAccessSettings: false },
+    });
 
     renderLayout();
 
     expect(
-      await screen.findByText(/not authorized to view system settings/i),
+      await screen.findByText(/not been granted access to system settings/i),
     ).toBeInTheDocument();
     expect(screen.queryByText("settings body")).not.toBeInTheDocument();
   });
 
-  it("blocks non-admin sessions even if the flag was tampered with", async () => {
-    localStorage.setItem("role", "USER");
-    localStorage.setItem("systemSettingsAccess", "true");
+  it("does not render the settings body while permissions are loading", () => {
+    useSystemSettingsAccess.mockReturnValue({
+      status: "loading",
+      canAccess: false,
+      access: null,
+    });
 
     renderLayout();
 
-    expect(
-      await screen.findByText(/not authorized to view system settings/i),
-    ).toBeInTheDocument();
     expect(screen.queryByText("settings body")).not.toBeInTheDocument();
+    expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument();
   });
 });

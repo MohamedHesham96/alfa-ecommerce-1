@@ -1,28 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { useLanguage } from "../../../context/LanguageContext";
+import { useSystemSettingsAccess } from "../context/SystemSettingsAccessContext";
 
 /**
- * Route-level gate for System Settings. The side menu hides the entry for
- * client administrators, and this layout also blocks direct URL access.
+ * Route-level gate for System Settings. The side menu hides the entry unless
+ * the backend grants access, and this layout also blocks direct URL access.
  * The backend independently enforces the same rule on every API call, so
- * editing localStorage only reveals an empty shell that cannot load data.
+ * tampering with localStorage only reveals an empty shell that cannot load
+ * data.
  */
 export default function SystemSettingsLayout({ children }) {
   const { locale } = useLanguage();
   const isArabic = locale === "ar";
-  const [status, setStatus] = useState("loading");
-
-  useEffect(() => {
-    const isAdmin = localStorage.getItem("role") === "ADMIN";
-    const hasAccess =
-      localStorage.getItem("systemSettingsAccess") === "true";
-    setStatus(isAdmin && hasAccess ? "allowed" : "denied");
-  }, []);
+  const { status, canAccess } = useSystemSettingsAccess();
 
   if (status === "loading") {
     return (
@@ -40,7 +34,7 @@ export default function SystemSettingsLayout({ children }) {
     );
   }
 
-  if (status === "denied") {
+  if (!canAccess) {
     return (
       <div className="flex min-h-[70vh] w-full flex-col items-center justify-center px-5 text-center">
         <Image
@@ -57,8 +51,8 @@ export default function SystemSettingsLayout({ children }) {
         </h1>
         <p className="mt-3 max-w-md text-sm leading-6 text-gray-500">
           {isArabic
-            ? "هذه الشاشة مخصصة لحسابات BlueSoft المسؤولة عن دعم النظام فقط."
-            : "This screen is reserved for BlueSoft-managed system support accounts."}
+            ? "لم يمنح مسؤول النظام هذا الحساب صلاحية الوصول إلى إعدادات النظام."
+            : "This account has not been granted access to System Settings."}
         </p>
         <Link
           href="/admin/Dashboard"

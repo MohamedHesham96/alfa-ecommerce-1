@@ -19,6 +19,7 @@ jest.mock("react-toastify", () => ({
 jest.mock("../app/admin/services/systemConfigurationService", () => ({
   fetchConfigurationAudit: jest.fn(),
   fetchSystemConfiguration: jest.fn(),
+  updateClientVisibility: jest.fn(),
   updateSystemConfiguration: jest.fn(),
   bulkUpdateSystemConfiguration: jest.fn(),
   resetSystemConfiguration: jest.fn(),
@@ -33,6 +34,7 @@ import {
   fetchSystemConfiguration,
   resetAllSystemConfiguration,
   resetSystemConfiguration,
+  updateClientVisibility,
   updateSystemConfiguration,
   validateSystemConfiguration,
 } from "../app/admin/services/systemConfigurationService";
@@ -90,9 +92,21 @@ function setting(definitionOverrides, settingOverrides = {}) {
     storedVersion: -1,
     valueMasked: false,
     hasStoredValue: false,
+    visibleToClientAdmins: false,
+    clientVisibilityConfigurable: true,
     ...settingOverrides,
   };
 }
+
+const internalViewer = {
+  internalAdmin: true,
+  clientAdmin: false,
+  globalClientAccessEnabled: false,
+  globalClientEditingEnabled: false,
+  canAccessSettings: true,
+  canEditSettings: true,
+  visibleSettingCount: 3,
+};
 
 const wishlist = setting({}, {});
 const productsPerPage = setting(
@@ -204,6 +218,7 @@ const configurationResponse = {
   settings: [wishlist, productsPerPage, galleryLayout],
   generatedAt: Date.now(),
   cacheTtlSeconds: 30,
+  viewer: internalViewer,
 };
 
 async function renderPage() {
@@ -307,6 +322,7 @@ describe("system settings admin screen", () => {
       settings: [orderNotificationEmail],
       generatedAt: Date.now(),
       cacheTtlSeconds: 30,
+      viewer: { ...internalViewer, visibleSettingCount: 1 },
     });
     updateSystemConfiguration.mockResolvedValue({
       ...orderNotificationEmail,
@@ -344,6 +360,7 @@ describe("system settings admin screen", () => {
       settings: [orderNotificationEmail],
       generatedAt: Date.now(),
       cacheTtlSeconds: 30,
+      viewer: { ...internalViewer, visibleSettingCount: 1 },
     });
     updateSystemConfiguration.mockRejectedValue({
       response: {
@@ -466,5 +483,53 @@ describe("system settings admin screen", () => {
       expect(resetAllSystemConfiguration).toHaveBeenCalledTimes(1);
     });
     expect(fetchSystemConfiguration).toHaveBeenCalledTimes(2);
+  });
+
+  it("renders client-authorized settings read-only when editing is disabled", async () => {
+    fetchSystemConfiguration.mockResolvedValue({
+      categories: [configurationResponse.categories[0]],
+      settings: [wishlist],
+      generatedAt: Date.now(),
+      cacheTtlSeconds: 30,
+      viewer: {
+        internalAdmin: false,
+        clientAdmin: true,
+        globalClientAccessEnabled: true,
+        globalClientEditingEnabled: false,
+        canAccessSettings: true,
+        canEditSettings: false,
+        visibleSettingCount: 1,
+      },
+    });
+
+    render(<SystemSettingsPage />);
+    await screen.findByText("قائمة الأمنيات");
+
+    const card = screen.getByText("قائمة الأمنيات").closest("article");
+    expect(within(card).getByRole("switch")).toBeDisabled();
+    expect(within(card).queryByRole("button", { name: "حفظ" })).not.toBeInTheDocument();
+    expect(screen.getByText("وضع القراءة فقط")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "سجل التغييرات" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "إعادة تعيين الكل" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+  });
+
+  it("lets internal administrators configure client visibility per setting", async () => {
+    const user = userEvent.setup();
+    await renderPage();
+    updateClientVisibility.mockResolvedValue({
+      ...wishlist,
+      visibleToClientAdmins: true,
+    });
+
+    const card = screen.getByText("قائمة الأمنيات").closest("article");
+    await user.click(within(card).getByRole("checkbox"));
+
+    await waitFor(() => {
+      expect(updateClientVisibility).toHaveBeenCalledWith(
+        "features.wishlist.enabled",
+        true,
+      );
+    });
   });
 });

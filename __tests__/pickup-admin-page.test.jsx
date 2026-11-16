@@ -17,6 +17,10 @@ jest.mock("../context/LanguageContext", () => ({
   useLanguage: () => ({ t: (key) => key, locale: "en" }),
 }));
 
+jest.mock("../app/admin/context/SystemSettingsAccessContext", () => ({
+  useSystemSettingsAccess: jest.fn(),
+}));
+
 jest.mock("../app/admin/PickupPlaces/components/PickupPlaceTable", () => ({
   __esModule: true,
   default: () => <div data-testid="pickup-place-table" />,
@@ -28,15 +32,19 @@ jest.mock("../app/admin/PickupPlaces/components/PickupPlaceForm", () => ({
 }));
 
 import PickupPlacesPage from "../app/admin/PickupPlaces/page";
+import { useSystemSettingsAccess } from "../app/admin/context/SystemSettingsAccessContext";
 import { useAppConfig } from "../context/AppConfigContext";
 
 describe("pickup places admin page access", () => {
   beforeEach(() => {
     localStorage.clear();
+    useSystemSettingsAccess.mockReturnValue({
+      status: "ready",
+      canAccess: true,
+    });
   });
 
   it("blocks direct access while pickup is disabled", async () => {
-    localStorage.setItem("systemSettingsAccess", "true");
     useAppConfig.mockReturnValue(false);
     render(<PickupPlacesPage />);
 
@@ -54,8 +62,11 @@ describe("pickup places admin page access", () => {
     ).toHaveAttribute("href", "/admin/SystemSettings");
   });
 
-  it("hides the system settings shortcut from client admins", () => {
-    localStorage.setItem("systemSettingsAccess", "false");
+  it("hides the system settings shortcut when access is denied", () => {
+    useSystemSettingsAccess.mockReturnValue({
+      status: "ready",
+      canAccess: false,
+    });
     useAppConfig.mockReturnValue(false);
     render(<PickupPlacesPage />);
 

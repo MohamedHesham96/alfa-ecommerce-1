@@ -18,6 +18,7 @@ import { PiSignOutBold } from "react-icons/pi";
 
 import { useNamePageInAdminContext } from "../../../context/namePageInAdmin.jsx";
 import { useAppConfig } from "../../../context/AppConfigContext.jsx";
+import { useSystemSettingsAccess } from "../context/SystemSettingsAccessContext.jsx";
 import { useRouter } from "next/navigation.js";
 import { logoutRequest } from "../../../utils/requestsUtils";
 import { TbTruckReturn } from "react-icons/tb";
@@ -25,16 +26,9 @@ export default function SideMenu() {
   const navigate = useRouter();
 
   const [username, setUsername] = useState();
-  const [systemSettingsAccess, setSystemSettingsAccess] = useState(false);
+  const { canAccess: systemSettingsAccess } = useSystemSettingsAccess();
   const { selectedNamePage, setSelectedNamePage } = useNamePageInAdminContext();
   const pickupEnabled = useAppConfig("pickup.enabled", false);
-  useEffect(() => {
-    // Only BlueSoft-managed accounts may see the System Settings entry.
-    setSystemSettingsAccess(
-      typeof window !== "undefined" &&
-        localStorage.getItem("systemSettingsAccess") === "true",
-    );
-  }, []);
   useEffect(() => {
     // جلب اسم المستخدم من localStorage
     const savedUsername =

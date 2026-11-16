@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useAppConfig } from "../../../context/AppConfigContext";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useSystemSettingsAccess } from "../context/SystemSettingsAccessContext";
 import PickupPlaceForm from "./components/PickupPlaceForm";
 import PickupPlaceTable from "./components/PickupPlaceTable";
 
@@ -13,14 +14,7 @@ export default function PickupPlacesPage() {
   const pickupEnabled = useAppConfig("pickup.enabled", false);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState(null);
-  const [systemSettingsAccess, setSystemSettingsAccess] = useState(false);
-
-  useEffect(() => {
-    setSystemSettingsAccess(
-      typeof window !== "undefined" &&
-        localStorage.getItem("systemSettingsAccess") === "true",
-    );
-  }, []);
+  const { canAccess: systemSettingsAccess } = useSystemSettingsAccess();
 
   const openCreate = () => {
     setSelectedPlace(null);

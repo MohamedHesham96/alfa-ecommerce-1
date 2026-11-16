@@ -12,6 +12,7 @@ import {
   previewSystemConfiguration,
   resetAllSystemConfiguration,
   resetSystemConfiguration,
+  updateClientVisibility,
   updateSystemConfiguration,
   validateSystemConfiguration,
 } from "../services/systemConfigurationService";
@@ -22,7 +23,17 @@ import {
   PreviewDialog,
 } from "./components/SystemSettingsDialogs";
 
-const EMPTY_DATA = { categories: [], settings: [] };
+const EMPTY_DATA = { categories: [], settings: [], viewer: null };
+
+const DEFAULT_VIEWER = {
+  internalAdmin: false,
+  clientAdmin: false,
+  globalClientAccessEnabled: false,
+  globalClientEditingEnabled: false,
+  canAccessSettings: false,
+  canEditSettings: false,
+  visibleSettingCount: 0,
+};
 
 function stableStringify(value) {
   if (value === null || typeof value !== "object") {
@@ -127,6 +138,7 @@ export default function SystemSettingsPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [drafts, setDrafts] = useState({});
   const [saving, setSaving] = useState({});
+  const [visibilitySaving, setVisibilitySaving] = useState({});
   const [bulkSaving, setBulkSaving] = useState(false);
   const [validating, setValidating] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
@@ -161,6 +173,10 @@ export default function SystemSettingsPage() {
 
   const settings = useMemo(() => data.settings || [], [data.settings]);
   const categories = useMemo(() => data.categories || [], [data.categories]);
+  const viewer = data.viewer || DEFAULT_VIEWER;
+  const isInternalAdmin = viewer.internalAdmin === true;
+  const editingAllowed = viewer.canEditSettings === true;
+  const readOnly = !editingAllowed;
 
   const types = useMemo(
     () => Array.from(new Set(settings.map((setting) => setting.definition.type))).sort(),
@@ -210,6 +226,7 @@ export default function SystemSettingsPage() {
   const draftFor = (setting) => drafts[setting.definition.key];
 
   const handleChange = (setting, value) => {
+    if (readOnly) return;
     const key = setting.definition.key;
     setDrafts((previous) => ({
       ...previous,
@@ -243,7 +260,35 @@ export default function SystemSettingsPage() {
     });
   };
 
+  const handleVisibilityChange = async (setting, visible) => {
+    if (!isInternalAdmin) return;
+    const key = setting.definition.key;
+    setVisibilitySaving((previous) => ({ ...previous, [key]: true }));
+    try {
+      const updated = await updateClientVisibility(key, visible);
+      replaceSetting(updated);
+      toast.success(
+        visible
+          ? isArabic
+            ? "أصبح الإعداد مرئيًا لمديري العملاء."
+            : "Setting is now visible to client administrators."
+          : isArabic
+            ? "تم إخفاء الإعداد عن مديري العملاء."
+            : "Setting is now hidden from client administrators.",
+      );
+    } catch {
+      // The shared request helper displays the backend error.
+    } finally {
+      setVisibilitySaving((previous) => {
+        const next = { ...previous };
+        delete next[key];
+        return next;
+      });
+    }
+  };
+
   const handleSave = async (setting) => {
+    if (readOnly) return;
     const key = setting.definition.key;
     const draft = drafts[key];
     if (!draft || deepEqual(draft.value, setting.value)) return;
@@ -270,6 +315,7 @@ export default function SystemSettingsPage() {
   };
 
   const performReset = async (setting) => {
+    if (readOnly) return;
     const key = setting.definition.key;
     setResetBusy(true);
     try {
@@ -290,6 +336,7 @@ export default function SystemSettingsPage() {
   };
 
   const handleValidate = async () => {
+    if (readOnly) return;
     if (!dirtySettings.length) {
       toast.info(isArabic ? "لا توجد تغييرات للتحقق منها." : "There are no changes to validate.");
       return;
@@ -318,6 +365,7 @@ export default function SystemSettingsPage() {
   };
 
   const handlePreview = async () => {
+    if (readOnly) return;
     if (!dirtySettings.length) {
       toast.info(isArabic ? "لا توجد تغييرات للمعاينة." : "There are no changes to preview.");
       return;
@@ -337,7 +385,7 @@ export default function SystemSettingsPage() {
   };
 
   const handleBulkSave = async () => {
-    if (!dirtySettings.length) return;
+    if (readOnly || !dirtySettings.length) return;
     setBulkSaving(true);
     try {
       const result = await bulkUpdateSystemConfiguration(
@@ -363,6 +411,7 @@ export default function SystemSettingsPage() {
   };
 
   const openAudit = async () => {
+    if (!isInternalAdmin) return;
     setAuditOpen(true);
     setAuditLoading(true);
     setAuditError("");
@@ -381,6 +430,7 @@ export default function SystemSettingsPage() {
   };
 
   const handleResetAll = async () => {
+    if (!isInternalAdmin) return;
     setResetAllBusy(true);
     try {
       const count = await resetAllSystemConfiguration();
@@ -460,58 +510,82 @@ export default function SystemSettingsPage() {
           >
             {isArabic ? "تحديث" : "Refresh"}
           </button>
-          <button
-            type="button"
-            onClick={handleValidate}
-            disabled={validating || !hasUnsaved}
-            className="rounded-lg border border-[#204272] px-3 py-2 text-xs font-semibold text-[#204272] hover:bg-[#204272]/5 disabled:opacity-50"
-          >
-            {validating
-              ? isArabic
-                ? "جارٍ التحقق..."
-                : "Validating..."
-              : isArabic
-                ? "تحقق"
-                : "Validate"}
-          </button>
-          <button
-            type="button"
-            onClick={handlePreview}
-            disabled={!hasUnsaved}
-            className="rounded-lg border border-[#204272] px-3 py-2 text-xs font-semibold text-[#204272] hover:bg-[#204272]/5 disabled:opacity-50"
-          >
-            {isArabic ? "معاينة" : "Preview"}
-          </button>
-          <button
-            type="button"
-            onClick={handleBulkSave}
-            disabled={bulkSaving || !hasUnsaved}
-            className="rounded-lg bg-[#204272] px-4 py-2 text-xs font-semibold text-white hover:bg-[#19345a] disabled:opacity-50"
-          >
-            {bulkSaving
-              ? isArabic
-                ? "جارٍ الحفظ..."
-                : "Saving..."
-              : isArabic
-                ? `حفظ التغييرات (${dirtySettings.length})`
-                : `Save changes (${dirtySettings.length})`}
-          </button>
-          <button
-            type="button"
-            onClick={openAudit}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-          >
-            {isArabic ? "سجل التغييرات" : "Audit history"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setConfirmResetAll(true)}
-            className="rounded-lg border border-red-300 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50"
-          >
-            {isArabic ? "إعادة تعيين الكل" : "Reset all"}
-          </button>
+          {!readOnly ? (
+            <>
+              <button
+                type="button"
+                onClick={handleValidate}
+                disabled={validating || !hasUnsaved}
+                className="rounded-lg border border-[#204272] px-3 py-2 text-xs font-semibold text-[#204272] hover:bg-[#204272]/5 disabled:opacity-50"
+              >
+                {validating
+                  ? isArabic
+                    ? "جارٍ التحقق..."
+                    : "Validating..."
+                  : isArabic
+                    ? "تحقق"
+                    : "Validate"}
+              </button>
+              <button
+                type="button"
+                onClick={handlePreview}
+                disabled={!hasUnsaved}
+                className="rounded-lg border border-[#204272] px-3 py-2 text-xs font-semibold text-[#204272] hover:bg-[#204272]/5 disabled:opacity-50"
+              >
+                {isArabic ? "معاينة" : "Preview"}
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkSave}
+                disabled={bulkSaving || !hasUnsaved}
+                className="rounded-lg bg-[#204272] px-4 py-2 text-xs font-semibold text-white hover:bg-[#19345a] disabled:opacity-50"
+              >
+                {bulkSaving
+                  ? isArabic
+                    ? "جارٍ الحفظ..."
+                    : "Saving..."
+                  : isArabic
+                    ? `حفظ التغييرات (${dirtySettings.length})`
+                    : `Save changes (${dirtySettings.length})`}
+              </button>
+            </>
+          ) : null}
+          {isInternalAdmin ? (
+            <>
+              <button
+                type="button"
+                onClick={openAudit}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                {isArabic ? "سجل التغييرات" : "Audit history"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmResetAll(true)}
+                className="rounded-lg border border-red-300 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50"
+              >
+                {isArabic ? "إعادة تعيين الكل" : "Reset all"}
+              </button>
+            </>
+          ) : null}
         </div>
       </header>
+
+      {readOnly ? (
+        <div
+          role="status"
+          className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900"
+        >
+          <span className="font-semibold">
+            {isArabic ? "وضع القراءة فقط" : "Read-only mode"}
+          </span>
+          <span>
+            {isArabic
+              ? "يمكنك عرض الإعدادات المسموح بها فقط. التعديل معطّل من مسؤول النظام."
+              : "You can view the settings permitted for your account. Editing has been disabled by the system administrator."}
+          </span>
+        </div>
+      ) : null}
 
       {hasUnsaved ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -629,8 +703,10 @@ export default function SystemSettingsPage() {
                 const draft = draftFor(setting);
                 const controlValue = draft ? draft.value : setting.value;
                 const dirty = draft && !deepEqual(draft.value, setting.value);
-                const disabled = !definition.editable || definition.readOnly;
+                const disabled =
+                  readOnly || !definition.editable || definition.readOnly;
                 const isSaving = Boolean(saving[key]);
+                const isVisibilitySaving = Boolean(visibilitySaving[key]);
 
                 return (
                   <article
@@ -672,6 +748,22 @@ export default function SystemSettingsPage() {
                             {isArabic ? "يتطلب إعادة تشغيل" : "Restart required"}
                           </Badge>
                         ) : null}
+                        {isInternalAdmin && setting.clientVisibilityConfigurable ? (
+                          <Badge tone={setting.visibleToClientAdmins ? "green" : "gray"}>
+                            {setting.visibleToClientAdmins
+                              ? isArabic
+                                ? "مرئي للعملاء"
+                                : "Client visible"
+                              : isArabic
+                                ? "مخفي عن العملاء"
+                                : "Client hidden"}
+                          </Badge>
+                        ) : null}
+                        {isInternalAdmin && !setting.clientVisibilityConfigurable ? (
+                          <Badge tone="gray">
+                            {isArabic ? "داخلي فقط" : "Internal only"}
+                          </Badge>
+                        ) : null}
                       </div>
                     </div>
 
@@ -706,6 +798,47 @@ export default function SystemSettingsPage() {
                       </p>
                     ) : null}
 
+                    {isInternalAdmin ? (
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-gray-700">
+                            {isArabic
+                              ? "مرئي لمديري العملاء"
+                              : "Visible to client administrators"}
+                          </p>
+                          <p className="mt-0.5 text-xs text-gray-500">
+                            {setting.clientVisibilityConfigurable
+                              ? isArabic
+                                ? "يظهر فقط عند تفعيل الوصول العام."
+                                : "Shown only when global client access is enabled."
+                              : isArabic
+                                ? "هذا الإعداد خاص بالإدارة الداخلية ولا يمكن كشفه."
+                                : "This control is internal-only and can never be exposed."}
+                          </p>
+                        </div>
+                        {setting.clientVisibilityConfigurable ? (
+                          <label className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(setting.visibleToClientAdmins)}
+                              disabled={isVisibilitySaving}
+                              onChange={(event) =>
+                                handleVisibilityChange(setting, event.target.checked)
+                              }
+                              className="h-4 w-4 rounded border-gray-300 text-[#204272] focus:ring-[#204272]"
+                            />
+                            {isVisibilitySaving
+                              ? isArabic
+                                ? "جارٍ الحفظ..."
+                                : "Saving..."
+                              : isArabic
+                                ? "مسموح"
+                                : "Allowed"}
+                          </label>
+                        ) : null}
+                      </div>
+                    ) : null}
+
                     <div className="mt-3">
                       <SettingControl
                         definition={definition}
@@ -724,30 +857,38 @@ export default function SystemSettingsPage() {
                     ) : null}
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleSave(setting)}
-                        disabled={!dirty || isSaving || disabled}
-                        className="rounded-lg bg-[#204272] px-3 py-2 text-xs font-semibold text-white hover:bg-[#19345a] disabled:opacity-40"
-                      >
-                        {isSaving
-                          ? isArabic
-                            ? "جارٍ الحفظ..."
-                            : "Saving..."
-                          : isArabic
-                            ? "حفظ"
-                            : "Save"}
-                      </button>
-                      {setting.overridden || setting.invalidStoredValue ? (
-                        <button
-                          type="button"
-                          onClick={() => setPendingReset(setting)}
-                          disabled={disabled}
-                          className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40"
-                        >
-                          {isArabic ? "إعادة التعيين إلى الافتراضي" : "Reset to default"}
-                        </button>
-                      ) : null}
+                      {!readOnly ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleSave(setting)}
+                            disabled={!dirty || isSaving || disabled}
+                            className="rounded-lg bg-[#204272] px-3 py-2 text-xs font-semibold text-white hover:bg-[#19345a] disabled:opacity-40"
+                          >
+                            {isSaving
+                              ? isArabic
+                                ? "جارٍ الحفظ..."
+                                : "Saving..."
+                              : isArabic
+                                ? "حفظ"
+                                : "Save"}
+                          </button>
+                          {setting.overridden || setting.invalidStoredValue ? (
+                            <button
+                              type="button"
+                              onClick={() => setPendingReset(setting)}
+                              disabled={disabled}
+                              className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+                            >
+                              {isArabic ? "إعادة التعيين إلى الافتراضي" : "Reset to default"}
+                            </button>
+                          ) : null}
+                        </>
+                      ) : (
+                        <span className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-800">
+                          {isArabic ? "للقراءة فقط" : "Read only"}
+                        </span>
+                      )}
                       {setting.source === "DATABASE" ? (
                         <span className="text-xs font-semibold text-[#204272]">
                           {isArabic ? "تجاوز محفوظ" : "Stored override"}
@@ -833,6 +974,7 @@ function Badge({ tone = "gray", children }) {
     purple: "bg-purple-50 text-purple-700 border-purple-200",
     amber: "bg-amber-50 text-amber-800 border-amber-200",
     red: "bg-red-50 text-red-700 border-red-200",
+    green: "bg-emerald-50 text-emerald-700 border-emerald-200",
     gray: "bg-gray-50 text-gray-600 border-gray-200",
   };
   return (

@@ -12,6 +12,20 @@ export async function fetchSystemConfiguration() {
   return response.data;
 }
 
+export async function fetchSystemSettingsAccess() {
+  const response = await getRequest(`${BASE_PATH}/access`);
+  return response.data;
+}
+
+export async function updateClientVisibility(key, visibleToClientAdmins) {
+  const response = await putRequest(
+    `${BASE_PATH}/client-visibility/${encodeURIComponent(key)}`,
+    { visibleToClientAdmins },
+    "",
+  );
+  return response.data;
+}
+
 export async function fetchConfigurationOverrides() {
   const response = await getRequest(`${BASE_PATH}/overrides`);
   return response.data;
