@@ -20,7 +20,7 @@ export default function CategorysTable({ setIsFormOpen }) {
   const { t, locale } = useLanguage();
   const { triggerRefresh, refreshKey } = useRefresh();
   const { setSelectedCategoryId } = useIdContext();
-  const [categoryId, setCategoryId] = useState();
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [popupShow, setPopupShow] = useState(false);
 
   const openForm = (categoryId) => {
@@ -28,8 +28,8 @@ export default function CategorysTable({ setIsFormOpen }) {
     setIsFormOpen(true);
   };
 
-  const openProducts = (categoryId) => {
-    setCategoryId(categoryId);
+  const openProducts = (category) => {
+    setSelectedCategory(category);
     setPopupShow(true);
   };
 
@@ -70,7 +70,7 @@ export default function CategorysTable({ setIsFormOpen }) {
     <div
       key={category.itemCategoryId}
       className="mx-2 my-3 cursor-pointer rounded-xl border-b bg-white p-3 hover:bg-gray-100"
-      onClick={() => openProducts(category.itemCategoryId)}
+      onClick={() => openProducts(category)}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
@@ -156,7 +156,7 @@ export default function CategorysTable({ setIsFormOpen }) {
   return (
     <div>
       <ProductsByCategoryPopup
-        categoryId={categoryId}
+        category={selectedCategory}
         popupShow={popupShow}
         setPopupShow={setPopupShow}
       />

@@ -8,7 +8,7 @@ import type { ItemCategorySummary } from "../types/api.types";
 interface CategoryColumnActions {
   t: (key: string) => string;
   locale: string;
-  onOpen: (categoryId: number) => void;
+  onOpen: (category: ItemCategorySummary) => void;
   onEdit: (categoryId: number) => void;
   onDelete: (categoryId: number) => void;
 }
@@ -29,7 +29,7 @@ export function createCategoryColumns({
         cellClassName: "px-4",
       },
       cell: ({ row }) => (
-        <span className="w-[100px]" onClick={() => onOpen(row.original.itemCategoryId)}>
+        <span className="w-[100px]" onClick={() => onOpen(row.original)}>
           {row.original.imageURL ? (
             <Image
               alt=""
@@ -62,7 +62,7 @@ export function createCategoryColumns({
         cellClassName: "",
       },
       cell: ({ row }) => (
-        <div onClick={() => onOpen(row.original.itemCategoryId)}>
+        <div onClick={() => onOpen(row.original)}>
           <h1 className="font-semibold xs:text-xs md:text-sm">
             {locale === "ar" ? row.original.nameAr : row.original.nameEn}
           </h1>
@@ -80,7 +80,7 @@ export function createCategoryColumns({
       cell: ({ row }) => (
         <div
           className="w-[60px] rounded-full bg-red-100 px-2 text-center font-semibold text-red-600 xs:text-[10px] md:w-[80px] md:text-xs"
-          onClick={() => onOpen(row.original.itemCategoryId)}
+          onClick={() => onOpen(row.original)}
         >
           <h1>{row.original.itemsCount ?? 0}</h1>
           <h2>{t("products_category")}</h2>
