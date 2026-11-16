@@ -13,6 +13,7 @@ import { TbTruckReturn } from "react-icons/tb";
 import Select from "react-select";
 import { getRequest, putRequest, logoutRequest } from "../../../../utils/requestsUtils";
 import ResetPasswordForm from "./ResetPasswordForm";
+import SavedAddresses from "./SavedAddresses";
 export default function Profile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -25,6 +26,7 @@ export default function Profile() {
   const navigate = useRouter();
   const { t, locale } = useLanguage();
   const wishlistEnabled = useFeature("features.wishlist.enabled");
+  const multipleAddressesEnabled = useFeature("MULTIPLE_USER_ADDRESSES");
   const [governorates, setGovernorates] = useState([]);
   const [value, setValue] = useState();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -59,7 +61,11 @@ const responce = await getRequest("/api/users")
         lastName: lastName,
         phone: phone,
         address: address,
-        governorateId: value ? value.value : null,
+        governorateId: value
+          ? value.value
+          : governorateId
+            ? Number(governorateId)
+            : null,
       }, t("message"));
       getUserData()
     } catch (err) { }
@@ -237,7 +243,9 @@ const responce = await getRequest("/api/users")
                     onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
-                <div className="flex flex-col gap-3">
+                {!multipleAddressesEnabled ? (
+                  <>
+                  <div className="flex flex-col gap-3">
                   <label className="text-xs font-semibold text-gray-500">
                     {t("governorate")}
                   </label>
@@ -299,7 +307,9 @@ const responce = await getRequest("/api/users")
                     className="bg-slate-50  outline-none p-2 rounded-lg border "
                     onChange={(e) => setAddress(e.target.value)}
                   />
-                </div>
+                  </div>
+                  </>
+                ) : null}
 
               </div>
 
@@ -314,6 +324,9 @@ const responce = await getRequest("/api/users")
               </div>
             </form>
           </div>
+          {multipleAddressesEnabled ? (
+            <SavedAddresses onChanged={getUserData} />
+          ) : null}
           <div className="w-full min-h-[100px] h-auto bg-white rounded-3xl mb-10">
             <div className="p-5 flex justify-between items-center">
               <div className="flex items-center gap-3">

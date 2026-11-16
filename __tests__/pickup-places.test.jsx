@@ -43,6 +43,7 @@ import SideMenu from "../app/admin/components/SideMenu";
 import {
   buildOrderPayload,
   calculateCheckoutTotals,
+  isDeliveryAddressSelectionMissing,
   isPickupSelectionMissing,
 } from "../app/user/cart/components/checkoutFulfillment";
 
@@ -100,6 +101,71 @@ describe("pickup checkout helpers", () => {
       fulfillmentType: "DELIVERY",
       pickupPlaceId: null,
     });
+  });
+
+  it("includes the selected saved address only for delivery", () => {
+    expect(
+      buildOrderPayload({
+        paymentMethod: "CASH_ON_DELIVERY",
+        fulfillmentType: "DELIVERY",
+        pickupPlaceId: 7,
+        addressId: 42,
+      }),
+    ).toEqual({
+      paymentMethod: "CASH_ON_DELIVERY",
+      fulfillmentType: "DELIVERY",
+      pickupPlaceId: null,
+      addressId: 42,
+    });
+
+    expect(
+      buildOrderPayload({
+        paymentMethod: "CASH_ON_DELIVERY",
+        fulfillmentType: "PICKUP",
+        pickupPlaceId: 7,
+        addressId: 42,
+      }),
+    ).toEqual({
+      paymentMethod: "CASH_ON_DELIVERY",
+      fulfillmentType: "PICKUP",
+      pickupPlaceId: 7,
+    });
+  });
+
+  it("requires an address selection only when saved addresses exist", () => {
+    const addresses = [{ userAddressId: 1 }];
+    expect(
+      isDeliveryAddressSelectionMissing({
+        multipleAddressesEnabled: true,
+        fulfillmentType: "DELIVERY",
+        addresses,
+        addressId: null,
+      }),
+    ).toBe(true);
+    expect(
+      isDeliveryAddressSelectionMissing({
+        multipleAddressesEnabled: true,
+        fulfillmentType: "DELIVERY",
+        addresses,
+        addressId: 1,
+      }),
+    ).toBe(false);
+    expect(
+      isDeliveryAddressSelectionMissing({
+        multipleAddressesEnabled: false,
+        fulfillmentType: "DELIVERY",
+        addresses,
+        addressId: null,
+      }),
+    ).toBe(false);
+    expect(
+      isDeliveryAddressSelectionMissing({
+        multipleAddressesEnabled: true,
+        fulfillmentType: "DELIVERY",
+        addresses: [],
+        addressId: null,
+      }),
+    ).toBe(false);
   });
 
   it("builds pickup payloads with the selected location", () => {

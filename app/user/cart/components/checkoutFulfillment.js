@@ -11,17 +11,27 @@ export function buildOrderPayload({
   paymentMethod,
   fulfillmentType,
   pickupPlaceId,
+  addressId,
 }) {
   const type =
     fulfillmentType === FULFILLMENT_TYPE.PICKUP
       ? FULFILLMENT_TYPE.PICKUP
       : FULFILLMENT_TYPE.DELIVERY;
 
-  return {
+  const payload = {
     paymentMethod: paymentMethod?.value ?? paymentMethod,
     fulfillmentType: type,
     pickupPlaceId: type === FULFILLMENT_TYPE.PICKUP ? pickupPlaceId : null,
   };
+
+  // Only include the saved-address selection for delivery when the feature is
+  // active. Omitting the key entirely keeps the historical request shape when
+  // MULTIPLE_USER_ADDRESSES is disabled.
+  if (type === FULFILLMENT_TYPE.DELIVERY && addressId != null) {
+    payload.addressId = addressId;
+  }
+
+  return payload;
 }
 
 /**
@@ -60,5 +70,24 @@ export function isPickupSelectionMissing({
     Boolean(pickupEnabled) &&
     fulfillmentType === FULFILLMENT_TYPE.PICKUP &&
     !pickupPlaceId
+  );
+}
+
+/**
+ * When the feature is enabled and the customer has saved addresses, delivery
+ * must use an explicit selection. If the list is empty the existing legacy
+ * single-address fallback remains available.
+ */
+export function isDeliveryAddressSelectionMissing({
+  multipleAddressesEnabled,
+  fulfillmentType,
+  addresses = [],
+  addressId,
+}) {
+  return (
+    Boolean(multipleAddressesEnabled) &&
+    fulfillmentType !== FULFILLMENT_TYPE.PICKUP &&
+    addresses.length > 0 &&
+    !addressId
   );
 }

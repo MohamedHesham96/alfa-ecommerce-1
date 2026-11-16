@@ -1,7 +1,10 @@
 "use client";
 // import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { useLanguage } from "../../../../context/LanguageContext";
-import { useAppConfig } from "../../../../context/AppConfigContext";
+import {
+  useAppConfig,
+  useFeature,
+} from "../../../../context/AppConfigContext";
 import { usePwa } from "../../../components/pwa/PwaProvider";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -18,10 +21,12 @@ import { toast } from "react-toastify";
 import CartTable from "./CartTable";
 import Select from "react-select";
 import FulfillmentOptions from "./FulfillmentOptions";
+import DeliveryAddressSelector from "./DeliveryAddressSelector";
 import {
   FULFILLMENT_TYPE,
   buildOrderPayload,
   calculateCheckoutTotals,
+  isDeliveryAddressSelectionMissing,
   isPickupSelectionMissing,
 } from "./checkoutFulfillment";
 import { beginCriticalOperation } from "../../../../lib/pwa/criticalOperation";
@@ -56,6 +61,7 @@ export default function Cart({ setShowSignIn }) {
   );
   const creditCardEnabled = useAppConfig("payments.creditCard.enabled", false);
   const pickupEnabled = useAppConfig("pickup.enabled", false);
+  const multipleAddressesEnabled = useFeature("MULTIPLE_USER_ADDRESSES");
   const [fulfillmentType, setFulfillmentType] = useState(
     FULFILLMENT_TYPE.DELIVERY,
   );
@@ -63,6 +69,10 @@ export default function Cart({ setShowSignIn }) {
   const [pickupPlaces, setPickupPlaces] = useState([]);
   const [pickupLoading, setPickupLoading] = useState(false);
   const [pickupError, setPickupError] = useState(false);
+  const [deliveryAddresses, setDeliveryAddresses] = useState([]);
+  const [deliveryAddressId, setDeliveryAddressId] = useState(null);
+  const [deliveryAddressLoading, setDeliveryAddressLoading] = useState(false);
+  const [deliveryAddressError, setDeliveryAddressError] = useState(false);
   const paymentMethodOptions = [
     ...(instapayEnabled
       ? [{ value: "INSTAPAY", label: t("INSTAPAY") }]
@@ -96,7 +106,17 @@ export default function Cart({ setShowSignIn }) {
       }) ||
         pickupLoading ||
         pickupError ||
-        pickupPlaces.length === 0));
+        pickupPlaces.length === 0)) ||
+    (Boolean(userId) &&
+      multipleAddressesEnabled &&
+      fulfillmentType !== FULFILLMENT_TYPE.PICKUP &&
+      (deliveryAddressLoading ||
+        isDeliveryAddressSelectionMissing({
+          multipleAddressesEnabled,
+          fulfillmentType,
+          addresses: deliveryAddresses,
+          addressId: deliveryAddressId,
+        })));
 
   const selectedPickupPlace = pickupPlaces.find(
     (place) => String(place.pickupPlaceId) === String(pickupPlaceId),
@@ -154,6 +174,53 @@ export default function Cart({ setShowSignIn }) {
       setPickupPlaceId(null);
     }
   }, [pickupPlaces, pickupPlaceId]);
+
+  const loadDeliveryAddresses = useCallback(async () => {
+    setDeliveryAddressLoading(true);
+    setDeliveryAddressError(false);
+    try {
+      const response = await getRequest("/api/users/addresses");
+      setDeliveryAddresses(
+        Array.isArray(response.data) ? response.data : [],
+      );
+    } catch {
+      setDeliveryAddresses([]);
+      setDeliveryAddressError(true);
+    } finally {
+      setDeliveryAddressLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!multipleAddressesEnabled || !userId) {
+      setDeliveryAddresses([]);
+      setDeliveryAddressId(null);
+      setDeliveryAddressError(false);
+      return;
+    }
+    loadDeliveryAddresses();
+  }, [multipleAddressesEnabled, userId, loadDeliveryAddresses]);
+
+  useEffect(() => {
+    if (!multipleAddressesEnabled) return;
+    if (!deliveryAddresses.length) {
+      setDeliveryAddressId(null);
+      return;
+    }
+    if (
+      deliveryAddressId &&
+      deliveryAddresses.some(
+        (address) =>
+          String(address.userAddressId) === String(deliveryAddressId),
+      )
+    ) {
+      return;
+    }
+    const preferred =
+      deliveryAddresses.find((address) => address.defaultAddress) ||
+      deliveryAddresses[0];
+    setDeliveryAddressId(preferred?.userAddressId ?? null);
+  }, [deliveryAddresses, deliveryAddressId, multipleAddressesEnabled]);
 
   const getProductInCart = useCallback(async () => {
     try {
@@ -328,6 +395,9 @@ export default function Cart({ setShowSignIn }) {
                 ? FULFILLMENT_TYPE.PICKUP
                 : FULFILLMENT_TYPE.DELIVERY,
               pickupPlaceId,
+              addressId: multipleAddressesEnabled
+                ? deliveryAddressId
+                : null,
             }),
             "",
           );
@@ -509,6 +579,16 @@ export default function Cart({ setShowSignIn }) {
                           </p>
                         ) : null}
                       </div>
+                    ) : multipleAddressesEnabled ? (
+                      <DeliveryAddressSelector
+                        addresses={deliveryAddresses}
+                        selectedId={deliveryAddressId}
+                        onSelect={setDeliveryAddressId}
+                        loading={deliveryAddressLoading}
+                        error={deliveryAddressError}
+                        onRetry={loadDeliveryAddresses}
+                        signedIn={Boolean(userId)}
+                      />
                     ) : (
                       <div className="flex justify-between items-center mb-5">
                         <span className="">{t("ShippingTo")} </span>
