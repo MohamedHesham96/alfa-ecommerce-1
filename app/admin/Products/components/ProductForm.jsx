@@ -7,6 +7,7 @@ import {
 } from "react-icons/io5";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../../../context/LanguageContext.js";
+import { useFeature } from "../../../../context/AppConfigContext.jsx";
 import { FaCircle } from "react-icons/fa";
 import {
   getCategories,
@@ -21,6 +22,12 @@ import { toast } from "react-toastify";
 import Select from "react-select";
 import { ImBlocked } from "react-icons/im";
 
+const toDimensionNumber = (value) => {
+  if (value === "" || value === null || value === undefined) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,setIsEditMode }) {
   const [enabledActive, setEnabledActive] = useState(true);
   const [enabledFavorite, setEnabledFavorite] = useState(false);
@@ -32,6 +39,7 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
   const [showImages, setShowImages] = useState(false);
   const [showProductData, setShowProductData] = useState(true);
   const { t } = useLanguage();
+  const itemDimensionsEnabled = useFeature("ITEM_DIMENSIONS_ENABLED");
   const isBase64 = (src) => {
     return typeof src === "string" && src.startsWith("data:");
   };
@@ -59,6 +67,9 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
     flash: "",
     brand: "",
     contents: "",
+    length: "",
+    width: "",
+    height: "",
     releaseYear: "",
     // mainImagefile: "",
     // img2: "",
@@ -155,6 +166,9 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
       flash: "",
       brand: "",
       contents: "",
+      length: "",
+      width: "",
+      height: "",
       releaseYear:""
     });
     revokeImageUrls();
@@ -183,12 +197,29 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
     active: enabledActive,
     available: enabledAvailable,
     itemCategoryId: product.category.id,
+    length: toDimensionNumber(product.length),
+    width: toDimensionNumber(product.width),
+    height: toDimensionNumber(product.height),
     releaseYear:product.releaseYear
   };
 
+  const validateItemDimensions = () => {
+    if (!itemDimensionsEnabled) return true;
+    const dimensions = [product.length, product.width, product.height];
+    if (dimensions.some((value) => value === "" || value === null || value === undefined)) {
+      toast.error(t("item_dimensions_required"));
+      return false;
+    }
+    if (dimensions.some((value) => !Number.isFinite(Number(value)) || Number(value) <= 0)) {
+      toast.error(t("item_dimensions_invalid"));
+      return false;
+    }
+    return true;
+  };
 
   // إضافة منتج جديد
   const addProductData = async () => {
+    if (!validateItemDimensions()) return;
     setLoading(true);
     try {
       const respose = await postRequest("/api/admin/items", fields, t("message"));
@@ -266,6 +297,9 @@ productData()
           flash: resData.flash,
           brand: resData.brand,
           contents: resData.contents,
+          length: resData.length ?? "",
+          width: resData.width ?? "",
+          height: resData.height ?? "",
           descriptionEn: resData.descriptionEn,
           releaseYear:resData.releaseYear,
           category: {
@@ -302,6 +336,7 @@ productData()
 
   // تحديث المنتج
   const updateProduct = async () => {
+    if (!validateItemDimensions()) return;
     // التحقق من السعر
     if (
       product.oldPrice !== null &&
@@ -497,6 +532,61 @@ productData()
               className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
             />
           </div>
+          {itemDimensionsEnabled && (
+            <>
+              <div className="w-full">
+                <label className="text-xs text-gray-600 font-semibold block mb-1">
+                  {t("length")}*
+                </label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={product.length}
+                  onChange={(e) =>
+                    setProduct((prev) => ({ ...prev, length: e.target.value }))
+                  }
+                  required={itemDimensionsEnabled}
+                  className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
+                />
+              </div>
+              <div className="w-full">
+                <label className="text-xs text-gray-600 font-semibold block mb-1">
+                  {t("width")}*
+                </label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={product.width}
+                  onChange={(e) =>
+                    setProduct((prev) => ({ ...prev, width: e.target.value }))
+                  }
+                  required={itemDimensionsEnabled}
+                  className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
+                />
+              </div>
+              <div className="w-full">
+                <label className="text-xs text-gray-600 font-semibold block mb-1">
+                  {t("height")}*
+                </label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={product.height}
+                  onChange={(e) =>
+                    setProduct((prev) => ({ ...prev, height: e.target.value }))
+                  }
+                  required={itemDimensionsEnabled}
+                  className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
+                />
+              </div>
+            </>
+          )}
           <div className="w-full">
             <label className="text-xs text-gray-600 font-semibold block mb-1">
               {t("brand")}

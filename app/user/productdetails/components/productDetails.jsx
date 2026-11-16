@@ -48,6 +48,9 @@ const EMPTY_PRODUCT = {
   flash: "",
   content: "",
   brand: "",
+  length: "",
+  width: "",
+  height: "",
   releaseYear: "",
 };
 
@@ -67,6 +70,9 @@ function mapProduct(data) {
     flash: data.flash || "",
     content: data.contents || "",
     brand: data.brand || "",
+    length: data.length ?? "",
+    width: data.width ?? "",
+    height: data.height ?? "",
     releaseYear: data.releaseYear || "",
     available: data.available,
     ratingCount: data.ratingCount || 0,

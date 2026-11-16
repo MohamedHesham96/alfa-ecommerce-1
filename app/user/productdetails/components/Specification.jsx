@@ -1,5 +1,6 @@
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { useLanguage } from "../../../../context/LanguageContext";
+import { useFeature } from "../../../../context/AppConfigContext";
 import { RiRuler2Line } from "react-icons/ri";
 
 function SpecRow({ label, value }) {
@@ -17,8 +18,12 @@ function SpecRow({ label, value }) {
 
 export default function Specification({ product }) {
     const { t } = useLanguage();
+    const itemDimensionsEnabled = useFeature("ITEM_DIMENSIONS_ENABLED");
+    const hasDimensions =
+        itemDimensionsEnabled &&
+        (product.length || product.width || product.height);
     const hasGeneral =
-        product.content || product.flash || product.ram || product.releaseYear;
+        product.content || product.flash || product.ram || product.releaseYear || hasDimensions;
 
     return (
         <div className="w-full min-w-0">
@@ -46,6 +51,13 @@ export default function Specification({ product }) {
                         <SpecRow label="content" value={product.content} />
                         <SpecRow label="flash" value={product.flash} />
                         <SpecRow label="ram" value={product.ram} />
+                        {itemDimensionsEnabled ? (
+                            <>
+                                <SpecRow label={t("length")} value={product.length} />
+                                <SpecRow label={t("width")} value={product.width} />
+                                <SpecRow label={t("height")} value={product.height} />
+                            </>
+                        ) : null}
                         <SpecRow label="Release years" value={product.releaseYear} />
                     </div>
                 </div>
