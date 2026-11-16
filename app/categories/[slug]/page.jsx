@@ -120,7 +120,7 @@ export default async function CategoryPage({ params, searchParams }) {
   );
 
   return (
-    <div className="bg-white">
+    <div className="w-full">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

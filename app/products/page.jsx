@@ -47,7 +47,7 @@ export default async function ProductsPage({ searchParams }) {
   ];
 
   return (
-    <div className="bg-white">
+    <div className="w-full">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
