@@ -20,41 +20,47 @@ export default function ProductsByCategoryPopup({
       : category.nameEn || category.nameAr
     : "";
 
+  if (!popupShow || !category) return null;
+
   return (
     <div
-      className={`flex justify-center items-center w-full ${popupShow ? "block" : "hidden"}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={categoryName}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     >
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <div className="w-[90%]">
-          <div className="w-full bg-white px-4 py-2 flex items-center justify-between gap-4 border-b">
-            <h2 className="truncate text-lg font-semibold text-gray-800">
-              {categoryName}
-            </h2>
-            <button
-              type="button"
-              aria-label={t("close")}
-              title={t("close")}
-              className="shrink-0"
-              onClick={() => {
-                setPopupShow(false);
-              }}
-            >
-              <MdCancel className="text-3xl text-red-700" />
-            </button>
-          </div>
+      {/* The panel keeps one full size for every category, regardless of how
+          many product rows the selected category has. */}
+      <div className="flex h-[85vh] w-[90%] flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+        <div className="flex shrink-0 items-center justify-between gap-4 border-b px-4 py-2">
+          <h2 className="truncate text-lg font-semibold text-gray-800">
+            {categoryName}
+          </h2>
+          <button
+            type="button"
+            aria-label={t("close")}
+            title={t("close")}
+            className="shrink-0"
+            onClick={() => {
+              setPopupShow(false);
+            }}
+          >
+            <MdCancel className="text-3xl text-red-700" />
+          </button>
+        </div>
 
-          <div className="bg-white">
-            <FormProduct
-              isFormOpen={isFormOpen}
-              isEditMode={isEditMode}
-              setIsFormOpen={setIsFormOpen}
-            />
-            <ProductsByCategory
-              category={category?.itemCategoryId}
-              setIsEditMode={setIsEditMode}
-              setIsFormOpen={setIsFormOpen}
-            />
-          </div>
+        <div className="flex min-h-0 flex-1 flex-col bg-white">
+          <FormProduct
+            isFormOpen={isFormOpen}
+            isEditMode={isEditMode}
+            setIsFormOpen={setIsFormOpen}
+          />
+          <ProductsByCategory
+            category={category?.itemCategoryId}
+            setIsEditMode={setIsEditMode}
+            setIsFormOpen={setIsFormOpen}
+            fillContainer
+          />
         </div>
       </div>
     </div>

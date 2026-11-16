@@ -7,6 +7,22 @@ import { MdBlock, MdDelete } from "react-icons/md";
 
 import { getThumbnailUrl } from "../../../utils/functions.jsx";
 import type { ProductRow } from "../types/api.types";
+import type { FilterCondition } from "../types/table.types";
+
+export const PRODUCTS_ENDPOINT = "/api/admin/items/search";
+export const PRODUCTS_PAGE_SIZE = 10;
+
+export function buildCategoryProductsFilters(
+  categoryId: number | string,
+): FilterCondition[] {
+  return [
+    {
+      field: "itemCategory.itemCategoryId",
+      operator: "EQUALS",
+      value: categoryId,
+    },
+  ];
+}
 
 export interface ProductsColumnActions {
   t: (key: string) => string;

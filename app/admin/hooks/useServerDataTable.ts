@@ -14,6 +14,7 @@ import {
 } from "../components/InfiniteScroll";
 import { searchTable } from "../services/adminTableService";
 import { useDebouncedValue } from "./useDebouncedValue";
+import { buildTableCacheKey } from "./tableQueryCache";
 import type {
   ColumnFilterValue,
   FilterCondition,
@@ -31,6 +32,12 @@ interface UseServerDataTableOptions<T> {
   refreshKey?: unknown;
   enabled?: boolean;
   getRowId?: (row: T) => string;
+  /**
+   * Keep the last result in memory (and restore it instantly) for this table.
+   * Enable it for tables that are opened repeatedly, such as the products
+   * popup inside the categories page.
+   */
+  cacheResults?: boolean;
 }
 
 function operatorNeedsValue(operator: string) {
@@ -50,6 +57,7 @@ export function useServerDataTable<T>({
   refreshKey,
   enabled = true,
   getRowId,
+  cacheResults = false,
 }: UseServerDataTableOptions<T>) {
   const [globalFilter, setGlobalFilter] = useState(initialGlobalFilter);
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
@@ -107,6 +115,27 @@ export function useServerDataTable<T>({
   );
   const debouncedFilters = useDebouncedValue(combinedFilters, 300);
 
+  const cacheKey = useMemo(
+    () =>
+      cacheResults
+        ? buildTableCacheKey({
+            endpoint,
+            globalFilter: debouncedGlobalFilter,
+            filters: debouncedFilters,
+            sorting: requestSorting,
+            pageSize,
+          })
+        : undefined,
+    [
+      cacheResults,
+      endpoint,
+      debouncedGlobalFilter,
+      debouncedFilters,
+      requestSorting,
+      pageSize,
+    ],
+  );
+
   const queryKey = [
     endpoint,
     debouncedGlobalFilter,
@@ -149,6 +178,8 @@ export function useServerDataTable<T>({
   } = useInfiniteScroll({
     pageSize,
     queryKey,
+    cacheKey,
+    cacheVersion: refreshKey,
     load,
     enabled,
     getKey: getRowId,

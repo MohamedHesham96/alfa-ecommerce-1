@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "../../../context/LanguageContext.js";
+import { readTableCache, writeTableCache } from "../hooks/tableQueryCache";
 
 const DEFAULT_ID_KEYS = [
   "id",
@@ -241,36 +242,54 @@ function useSentinel(onIntersect, active) {
 /**
  * Server-side infinite scroll. `load(page)` must return `{ items, hasMore }`
  * (see `toPageResult`). Changing `queryKey` resets and reloads page 0.
+ * When `cacheKey` is provided, the previous result is restored instantly on
+ * mount/query change and refreshed in the background, so reopening a table
+ * never flashes the skeleton again.
  */
 export function useInfiniteScroll({
   load,
   queryKey,
+  cacheKey,
+  cacheVersion,
   pageSize = 15,
   enabled = true,
   getKey,
 }) {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(enabled);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [error, setError] = useState(null);
-  const [totalElements, setTotalElements] = useState(0);
-  const [pageIndex, setPageIndex] = useState(0);
+  const queryKeyStr = Array.isArray(queryKey)
+    ? queryKey.map((value) => String(value)).join("|")
+    : String(queryKey ?? "");
 
-  const pageRef = useRef(0);
+  const initialCache =
+    enabled && cacheKey ? readTableCache(cacheKey) : undefined;
+
+  const [items, setItems] = useState(initialCache?.items ?? []);
+  const [loading, setLoading] = useState(enabled && !initialCache);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(initialCache?.hasMore ?? true);
+  const [error, setError] = useState(null);
+  const [totalElements, setTotalElements] = useState(
+    initialCache?.totalElements ?? 0,
+  );
+  const [pageIndex, setPageIndex] = useState(initialCache?.pageIndex ?? 0);
+
+  const pageRef = useRef(initialCache?.pageIndex ?? 0);
   const busyRef = useRef(false);
   const seqRef = useRef(0);
-  const hasMoreRef = useRef(true);
+  const hasMoreRef = useRef(initialCache?.hasMore ?? true);
   const aliveRef = useRef(true);
   const abortRef = useRef(null);
   const itemsRef = useRef(items);
   const loadRef = useRef(load);
   const getKeyRef = useRef(getKey);
   const enabledRef = useRef(enabled);
+  const cacheKeyRef = useRef(cacheKey);
+  const cacheVersionRef = useRef(cacheVersion);
   itemsRef.current = items;
   loadRef.current = load;
   getKeyRef.current = getKey;
   enabledRef.current = enabled;
+  cacheKeyRef.current = cacheKey;
+  cacheVersionRef.current = cacheVersion;
 
   useEffect(() => {
     aliveRef.current = true;
@@ -280,12 +299,23 @@ export function useInfiniteScroll({
     };
   }, []);
 
-  const queryKeyStr = Array.isArray(queryKey)
-    ? queryKey.map((value) => String(value)).join("|")
-    : String(queryKey ?? "");
+  // Row-level updates (favorite/active/availability/delete) should also be
+  // reflected in the cache so the reopening popup does not show stale data.
+  const setItemsWithCache = useCallback((updater) => {
+    setItems((previous) => {
+      const next =
+        typeof updater === "function" ? updater(previous) : updater;
+      const key = cacheKeyRef.current;
+      if (key) {
+        const cached = readTableCache(key);
+        if (cached) writeTableCache(key, { ...cached, items: next });
+      }
+      return next;
+    });
+  }, []);
 
   const run = useCallback(
-    async (page, mode) => {
+    async (page, mode, options = {}) => {
       if (!enabledRef.current) return;
       // A "more" request must never overlap another request, while a "reset"
       // is allowed to supersede an in-flight request (search/filter changed).
@@ -300,7 +330,8 @@ export function useInfiniteScroll({
       const seq = ++seqRef.current;
 
       if (mode === "reset") {
-        setLoading(true);
+        // Background refreshes keep the cached rows visible.
+        if (!options.background) setLoading(true);
         setError(null);
       } else {
         setLoadingMore(true);
@@ -319,10 +350,13 @@ export function useInfiniteScroll({
         pageRef.current = mode === "reset" ? 0 : page;
         setPageIndex(mode === "reset" ? 0 : page);
         const total = Number(result?.totalElements);
+        let cachedTotal;
         if (Number.isFinite(total)) {
           setTotalElements(total);
+          cachedTotal = total;
         } else if (mode === "reset") {
           setTotalElements(merged.length);
+          cachedTotal = merged.length;
         }
         // Stop when the page is empty or (for a "more" request) when it added
         // no new unique rows, which protects against an un-paginated backend.
@@ -333,6 +367,15 @@ export function useInfiniteScroll({
         hasMoreRef.current = more;
         setHasMore(more);
         setError(null);
+        if (cacheKeyRef.current && cachedTotal !== undefined) {
+          writeTableCache(cacheKeyRef.current, {
+            items: merged,
+            totalElements: cachedTotal,
+            hasMore: more,
+            pageIndex: mode === "reset" ? 0 : page,
+            refreshKey: String(cacheVersionRef.current ?? ""),
+          });
+        }
       } catch (err) {
         if (seq !== seqRef.current || !aliveRef.current) return;
         // Aborted requests are not user-facing errors.
@@ -371,14 +414,36 @@ export function useInfiniteScroll({
 
   // Reset when the query (search text, filters, sort or refresh) changes.
   useEffect(() => {
+    const cached = enabled && cacheKey ? readTableCache(cacheKey) : undefined;
+
+    setError(null);
+    setLoadingMore(false);
+
+    if (cached) {
+      setItems(cached.items);
+      setTotalElements(cached.totalElements);
+      setPageIndex(cached.pageIndex);
+      pageRef.current = cached.pageIndex;
+      hasMoreRef.current = cached.hasMore;
+      setHasMore(cached.hasMore);
+      setLoading(false);
+      // Revalidate silently: the cached rows stay visible while the newest
+      // page is fetched, so switching categories never shows the skeleton.
+      runRef.current(0, "reset", { background: true });
+      return;
+    }
+
     pageRef.current = 0;
     hasMoreRef.current = true;
     setHasMore(true);
-    setError(null);
     setTotalElements(0);
     setPageIndex(0);
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
     runRef.current(0, "reset");
-  }, [queryKeyStr, enabled]);
+  }, [queryKeyStr, enabled, cacheKey]);
 
   // Re-check the sentinel whenever a page finishes loading. Re-observing the
   // nodes emits their current intersection state, which covers the case where
@@ -398,7 +463,7 @@ export function useInfiniteScroll({
 
   return {
     items,
-    setItems,
+    setItems: setItemsWithCache,
     loading,
     loadingMore,
     hasMore,

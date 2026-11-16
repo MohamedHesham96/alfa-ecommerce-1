@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import { MdDelete, MdEdit } from "react-icons/md";
 
@@ -11,6 +11,12 @@ import { deleteRequest } from "../../../../utils/requestsUtils.js";
 import { getThumbnailUrl } from "../../../../utils/functions";
 import { DataTable, DataTableToolbar } from "../../components/data-table";
 import { useServerDataTable } from "../../hooks/useServerDataTable";
+import { prefetchTablePage } from "../../services/tablePrefetch";
+import {
+  buildCategoryProductsFilters,
+  PRODUCTS_ENDPOINT,
+  PRODUCTS_PAGE_SIZE,
+} from "../../config/productsTable.config";
 import { createCategoryColumns } from "../../config/categoriesTable.config";
 import ProductsByCategoryPopup from "./ProductsByCategoryPopup";
 
@@ -65,6 +71,19 @@ export default function CategorysTable({ setIsFormOpen }) {
     refreshKey,
     getRowId: (category) => String(category.itemCategoryId),
   });
+
+  // Warm the product popup cache for the categories already on screen. The
+  // first click then renders the table immediately instead of the skeleton.
+  useEffect(() => {
+    tableState.items.forEach((category) => {
+      void prefetchTablePage({
+        endpoint: PRODUCTS_ENDPOINT,
+        pageSize: PRODUCTS_PAGE_SIZE,
+        filters: buildCategoryProductsFilters(category.itemCategoryId),
+        refreshKey,
+      });
+    });
+  }, [tableState.items, refreshKey]);
 
   const renderMobileCard = (category) => (
     <div

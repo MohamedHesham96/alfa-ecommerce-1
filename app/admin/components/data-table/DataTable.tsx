@@ -22,6 +22,7 @@ interface DataTableProps<T> {
   onRetry?: () => void;
   toolbar?: ReactNode;
   mobileCard?: (row: T) => ReactNode;
+  className?: string;
   mobileWrapperClassName?: string;
   desktopWrapperClassName?: string;
   tableClassName?: string;
@@ -44,6 +45,7 @@ export function DataTable<T>({
   onRetry,
   toolbar,
   mobileCard,
+  className = "w-full",
   mobileWrapperClassName = "lg:hidden mt-3",
   desktopWrapperClassName = "hidden lg:block mt-3 w-full overflow-x-auto overflow-y-auto",
   tableClassName = "h-auto w-full",
@@ -59,14 +61,18 @@ export function DataTable<T>({
   const rows = table.getRowModel().rows;
   const columnCount = table.getAllLeafColumns().length;
   const hasItems = rows.length > 0;
+  // Only show the skeleton when there is nothing to display yet. During a
+  // refresh (search/filter change) the previous rows stay visible instead of
+  // flashing the loading skeleton again.
+  const showSkeleton = loading && !hasItems;
 
   return (
-    <div className="w-full">
-      {toolbar}
+    <div className={className}>
+      {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
 
       {mobileCard ? (
         <div className={mobileWrapperClassName}>
-          {loading
+          {showSkeleton
             ? Array.from({ length: skeletonRows }).map((_, index) =>
                 renderSkeletonMobileCard ? (
                   <div key={`mobile-skeleton-${index}`}>
@@ -87,7 +93,7 @@ export function DataTable<T>({
                 <div key={row.id}>{mobileCard(row.original)}</div>
               ))}
 
-          {!loading && !hasItems ? (
+          {!showSkeleton && !hasItems ? (
             <div className="p-4 text-center text-sm text-gray-400">
               {emptyMessage ?? t("no_data")}
             </div>
@@ -142,7 +148,7 @@ export function DataTable<T>({
             ))}
           </thead>
           <tbody className="w-full bg-white text-md">
-            {loading
+            {showSkeleton
               ? Array.from({ length: skeletonRows }).map((_, index) =>
                   renderSkeletonRow ? (
                     <tr key={`skeleton-${index}`}>
@@ -184,7 +190,7 @@ export function DataTable<T>({
                   </tr>
                 ))}
 
-            {!loading && !hasItems ? (
+            {!showSkeleton && !hasItems ? (
               <tr>
                 <td
                   colSpan={columnCount}

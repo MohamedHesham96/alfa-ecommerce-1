@@ -13,15 +13,20 @@ import { deleteRequest, postRequest } from "../../../../utils/requestsUtils.js";
 import { getThumbnailUrl } from "../../../../utils/functions.jsx";
 import { DataTable, DataTableToolbar } from "../../components/data-table";
 import { useServerDataTable } from "../../hooks/useServerDataTable";
-import { createProductsColumns } from "../../config/productsTable.config";
+import {
+  buildCategoryProductsFilters,
+  createProductsColumns,
+  PRODUCTS_ENDPOINT,
+  PRODUCTS_PAGE_SIZE,
+} from "../../config/productsTable.config";
 
-const PAGE_SIZE = 10;
 const EMPTY_FILTERS = [];
 
 export default function ProductsTable({
   setIsFormOpen,
   category,
   setIsEditMode,
+  fillContainer = false,
 }) {
   const { t, locale } = useLanguage();
   const { refreshKey } = useRefresh();
@@ -124,24 +129,17 @@ export default function ProductsTable({
 
   const baseFilters = useMemo(
     () =>
-      category
-        ? [
-            {
-              field: "itemCategory.itemCategoryId",
-              operator: "EQUALS",
-              value: category,
-            },
-          ]
-        : EMPTY_FILTERS,
+      category ? buildCategoryProductsFilters(category) : EMPTY_FILTERS,
     [category],
   );
 
   const tableState = useServerDataTable({
-    endpoint: "/api/admin/items/search",
+    endpoint: PRODUCTS_ENDPOINT,
     columns,
-    pageSize: PAGE_SIZE,
+    pageSize: PRODUCTS_PAGE_SIZE,
     refreshKey,
     baseFilters,
+    cacheResults: true,
     getRowId: (product) => String(product.itemId),
   });
 
@@ -279,7 +277,13 @@ export default function ProductsTable({
   );
 
   return (
-    <div className="w-full p-5">
+    <div
+      className={
+        fillContainer
+          ? "flex h-full min-h-0 w-full flex-col p-5"
+          : "w-full p-5"
+      }
+    >
       <DataTable
         table={tableState.table}
         loading={tableState.loading}
@@ -290,8 +294,17 @@ export default function ProductsTable({
         onRetry={tableState.reload}
         toolbar={toolbar}
         mobileCard={renderMobileCard}
-        mobileWrapperClassName="lg:hidden h-[600px] mt-3 border p-3 rounded-3xl overflow-y-auto min-w-0"
-        desktopWrapperClassName="hidden lg:block max-h-[520px] min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
+        className={fillContainer ? "flex h-full min-h-0 w-full flex-col" : ""}
+        mobileWrapperClassName={
+          fillContainer
+            ? "lg:hidden flex-1 min-h-0 mt-3 border p-3 rounded-3xl overflow-y-auto min-w-0"
+            : "lg:hidden h-[600px] mt-3 border p-3 rounded-3xl overflow-y-auto min-w-0"
+        }
+        desktopWrapperClassName={
+          fillContainer
+            ? "hidden lg:block flex-1 min-h-0 min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
+            : "hidden lg:block max-h-[520px] min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
+        }
         tableClassName="w-full h-auto border rounded-3xl"
         headerClassName="bg-[#ececec] text-xs text-justify sticky top-0 z-10"
         rowClassName="border hover:bg-gray-100 hover:bg-opacity-40 cursor-pointer"
