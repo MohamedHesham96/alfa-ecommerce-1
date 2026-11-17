@@ -7,6 +7,7 @@ import { MenuOpenProvider } from "../../context/MenuOpenContext";
 import { FaWhatsapp } from "react-icons/fa6";
 import { getRequest } from "../../utils/requestsUtils";
 import { useEffect, useState } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 import HomePage from "../user/home/page";
 
 export default function HomePageClient({
@@ -16,6 +17,7 @@ export default function HomePageClient({
   initialOffers = [],
   initialContact = null,
 }) {
+  const { t } = useLanguage();
   const [contact, setContact] = useState(initialContact);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function HomePageClient({
             href={contact.whatsappURL}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="واتساب"
+            aria-label={t("whatsapp")}
             className="fixed bottom-[5.5rem] right-5 z-40 sm:bottom-14"
           >
             <FaWhatsapp className="rounded-xl bg-green-500 p-1 text-5xl text-white drop-shadow-lg duration-300 hover:scale-110" />

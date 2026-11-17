@@ -19,9 +19,15 @@ jest.mock("next/image", () => ({
   },
 }));
 
-jest.mock("../context/LanguageContext", () => ({
-  useLanguage: () => ({ locale: "en" }),
-}));
+jest.mock("../context/LanguageContext", () => {
+  const en = require("../public/locales/en.json");
+  return {
+    useLanguage: () => ({
+      locale: "en",
+      t: (key) => en[key] ?? key,
+    }),
+  };
+});
 
 jest.mock("../utils/authRole", () => ({
   useAuthRole: () => mockAuthState,

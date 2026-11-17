@@ -104,14 +104,14 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-xs font-bold text-[#475467]">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-xs font-bold text-[var(--admin-ink-soft)]">
               {initials(fullName)}
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[#101828]">
+              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
                 {fullName}
               </p>
-              <p className="truncate text-xs text-[#667085]">
+              <p className="truncate text-xs text-[var(--admin-muted)]">
                 {mode === "admin" ? user.email : user.username}
               </p>
             </div>
@@ -123,7 +123,7 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
             <button
               type="button"
               className={`admin-action-icon ${
-                user.blocked ? "!text-[#b4233a]" : ""
+                user.blocked ? "!text-[var(--admin-danger-text)]" : ""
               }`}
               onClick={(event) => {
                 event.stopPropagation();
@@ -136,7 +136,7 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#eef1f6] pt-3 text-xs text-[#667085]">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--admin-border-subtle)] pt-3 text-xs text-[var(--admin-muted)]">
           <span className="truncate">
             {mode === "admin"
               ? `${t("username")}: ${user.username}`
@@ -150,11 +150,11 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
         </div>
 
         {mode !== "admin" ? (
-          <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#eef1f6] pt-3">
-            <span className="text-xs text-[#667085]">
+          <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--admin-border-subtle)] pt-3">
+            <span className="text-xs text-[var(--admin-muted)]">
               {t("order_activity")}
             </span>
-            <span className="rounded-full border border-[#e4e8f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#344054]">
+            <span className="rounded-full border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] px-2.5 py-1 text-xs font-semibold text-[var(--admin-ink-soft)]">
               {user.ordersCount ?? 0} {t("orders")}
             </span>
           </div>
@@ -198,6 +198,7 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
         onRetry={tableState.reload}
         toolbar={toolbar}
         mobileCard={renderMobileCard}
+        onRowClick={(user) => openAccount(user.userId)}
         mobileWrapperClassName="lg:hidden mt-3"
         desktopWrapperClassName="admin-table-shell hidden lg:block max-h-[600px] min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
         tableClassName="admin-table"

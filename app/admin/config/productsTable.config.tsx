@@ -26,7 +26,6 @@ export function buildCategoryProductsFilters(
 export interface ProductsColumnActions {
   t: (key: string) => string;
   locale: string;
-  onOpen: (itemId: number) => void;
   onToggleFavorite: (itemId: number, favorite: boolean) => void;
   onToggleActive: (itemId: number, active: boolean) => void;
   onToggleAvailable: (itemId: number, available: boolean) => void;
@@ -36,7 +35,6 @@ export interface ProductsColumnActions {
 export function createProductsColumns({
   t,
   locale,
-  onOpen,
   onToggleFavorite,
   onToggleActive,
   onToggleAvailable,
@@ -81,13 +79,13 @@ export function createProductsColumns({
               }}
               className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
                 product.active
-                  ? "border-[#bfe8d7] bg-[#e7f7f0] text-[#087443]"
-                  : "border-[#e4e8f0] bg-[#f8fafc] text-[#667085]"
+                  ? "border-[var(--admin-success-border)] bg-[var(--admin-success-soft)] text-[var(--admin-success-text)]"
+                  : "border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[var(--admin-muted)]"
               }`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  product.active ? "bg-[#0e8a5f]" : "bg-[#98a2b3]"
+                  product.active ? "bg-[var(--admin-success)]" : "bg-[var(--admin-muted-soft)]"
                 }`}
                 aria-hidden="true"
               />
@@ -103,8 +101,8 @@ export function createProductsColumns({
               }}
               className={`admin-action-icon ${
                 product.favorite
-                  ? "!text-[#d97706] hover:!bg-[#fdf6e7]"
-                  : "!text-[#98a2b3]"
+                  ? "!text-[var(--admin-warning-text)] hover:!bg-[var(--admin-warning-soft)]"
+                  : "!text-[var(--admin-muted-soft)]"
               }`}
             >
               <GoStarFill />
@@ -120,9 +118,9 @@ export function createProductsColumns({
               className="admin-action-icon"
             >
               {product.available ? (
-                <IoCheckmarkCircleOutline className="text-lg text-[#0e8a5f]" />
+                <IoCheckmarkCircleOutline className="text-lg text-[var(--admin-success)]" />
               ) : (
-                <MdBlock className="text-[#c2415a]" />
+                <MdBlock className="text-[var(--admin-danger)]" />
               )}
             </button>
           </div>
@@ -146,10 +144,7 @@ export function createProductsColumns({
         const product = row.original;
         const imageUrl = product.images?.[0]?.imageUrl;
         return (
-          <div
-            className="flex min-w-0 cursor-pointer items-center gap-3"
-            onClick={() => onOpen(product.itemId)}
-          >
+          <div className="flex min-w-0 items-center gap-3">
             {imageUrl ? (
               <Image
                 alt=""
@@ -158,18 +153,18 @@ export function createProductsColumns({
                 )}`}
                 width={50}
                 height={50}
-                className="h-10 w-10 rounded-xl border border-[#e4e8f0] bg-white object-cover p-0.5"
+                className="h-10 w-10 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] object-cover p-0.5"
               />
             ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#e4e8f0] bg-[#f8fafc] text-[9px] text-[#98a2b3]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[9px] text-[var(--admin-muted-soft)]">
                 {t("no_image")}
               </div>
             )}
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[#101828]">
+              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
                 {productName(product)}
               </p>
-              <p className="truncate text-xs text-[#667085]">
+              <p className="truncate text-xs text-[var(--admin-muted)]">
                 {t("code")}: {product.code}
               </p>
             </div>
@@ -190,10 +185,7 @@ export function createProductsColumns({
         cellClassName: "",
       },
       cell: ({ row }) => (
-        <span
-          className="inline-flex cursor-pointer items-center rounded-lg border border-[#e4e8f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#475467]"
-          onClick={() => onOpen(row.original.itemId)}
-        >
+        <span className="inline-flex items-center rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] px-2.5 py-1 text-xs font-semibold text-[var(--admin-ink-soft)]">
           {categoryName(row.original) || "--"}
         </span>
       ),
@@ -211,12 +203,9 @@ export function createProductsColumns({
         cellClassName: "text-sm font-bold",
       },
       cell: ({ row }) => (
-        <div
-          className="whitespace-nowrap text-[#101828]"
-          onClick={() => onOpen(row.original.itemId)}
-        >
+        <div className="whitespace-nowrap text-[var(--admin-ink)]">
           {Number(row.original.price).toLocaleString("en-US")}{" "}
-          <span className="text-xs font-medium text-[#667085]">
+          <span className="text-xs font-medium text-[var(--admin-muted)]">
             {t("currency")}
           </span>
         </div>
@@ -232,7 +221,7 @@ export function createProductsColumns({
       cell: ({ row }) => (
         <button
           type="button"
-          className="admin-action-icon !text-[#b4233a] hover:!bg-[#fbeff2]"
+          className="admin-action-icon !text-[var(--admin-danger-text)] hover:!bg-[var(--admin-danger-soft)]"
           title={t("delete")}
           aria-label={t("delete")}
           onClick={(event) => {

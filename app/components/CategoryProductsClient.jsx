@@ -80,7 +80,7 @@ export default function CategoryProductsClient({
     locale === "ar"
       ? category?.nameAr || category?.nameEn
       : category?.nameEn || category?.nameAr;
-  const heading = categoryName || t("all_products") || "كل المنتجات";
+  const heading = categoryName || t("all_products");
   // Flat lists produce a single category here, preserving the previous
   // breadcrumb. A nested list adds the parent chain for hierarchical browsing.
   const categoryPathItems = useMemo(() => {
@@ -156,19 +156,19 @@ export default function CategoryProductsClient({
   return (
     <div className="w-full">
       <nav
-        aria-label="Breadcrumb"
+        aria-label={t("breadcrumb")}
         className="border-b border-gray-100 bg-white px-4 py-3 text-xs text-gray-500 sm:text-sm"
       >
         <ol className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
           <li>
             <Link href="/" className="hover:text-[#E14A5C]">
-              {locale === "ar" ? "الرئيسية" : t("homepage")}
+              {t("homepage")}
             </Link>
           </li>
           <li aria-hidden className="text-gray-300">/</li>
           <li>
             <Link href="/products" className="hover:text-[#E14A5C]">
-              {t("all_products") || "كل المنتجات"}
+              {t("all_products")}
             </Link>
           </li>
           {category
@@ -214,8 +214,8 @@ export default function CategoryProductsClient({
             <p className="mt-1 max-w-3xl text-sm leading-relaxed text-gray-600">
               {description ||
                 (category
-                  ? `تصفح ${heading} من ألفا جروب تكنولوجي بأسعار تنافسية ومواصفات واضحة.`
-                  : "تصفح كل منتجات ألفا جروب تكنولوجي بأسعار تنافسية ومواصفات واضحة.")}
+                  ? t("category_browse_intro").replace("{category}", heading)
+                  : t("all_products_intro"))}
             </p>
           </div>
 

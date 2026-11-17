@@ -42,15 +42,15 @@ export default function SystemSettingsLayout({ children }) {
             src="/Images/logo.png"
             width={160}
             height={160}
-            alt="logo"
+            alt="Alfa"
             className="mx-auto mb-5 h-16 w-16 object-contain"
           />
-          <h1 className="text-2xl font-bold tracking-tight text-[#101828]">
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--admin-ink)]">
             {isArabic
               ? "غير مصرح لك بالوصول إلى إعدادات النظام"
               : "You are not authorized to view System Settings"}
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#667085]">
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--admin-muted)]">
             {isArabic
               ? "لم يمنح مسؤول النظام هذا الحساب صلاحية الوصول إلى إعدادات النظام."
               : "This account has not been granted access to System Settings."}

@@ -119,7 +119,7 @@ export default function ResetPasswordForm({ isFormOpen, setIsFormOpen }) {
             </h1>
             <button
               type="button"
-              aria-label="Close"
+              aria-label={t("close")}
               onClick={closeForm}
               className="text-xl text-gray-600 hover:text-red-600"
             >

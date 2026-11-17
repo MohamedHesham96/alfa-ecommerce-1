@@ -63,8 +63,8 @@ export function createAccountColumns({
               title={user.blocked ? t("activate") : t("deactivate")}
               className={`admin-action-icon ${
                 user.blocked
-                  ? "!text-[#b4233a] hover:!bg-[#fbeff2]"
-                  : "hover:!text-[#b4233a]"
+                  ? "!text-[var(--admin-danger-text)] hover:!bg-[var(--admin-danger-soft)]"
+                  : "hover:!text-[var(--admin-danger-text)]"
               }`}
               onClick={(event) => {
                 event.stopPropagation();
@@ -93,18 +93,15 @@ export function createAccountColumns({
         const user = row.original;
         const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
         return (
-          <div
-            className="flex items-center gap-3"
-            onClick={() => onOpen(user.userId)}
-          >
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-xs font-bold text-[#475467]">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[11px] font-bold text-[var(--admin-ink-soft)]">
               {initials(fullName)}
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[#101828]">
+              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
                 {fullName}
               </p>
-              <p className="truncate text-xs text-[#667085]">
+              <p className="truncate text-xs text-[var(--admin-muted)]">
                 {mode === "admin" ? user.email : user.username}
               </p>
             </div>
@@ -129,10 +126,7 @@ export function createAccountColumns({
           cellClassName: "",
         },
         cell: ({ row }) => (
-          <span
-            className="text-sm text-[#667085]"
-            onClick={() => onOpen(row.original.userId)}
-          >
+          <span className="text-sm text-[var(--admin-muted)]">
             {row.original.username}
           </span>
         ),
@@ -150,10 +144,7 @@ export function createAccountColumns({
           cellClassName: "text-sm",
         },
         cell: ({ row }) => (
-          <div
-            className="text-sm text-[#667085]"
-            onClick={() => onOpen(row.original.userId)}
-          >
+          <div className="text-sm text-[var(--admin-muted)]">
             {formatDate(row.original.lastLoginDate)}
           </div>
         ),
@@ -174,10 +165,7 @@ export function createAccountColumns({
           cellClassName: "",
         },
         cell: ({ row }) => (
-          <span
-            className="text-sm text-[#667085]"
-            onClick={() => onOpen(row.original.userId)}
-          >
+          <span className="text-sm text-[var(--admin-muted)]">
             {row.original.email ?? "--"}
           </span>
         ),
@@ -195,10 +183,7 @@ export function createAccountColumns({
           cellClassName: "text-sm",
         },
         cell: ({ row }) => (
-          <div
-            className="text-sm text-[#667085]"
-            onClick={() => onOpen(row.original.userId)}
-          >
+          <div className="text-sm text-[var(--admin-muted)]">
             {formatDate(row.original.registrationDate)}
           </div>
         ),
@@ -213,13 +198,13 @@ export function createAccountColumns({
         cell: ({ row }) => (
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#e4e8f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#344054]"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] px-2.5 py-1 text-xs font-semibold text-[var(--admin-ink-soft)]"
             onClick={() => onOpen(row.original.userId)}
           >
-            <span className="text-sm font-bold text-[#101828]">
+            <span className="text-sm font-bold text-[var(--admin-ink)]">
               {row.original.ordersCount ?? 0}
             </span>
-            <span className="text-[11px] text-[#667085]">{t("orders")}</span>
+            <span className="text-[11px] text-[var(--admin-muted)]">{t("orders")}</span>
           </button>
         ),
       },

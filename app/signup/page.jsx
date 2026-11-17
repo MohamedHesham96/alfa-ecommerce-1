@@ -9,7 +9,7 @@ export default function SignUp() {
           <div className="h-full w-full md:order-2 xs:order-1">
             <Image
               src="/Images/imageSignUp.png"
-              alt="Background Image"
+              alt=""
               width={500}
               height={500}
               priority

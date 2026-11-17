@@ -59,12 +59,12 @@ const {t}= useLanguage()
         <label className="block text-sm font-medium text-gray-700 ">
           {t("Your_rating")} <span className="text-[#e5485d]">*</span>
         </label>
-        <div className="flex items-center gap-1" role="radiogroup" aria-label="Rating">
+        <div className="flex items-center gap-1" role="radiogroup" aria-label={t("rating")}>
           {[1, 2, 3, 4, 5].map((value) => (
             <button
               key={value}
               type="button"
-              aria-label={`${value} star${value > 1 ? "s" : ""}`}
+              aria-label={t("rating_value").replace("{value}", value)}
               onClick={() => setRating(value)}
               onMouseEnter={() => setHoverRating(value)}
               onMouseLeave={() => setHoverRating(0)}

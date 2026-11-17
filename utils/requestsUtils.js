@@ -110,7 +110,9 @@ const showRequestError = (error) => {
     });
   } else {
     // Fallback
-    toast.error(error?.message || "An error occurred");
+    const isArabic =
+      typeof window !== "undefined" && localStorage.getItem("lang") === "ar";
+    toast.error(error?.message || (isArabic ? "حدث خطأ" : "An error occurred"));
   }
 };
 
@@ -139,7 +141,11 @@ const throwOfflineMutationError = () => {
 };
 
 const shouldInvalidateCatalog = (endpoint) =>
-  typeof endpoint === "string" && endpoint.startsWith("/api/admin/");
+  typeof endpoint === "string" &&
+  endpoint.startsWith("/api/admin/") &&
+  // Theme preference is not catalog data; updating it must not evict the
+  // storefront/page caches.
+  !endpoint.startsWith("/api/admin/theme");
 
 const invalidateCatalogAfterAdminChange = (endpoint) => {
   if (!shouldInvalidateCatalog(endpoint)) return;

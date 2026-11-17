@@ -28,7 +28,7 @@ export default function ProductPreview({ sliderImages }) {
         </span>
       </div>
 
-      <div className="bg-[#f8fafc] p-4">
+      <div className="bg-[var(--admin-surface-muted)] p-4">
         <Swiper
           key={lang}
           pagination={{ clickable: true }}
@@ -44,7 +44,7 @@ export default function ProductPreview({ sliderImages }) {
                 alt=""
                 width={840}
                 height={360}
-                className="h-[290px] w-full rounded-xl border border-[#e4e8f0] bg-white object-contain"
+                className="h-[290px] w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] object-contain"
               />
             </SwiperSlide>
           ))}

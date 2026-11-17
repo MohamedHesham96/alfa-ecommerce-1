@@ -22,7 +22,7 @@ function UploadTile({ id, label, previewUrl, onRemove, onUpload, hint }) {
     <div className="flex flex-col gap-2">
       <span className="admin-label">{label}</span>
       {previewUrl ? (
-        <div className="relative overflow-hidden rounded-xl border border-[#e4e8f0] bg-[#f8fafc]">
+        <div className="relative overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)]">
           <div className="relative h-36 w-full">
             <Image
               alt=""
@@ -34,7 +34,7 @@ function UploadTile({ id, label, previewUrl, onRemove, onUpload, hint }) {
           </div>
           <button
             type="button"
-            className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-bold text-[#b4233a] shadow-sm transition-colors hover:bg-[#fbeff2]"
+            className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--admin-surface)] text-sm font-bold text-[var(--admin-danger-text)] shadow-sm transition-colors hover:bg-[var(--admin-danger-soft)]"
             onClick={onRemove}
             aria-label={label}
           >
@@ -44,15 +44,15 @@ function UploadTile({ id, label, previewUrl, onRemove, onUpload, hint }) {
       ) : (
         <label
           htmlFor={id}
-          className="group flex h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#d3d9e5] bg-[#f8fafc] p-4 text-center transition-colors hover:border-[#cf4356] hover:bg-[#fdf7f8]"
+          className="group flex h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--admin-border-strong)] bg-[var(--admin-surface-muted)] p-4 text-center transition-colors hover:border-[var(--admin-accent)] hover:bg-[var(--admin-danger-soft)]"
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg text-[#cf4356] shadow-sm transition-transform group-hover:scale-105">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--admin-surface)] text-lg text-[var(--admin-accent)] shadow-sm transition-transform group-hover:scale-105">
             <IoCloudUploadSharp />
           </span>
-          <span className="text-xs font-semibold text-[#344054]">
+          <span className="text-xs font-semibold text-[var(--admin-ink-soft)]">
             {label}
           </span>
-          <span className="text-[10px] text-[#98a2b3]">{hint}</span>
+          <span className="text-[10px] text-[var(--admin-muted-soft)]">{hint}</span>
         </label>
       )}
       <input
@@ -336,10 +336,10 @@ export default function CategoryForm({ isFormOpen, setIsFormOpen }) {
   return (
     <div id="add-category-form">
       {loading && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--admin-overlay-strong)]/55 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-[var(--admin-surface)] px-8 py-6 shadow-2xl">
             <span className="admin-spinner !h-7 !w-7" />
-            <p className="text-sm font-semibold text-[#475467]">
+            <p className="text-sm font-semibold text-[var(--admin-ink-soft)]">
               {t("loading")}
             </p>
           </div>

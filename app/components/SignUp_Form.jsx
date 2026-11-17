@@ -142,14 +142,10 @@ setOpenForm?.(false)
       <div className="flex min-h-[320px] w-full items-center justify-center p-8 text-center md:order-1 xs:order-2">
         <div>
           <h2 className="text-xl font-semibold text-gray-800">
-            {locale === "ar"
-              ? "التسجيل غير متاح حاليًا لهذا المتجر."
-              : "Registration is currently unavailable for this store."}
+            {t("registration_unavailable_title")}
           </h2>
           <p className="mt-2 text-sm text-gray-500">
-            {locale === "ar"
-              ? "يمكنك تسجيل الدخول إذا كان لديك حساب بالفعل."
-              : "You can still sign in if you already have an account."}
+            {t("registration_unavailable_description")}
           </p>
         </div>
       </div>
@@ -180,6 +176,9 @@ setOpenForm?.(false)
         </div>
        <button
           type="button"
+          aria-label={
+            locale === "ar" ? t("change_language_to_english") : t("change_language_to_arabic")
+          }
           onClick={() => {
             const newLocale = locale === "ar" ? "en" : "ar";
             setLocale(newLocale);

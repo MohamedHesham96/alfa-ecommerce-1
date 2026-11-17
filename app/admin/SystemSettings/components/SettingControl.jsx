@@ -67,7 +67,7 @@ function JsonEditor({ value, onChange, disabled, arrayOnly, locale }) {
         rows={arrayOnly ? 5 : 6}
         className="admin-textarea font-mono text-xs"
       />
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+      {error ? <p className="text-xs text-[var(--admin-danger)]">{error}</p> : null}
     </div>
   );
 }
@@ -164,7 +164,7 @@ function ListEditor({ definition, value, onChange, disabled, locale }) {
   return (
     <div className="space-y-2">
       {items.length === 0 ? (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-[var(--admin-muted)]">
           {locale === "ar" ? "لا توجد عناصر بعد." : "No items yet."}
         </p>
       ) : null}
@@ -184,7 +184,7 @@ function ListEditor({ definition, value, onChange, disabled, locale }) {
             type="button"
             disabled={disabled}
             onClick={() => remove(index)}
-            className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+            className="rounded-lg border border-[var(--admin-danger-border)] px-3 py-2 text-xs font-semibold text-[var(--admin-danger)] hover:bg-[var(--admin-danger-soft)] disabled:opacity-50"
           >
             {locale === "ar" ? "حذف" : "Remove"}
           </button>
@@ -252,12 +252,12 @@ export default function SettingControl({
         aria-checked={checked}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204272] focus-visible:ring-offset-2 disabled:opacity-50 ${
-          checked ? "bg-[#204272]" : "bg-gray-300"
+        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-primary-hover)] focus-visible:ring-offset-2 disabled:opacity-50 ${
+          checked ? "bg-[var(--admin-primary-hover)]" : "bg-[var(--admin-switch-off)]"
         }`}
       >
         <span
-          className={`absolute top-1/2 inline-block h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow transition-all ${
+          className={`absolute top-1/2 inline-block h-5 w-5 -translate-y-1/2 rounded-full bg-[var(--admin-surface)] shadow transition-all ${
             checked ? "start-6" : "start-1"
           }`}
         />

@@ -77,10 +77,10 @@ export default function RecentOrders_table() {
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <span className="text-sm font-bold text-[#b4233a]">
+            <span className="text-sm font-bold text-[var(--admin-danger-text)]">
               {order.orderCode}
             </span>
-            <div className="mt-1 text-xs text-[#667085]">{dateOnly}</div>
+            <div className="mt-1 text-xs text-[var(--admin-muted)]">{dateOnly}</div>
           </div>
           <StatusBadge
             tone={
@@ -98,22 +98,22 @@ export default function RecentOrders_table() {
             {t(order.state)}
           </StatusBadge>
         </div>
-        <div className="mt-3 flex items-center gap-3 border-t border-[#eef1f6] pt-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-[10px] font-bold text-[#667085]">
+        <div className="mt-3 flex items-center gap-3 border-t border-[var(--admin-border-subtle)] pt-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[10px] font-bold text-[var(--admin-muted)]">
             {(order.userName?.[0] ?? "U").toUpperCase()}
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-[#101828]">
+            <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
               {order.userName}
             </p>
-            <p className="truncate text-xs text-[#667085]">{order.userEmail}</p>
+            <p className="truncate text-xs text-[var(--admin-muted)]">{order.userEmail}</p>
           </div>
         </div>
-        <div className="mt-3 flex items-center justify-between border-t border-[#eef1f6] pt-3">
-          <span className="text-xs text-[#667085]">{t("total")}</span>
-          <span className="text-base font-bold text-[#101828]">
+        <div className="mt-3 flex items-center justify-between border-t border-[var(--admin-border-subtle)] pt-3">
+          <span className="text-xs text-[var(--admin-muted)]">{t("total")}</span>
+          <span className="text-base font-bold text-[var(--admin-ink)]">
             {Number(order.orderTotal ?? 0).toLocaleString("en-US")}{" "}
-            <span className="text-xs font-medium text-[#667085]">
+            <span className="text-xs font-medium text-[var(--admin-muted)]">
               {t("currency")}
             </span>
           </span>
@@ -146,8 +146,9 @@ export default function RecentOrders_table() {
           loading={loading}
           error={error}
           mobileCard={renderMobileCard}
+          onRowClick={(order) => goToOrder(order.orderId)}
           mobileWrapperClassName="lg:hidden"
-          desktopWrapperClassName="hidden lg:block max-h-[540px] min-w-0 overflow-x-auto overflow-y-auto rounded-xl border border-[#e4e8f0]"
+          desktopWrapperClassName="hidden lg:block max-h-[540px] min-w-0 overflow-x-auto overflow-y-auto rounded-xl border border-[var(--admin-border)]"
           tableClassName="admin-table min-w-[720px]"
           rowClassName="cursor-pointer"
           emptyMessage={t("no_data")}

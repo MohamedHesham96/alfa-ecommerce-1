@@ -117,20 +117,20 @@ export default function UserInfo({ userId }) {
       <section className="admin-card overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-4 p-5">
           <div className="flex min-w-0 items-center gap-4">
-            <span className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-[#163b5f] text-lg font-bold text-white shadow-sm">
+            <span className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-[var(--admin-primary)] text-lg font-bold text-white shadow-sm">
               {initials || <FaUserLarge />}
             </span>
             <div className="min-w-0">
-              <h2 className="truncate text-xl font-bold tracking-tight text-[#101828]">
+              <h2 className="truncate text-xl font-bold tracking-tight text-[var(--admin-ink)]">
                 {fullName || t("user")}
               </h2>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#667085]">
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--admin-muted)]">
                 <span className="inline-flex items-center gap-1">
                   {t("username")}: {userInfo.username || "--"}
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <IoLocationSharp className="text-xs" />
-                  {isArabic ? "مصر" : "Egypt"}
+                  {t("egypt")}
                 </span>
               </div>
             </div>
@@ -160,14 +160,14 @@ export default function UserInfo({ userId }) {
             </button>
           </div>
         </div>
-        <div className="grid gap-4 border-t border-[#eef1f6] bg-[#fbfcfe] p-5 md:grid-cols-3">
+        <div className="grid gap-4 border-t border-[var(--admin-border-subtle)] bg-[var(--admin-surface-hover)] p-5 md:grid-cols-3">
           <div className="flex items-center gap-3">
             <span className="admin-stat-icon !h-9 !w-9 admin-tone-rose">
               <MdEmail />
             </span>
             <div className="min-w-0">
-              <p className="text-xs text-[#667085]">{t("email")}</p>
-              <p className="truncate text-sm font-semibold text-[#101828]">
+              <p className="text-xs text-[var(--admin-muted)]">{t("email")}</p>
+              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
                 {userInfo.email || "--"}
               </p>
             </div>
@@ -177,8 +177,8 @@ export default function UserInfo({ userId }) {
               <MdLocalPhone />
             </span>
             <div className="min-w-0">
-              <p className="text-xs text-[#667085]">{t("phoneNumber")}</p>
-              <p className="truncate text-sm font-semibold text-[#101828]" dir="ltr">
+              <p className="text-xs text-[var(--admin-muted)]">{t("phoneNumber")}</p>
+              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]" dir="ltr">
                 {userInfo.phone || "--"}
               </p>
             </div>
@@ -188,8 +188,8 @@ export default function UserInfo({ userId }) {
               <PiUserListFill />
             </span>
             <div className="min-w-0">
-              <p className="text-xs text-[#667085]">ID</p>
-              <p className="truncate text-sm font-semibold text-[#101828]">
+              <p className="text-xs text-[var(--admin-muted)]">ID</p>
+              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
                 #{userId}
               </p>
             </div>
@@ -240,8 +240,8 @@ export default function UserInfo({ userId }) {
                 <PiUserListFill />
               </span>
               <div className="min-w-0">
-                <p className="text-xs text-[#667085]">{t("user_info")}</p>
-                <p className="text-sm font-semibold text-[#101828]">
+                <p className="text-xs text-[var(--admin-muted)]">{t("user_info")}</p>
+                <p className="text-sm font-semibold text-[var(--admin-ink)]">
                   {fullName || "--"}
                 </p>
               </div>
@@ -251,8 +251,8 @@ export default function UserInfo({ userId }) {
                 <MdEmail />
               </span>
               <div className="min-w-0">
-                <p className="text-xs text-[#667085]">{t("email")}</p>
-                <p className="break-all text-sm font-semibold text-[#101828]">
+                <p className="text-xs text-[var(--admin-muted)]">{t("email")}</p>
+                <p className="break-all text-sm font-semibold text-[var(--admin-ink)]">
                   {userInfo.email || "--"}
                 </p>
               </div>
@@ -262,17 +262,17 @@ export default function UserInfo({ userId }) {
                 <MdLocalPhone />
               </span>
               <div className="min-w-0">
-                <p className="text-xs text-[#667085]">{t("phoneNumber")}</p>
-                <p className="text-sm font-semibold text-[#101828]" dir="ltr">
+                <p className="text-xs text-[var(--admin-muted)]">{t("phoneNumber")}</p>
+                <p className="text-sm font-semibold text-[var(--admin-ink)]" dir="ltr">
                   {userInfo.phone || "--"}
                 </p>
               </div>
             </div>
-            <div className="border-t border-[#eef1f6] pt-4">
-              <p className="text-xs font-semibold text-[#667085]">
+            <div className="border-t border-[var(--admin-border-subtle)] pt-4">
+              <p className="text-xs font-semibold text-[var(--admin-muted)]">
                 {t("Shipping Address")}
               </p>
-              <p className="mt-1 text-sm leading-6 text-[#344054]">
+              <p className="mt-1 text-sm leading-6 text-[var(--admin-ink-soft)]">
                 {userInfo.address || "--"}
               </p>
             </div>

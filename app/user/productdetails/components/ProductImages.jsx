@@ -34,7 +34,7 @@ export default function ProductImages({ product, layout = "THUMBNAILS_SIDE" }) {
   const thumbsSwiperRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [failedThumbs, setFailedThumbs] = useState({});
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
   const isDesktop = useIsDesktop();
   const thumbsAtBottom = layout === "THUMBNAILS_BOTTOM";
   const showThumbnails = layout !== "SLIDER_ONLY";
@@ -66,7 +66,7 @@ export default function ProductImages({ product, layout = "THUMBNAILS_SIDE" }) {
           onSwiper={(swiper) => {
             thumbsSwiperRef.current = swiper;
           }}
-          aria-label={`${productName || "Product"} images`}
+          aria-label={t("product_images")}
           className={
             thumbsAtBottom
               ? "order-2 min-h-0 w-full shrink-0 overflow-hidden h-16"
@@ -81,7 +81,9 @@ export default function ProductImages({ product, layout = "THUMBNAILS_SIDE" }) {
               <button
                 type="button"
                 onClick={() => swiperRef.current?.slideTo(index)}
-                aria-label={`Show image ${index + 1} of ${images.length}`}
+                aria-label={t("show_image_of")
+                  .replace("{index}", index + 1)
+                  .replace("{total}", images.length)}
                 aria-current={index === activeIndex}
                 className={`relative h-full w-full overflow-hidden rounded-xl border-2 bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E14A5C] focus-visible:ring-offset-1 ${
                   index === activeIndex
@@ -96,7 +98,7 @@ export default function ProductImages({ product, layout = "THUMBNAILS_SIDE" }) {
                       ? img.imageUrl
                       : getThumbnailUrl(img.imageUrl))
                   }
-                  alt={`${productName} - ${locale === "ar" ? "صورة مصغرة" : "thumbnail"} ${index + 1}`}
+                  alt={`${productName} - ${t("thumbnail")} ${index + 1}`}
                   fill
                   sizes="80px"
                   className="object-contain p-1"
@@ -144,10 +146,8 @@ export default function ProductImages({ product, layout = "THUMBNAILS_SIDE" }) {
                   src={urlImage + img.imageUrl}
                   alt={
                     productName
-                      ? `${productName} - ${locale === "ar" ? "صورة" : "image"} ${index + 1}`
-                      : locale === "ar"
-                        ? `صورة المنتج ${index + 1}`
-                        : `Product image ${index + 1}`
+                      ? `${productName} - ${t("product_image")} ${index + 1}`
+                      : `${t("product_image")} ${index + 1}`
                   }
                   fill
                   priority={index === 0}
@@ -163,7 +163,7 @@ export default function ProductImages({ product, layout = "THUMBNAILS_SIDE" }) {
               transition-all duration-300 ">
                     <button
                 type="button"
-                aria-label={locale === "ar" ? "الصورة السابقة" : "Previous image"}
+                aria-label={t("previous_image")}
                 onClick={() => swiperRef.current?.slidePrev()}
                 className="absolute left-0 top-1/3 -translate-y-1/2 z-50
                             text-2xl
@@ -174,7 +174,7 @@ export default function ProductImages({ product, layout = "THUMBNAILS_SIDE" }) {
               </button>
                   <button
                 type="button"
-                aria-label={locale === "ar" ? "الصورة التالية" : "Next image"}
+                aria-label={t("next_image")}
                 onClick={() => swiperRef.current?.slideNext()}
                 className="absolute right-0 top-1/3 -translate-y-1/2 z-50
 

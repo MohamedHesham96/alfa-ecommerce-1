@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { useLanguage } from "../../../context/LanguageContext";
 import useAdminInactivityLogout from "../hooks/useAdminInactivityLogout";
 
 export default function AdminInactivityHandler({ children, showWarning = true }) {
+  const { t } = useLanguage();
   const { showWarningModal, timeLeft, cancelWarningAndReset, logoutNow } =
     useAdminInactivityLogout({ showWarning });
 
@@ -11,27 +13,34 @@ export default function AdminInactivityHandler({ children, showWarning = true })
     <>
       {children}
       {showWarning && showWarningModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">
-              Session Expiring
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Your session will expire in {timeLeft} second{timeLeft !== 1 ? "s" : ""} due to inactivity.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={logoutNow}
-                className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md"
-              >
-                Logout Now
-              </button>
-              <button
-                onClick={cancelWarningAndReset}
-                className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md"
-              >
-                Stay Logged In
-              </button>
+        <div className="admin-modal-overlay z-[9999]">
+          <div className="admin-modal max-w-md">
+            <div className="admin-modal-body">
+              <h2 className="admin-modal-title mb-3">
+                {t("session_expiring_title")}
+              </h2>
+              <p className="mb-6 text-sm leading-6 text-[var(--admin-muted)]">
+                {t("session_expiring_message").replace(
+                  "{seconds}",
+                  `${timeLeft} ${t(timeLeft === 1 ? "second" : "seconds")}`,
+                )}
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={logoutNow}
+                  className="admin-btn admin-btn-secondary"
+                >
+                  {t("logout_now")}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelWarningAndReset}
+                  className="admin-btn admin-btn-danger-solid"
+                >
+                  {t("stay_logged_in")}
+                </button>
+              </div>
             </div>
           </div>
         </div>

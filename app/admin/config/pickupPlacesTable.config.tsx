@@ -33,10 +33,10 @@ export function createPickupPlaceColumns({
       },
       cell: ({ row }) => (
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-[#101828]">
+          <p className="text-sm font-semibold text-[var(--admin-ink)]">
             {row.original.name}
           </p>
-          <p className="mt-1 max-w-[360px] text-xs leading-5 text-[#667085]">
+          <p className="mt-1 max-w-[360px] text-xs leading-5 text-[var(--admin-muted)]">
             {row.original.description}
           </p>
         </div>
@@ -56,7 +56,7 @@ export function createPickupPlaceColumns({
         cellClassName: "",
       },
       cell: ({ row }) => (
-        <div className="max-w-[320px] text-sm leading-6 text-[#475467]">
+        <div className="max-w-[320px] text-sm leading-6 text-[var(--admin-ink-soft)]">
           {row.original.address}
         </div>
       ),
@@ -75,7 +75,7 @@ export function createPickupPlaceColumns({
         cellClassName: "text-sm",
       },
       cell: ({ row }) => (
-        <span dir="ltr" className="text-[#475467]">
+        <span dir="ltr" className="text-[var(--admin-ink-soft)]">
           {row.original.phone}
         </span>
       ),
@@ -93,7 +93,7 @@ export function createPickupPlaceColumns({
         cellClassName: "text-sm",
       },
       cell: ({ row }) => (
-        <span className="text-[#475467]">{row.original.workingHours}</span>
+        <span className="text-[var(--admin-ink-soft)]">{row.original.workingHours}</span>
       ),
     },
     {
@@ -144,8 +144,8 @@ export function createPickupPlaceColumns({
             type="button"
             className={
               row.original.active
-                ? "inline-flex h-8 items-center justify-center rounded-lg border border-[#f1dfb3] bg-[#fdf6e7] px-2.5 text-xs font-semibold text-[#946200] transition-colors hover:bg-[#fbedd1]"
-                : "inline-flex h-8 items-center justify-center rounded-lg border border-[#bfe8d7] bg-[#e7f7f0] px-2.5 text-xs font-semibold text-[#087443] transition-colors hover:bg-[#d8f2e6]"
+                ? "inline-flex h-8 items-center justify-center rounded-lg border border-[var(--admin-warning-border)] bg-[var(--admin-warning-soft)] px-2.5 text-xs font-semibold text-[var(--admin-warning-text)] transition-colors hover:bg-[var(--admin-warning-border-soft)]"
+                : "inline-flex h-8 items-center justify-center rounded-lg border border-[var(--admin-success-border)] bg-[var(--admin-success-soft)] px-2.5 text-xs font-semibold text-[var(--admin-success-text)] transition-colors hover:bg-[var(--admin-success-border-soft)]"
             }
             onClick={() => onToggleActive(row.original)}
           >

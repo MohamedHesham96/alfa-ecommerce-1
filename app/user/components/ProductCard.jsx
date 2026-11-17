@@ -83,25 +83,6 @@ export default function ProductCard({ productInfo, favorite, priority = false })
           );
         }
         triggerRefresh();
-        // const result = await Swal.fire({
-        //   icon: "success",
-        //   title: t("تم إضافة المنتج الى سلة التسوق"),
-        //   showCancelButton: true,
-        //   confirmButtonText: t("goToCart"),
-        //   cancelButtonText: t("continueShopping"),
-        //   customClass: {
-        //     popup: "rounded-xl shadow-lg border border-gray-200 p-6",
-        //     title: "text-xl font-bold text-gray-800 mb-2",
-        //     content: "text-sm text-gray-600 mb-4",
-        //     confirmButton:
-        //       "bg-red-600 hover:bg-red-500 text-white font-medium px-6 py-2 rounded-lg",
-        //     cancelButton:
-        //       "bg-gray-500 hover:bg-gray-400 text-w  font-medium px-6 py-2 rounded-lg ml-2",
-        //   },
-        // });
-        // if (result.isConfirmed) {
-        //   navigate.push("/user/cart");
-        // }
       } else {
         const product = {
           id: productId,
@@ -119,25 +100,6 @@ export default function ProductCard({ productInfo, favorite, priority = false })
         }
         triggerRefresh();
         localStorage.setItem("cart", JSON.stringify(cart));
-        // const result = await Swal.fire({
-        //   icon: "success",
-        //   title: t("تم إضافة المنتج الى سلة التسوق"),
-        //   showCancelButton: true,
-        //   confirmButtonText: t("goToCart"),
-        //   cancelButtonText: t("continueShopping"),
-        //   customClass: {
-        //     popup: "rounded-xl shadow-lg border border-gray-200 p-6",
-        //     title: "text-xl font-bold text-gray-800 mb-2",
-        //     content: "text-sm text-gray-600 mb-4",
-        //     confirmButton:
-        //       "bg-red-600 hover:bg-red-500 text-white font-medium px-6 py-2 rounded-lg",
-        //     cancelButton:
-        //       "bg-gray-500 hover:bg-gray-400 text-w  font-medium px-6 py-2 rounded-lg ml-2",
-        //   },
-        // });
-        // if (result.isConfirmed) {
-        //   navigate.push("/user/cart");
-        // }
       }
       return true;
     } catch (error) {
@@ -172,7 +134,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
       if (existingItem) {
       } else {
         favoriteItems.push(product);
-        toast.success("تم اضافة المنتج بنجاح");
+        toast.success(t("product_added_to_wishlist"));
       }
 
       localStorage.setItem("favoriteItems", JSON.stringify(favoriteItems));
@@ -206,7 +168,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
   // const describtion =
   // productInfo?.[locale === "ar" ? "descriptionAr" : "descriptionEn"] || "";
   const productName = locale === "ar" ? productInfo?.nameAr : productInfo?.nameEn;
-  const displayName = productName || productInfo?.nameEn || productInfo?.nameAr || "منتج";
+  const displayName = productName || productInfo?.nameEn || productInfo?.nameAr || t("product");
   const productHref = productPath(productInfo);
   const categoryHref = productInfo?.itemCategory
     ? categoryPath(productInfo.itemCategory)
@@ -291,7 +253,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
                               img?.imageUrl
                             )}` || ""
                           }
-                          alt={`${displayName} - ${locale === "ar" ? "صورة" : "image"} ${index + 1}`}
+                          alt={`${displayName} - ${t("product_image")} ${index + 1}`}
                           fill
                           preload={priority && index === 0}
                           quality={75}
@@ -466,7 +428,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
                           src={`${process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL}${getThumbnailUrl(
                             productInfo.images[0].imageUrl
                           )}`}
-                          alt={`${displayName} - ${locale === "ar" ? "صورة" : "image"} 1`}
+                          alt={`${displayName} - ${t("product_image")} 1`}
                           fill
                           preload={priority}
                           quality={75}

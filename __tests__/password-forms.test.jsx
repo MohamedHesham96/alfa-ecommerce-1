@@ -241,7 +241,7 @@ describe("ResetPasswordForm (authenticated change)", () => {
 
     await user.type(screen.getByLabelText("oldPassword"), "oldPassword123");
     await user.type(screen.getByLabelText("newPassword"), "newPassword123");
-    await user.click(screen.getByRole("button", { name: "Close" }));
+    await user.click(screen.getByRole("button", { name: "close" }));
 
     expect(putRequest).not.toHaveBeenCalled();
     expect(setIsFormOpen).toHaveBeenCalledWith(false);

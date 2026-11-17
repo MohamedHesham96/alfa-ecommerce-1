@@ -60,12 +60,12 @@ export default function ShippingCostForm({
       }
     >
       <div className="flex flex-col gap-5">
-        <div className="rounded-xl border border-[#e4e8f0] bg-[#f8fafc] p-4 text-center">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#667085]">
+        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] p-4 text-center">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-muted)]">
             {t("governorate")}
           </p>
-          <p className="mt-1 text-lg font-bold text-[#101828]">{govName}</p>
-          <p className="mt-1 text-sm text-[#667085]">
+          <p className="mt-1 text-lg font-bold text-[var(--admin-ink)]">{govName}</p>
+          <p className="mt-1 text-sm text-[var(--admin-muted)]">
             {Number(govPrice ?? 0).toLocaleString("en-US")} {t("currency")}
           </p>
         </div>
@@ -85,7 +85,7 @@ export default function ShippingCostForm({
               min="0"
               step="0.01"
             />
-            <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[#667085]">
+            <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[var(--admin-muted)]">
               {t("currency")}
             </span>
           </div>

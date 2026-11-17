@@ -25,7 +25,7 @@ export default function AdminLoading({ rows = 6, showHeader = true }) {
           <div className="admin-skeleton h-5 w-40" />
           <div className="admin-skeleton h-9 w-52" />
         </div>
-        <div className="divide-y divide-[#eef1f6]">
+        <div className="divide-y divide-[var(--admin-border-subtle)]">
           {Array.from({ length: rows }).map((_, index) => (
             <div key={`row-${index}`} className="flex items-center gap-4 px-5 py-4">
               <div className="admin-skeleton h-10 w-10 rounded-xl" />

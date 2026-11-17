@@ -268,7 +268,7 @@ setSearchInput(decodeSearchInput(lastPort))
         className="h-px border-0 bg-gray-600"
       />
       <div className="w-full  flex items-center  p-5  justify-between flex-wrap gap-y-3 min-w-0 ">
-        <button onClick={toggleMenu} aria-label={locale === "ar" ? "فتح القائمة" : "Open menu"} className="text-white text-3xl xs:block lg:hidden">
+        <button onClick={toggleMenu} aria-label={t("open_menu")} className="text-white text-3xl xs:block lg:hidden">
           <PiListBold />
         </button>
         <div className="flex justify-center items-center min-w-0">
@@ -277,7 +277,7 @@ setSearchInput(decodeSearchInput(lastPort))
             <span className="relative w-12 h-12 ">
               <Image
                 src="/Images/logo.png"
-                alt="شعار ألفا جروب تكنولوجي"
+                alt={t("logo_alt")}
                 fill
                 sizes="48px"
                 quality={75}
@@ -299,7 +299,7 @@ setSearchInput(decodeSearchInput(lastPort))
         >
           <button
             className="text-white h-full border-2 rounded-full text-2xl bg-[#e14a5c] p-1 "
-            aria-label={t("search") || "بحث"}
+            aria-label={t("search")}
             onClick={() => {
               searchInput
                 ? navigate.push("/user/search/" + encodeURIComponent(searchInput))
@@ -333,7 +333,7 @@ setSearchInput(decodeSearchInput(lastPort))
 
           <div className="flex items-center xs:gap-2 lg:gap-5 text-white">
             <button
-              aria-label={locale === "ar" ? "تغيير اللغة" : "Change language"}
+              aria-label={t("change_language")}
               onClick={() => {
                 const newLocale = locale === "ar" ? "en" : "ar";
                 setLocale(newLocale);
@@ -454,7 +454,7 @@ setSearchInput(decodeSearchInput(lastPort))
         >
           <button
             className="text-white h-full border-2 rounded-full text-2xl bg-[#e14a5c] p-1 "
-            aria-label={t("search") || "بحث"}
+            aria-label={t("search")}
             onClick={() => {
               searchInput
                 ? navigate.push("/user/search/" + encodeURIComponent(searchInput))

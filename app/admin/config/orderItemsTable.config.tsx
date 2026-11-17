@@ -20,9 +20,11 @@ function productName(
 function ItemImage({
   imageUrl,
   size = 60,
+  emptyLabel = "",
 }: {
   imageUrl?: string | null;
   size?: number;
+  emptyLabel?: string;
 }) {
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
@@ -37,8 +39,8 @@ function ItemImage({
           className="rounded-xl object-cover"
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center rounded-xl bg-gray-100">
-          <span className="text-[10px] text-gray-400">no image</span>
+        <div className="flex h-full w-full items-center justify-center rounded-xl bg-[var(--admin-surface-sunken)]">
+          <span className="text-[10px] text-[var(--admin-muted-soft)]">{emptyLabel}</span>
         </div>
       )}
     </div>
@@ -54,8 +56,12 @@ export function createOrderItemColumns({
       id: "image",
       header: "",
       cell: ({ row }) => (
-        <div className="flex items-center p-2">
-          <ItemImage imageUrl={row.original.item?.images?.[0]?.imageUrl} />
+        <div className="flex items-center">
+          <ItemImage
+            size={42}
+            imageUrl={row.original.item?.images?.[0]?.imageUrl}
+            emptyLabel={t("no_image")}
+          />
         </div>
       ),
     },
@@ -72,7 +78,7 @@ export function createOrderItemColumns({
                 row.original.item?.nameEn,
               )}
             </h1>
-            <h1 className="mx-2 text-sm text-gray-500">
+            <h1 className="mx-2 text-sm text-[var(--admin-muted)]">
               {row.original.item?.code}
             </h1>
           </div>
@@ -83,8 +89,8 @@ export function createOrderItemColumns({
       id: "price",
       header: t("price"),
       cell: ({ row }) => (
-        <div className="text-gray-500">
-          <span className="mx-1 font-semibold text-black">
+        <div className="text-[var(--admin-muted)]">
+          <span className="mx-1 font-semibold text-[var(--admin-ink)]">
             {Number(row.original.unitPrice ?? 0).toLocaleString("en-US")}{" "}
             {t("currency")}
           </span>
@@ -103,7 +109,7 @@ export function createOrderItemColumns({
     {
       id: "total",
       header: t("total"),
-      meta: { cellClassName: "text-[#E76E7D] font-semibold text-center" },
+      meta: { cellClassName: "text-[var(--admin-danger)] font-semibold text-center" },
       cell: ({ row }) =>
         `${Number(row.original.totalPrice ?? 0).toLocaleString("en-US")} ${t(
           "currency",
@@ -122,7 +128,11 @@ export function createReturnItemColumns({
       header: "",
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <ItemImage imageUrl={row.original.item?.images?.[0]?.imageUrl} />
+          <ItemImage
+            size={42}
+            imageUrl={row.original.item?.images?.[0]?.imageUrl}
+            emptyLabel={t("no_image")}
+          />
         </div>
       ),
     },
@@ -138,7 +148,7 @@ export function createReturnItemColumns({
               row.original.item?.nameEn,
             )}
           </h1>
-          <h1 className="text-xs text-gray-500">{row.original.item?.code}</h1>
+          <h1 className="text-xs text-[var(--admin-muted)]">{row.original.item?.code}</h1>
         </div>
       ),
     },

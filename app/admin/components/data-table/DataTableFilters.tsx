@@ -132,8 +132,8 @@ export function DataTableFilters<T>({ table }: { table: Table<T> }) {
         <div className="admin-filter-panel">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-[#101828]">{t("filters")}</h3>
-              <p className="mt-0.5 text-xs text-[#667085]">
+              <h3 className="text-sm font-bold text-[var(--admin-ink)]">{t("filters")}</h3>
+              <p className="mt-0.5 text-xs text-[var(--admin-muted)]">
                 {t("active_filters")}
               </p>
             </div>
@@ -141,7 +141,7 @@ export function DataTableFilters<T>({ table }: { table: Table<T> }) {
               {activeCount > 0 ? (
                 <button
                   type="button"
-                  className="text-xs font-semibold text-[#b4233a] hover:underline"
+                  className="text-xs font-semibold text-[var(--admin-danger-text)] hover:underline"
                   onClick={() => {
                     columns.forEach((column) => column.setFilterValue(undefined));
                   }}
@@ -230,7 +230,7 @@ function FilterField<T>({
   return (
     <div className="admin-filter-field">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-xs font-bold text-[#344054]">
+        <span className="text-xs font-bold text-[var(--admin-ink-soft)]">
           {typeof column.columnDef.header === "string"
             ? column.columnDef.header
             : column.id}
@@ -238,7 +238,7 @@ function FilterField<T>({
         {rawValue ? (
           <button
             type="button"
-            className="text-[10px] font-bold text-[#b4233a]"
+            className="text-[10px] font-bold text-[var(--admin-danger-text)]"
             onClick={() => column.setFilterValue(undefined)}
           >
             {t("clear")}
@@ -278,6 +278,7 @@ function FilterField<T>({
               value={value}
               filterOptions={meta.filterOptions}
               onChange={(next) => applyValue(next)}
+              t={t}
             />
           )}
         </div>
@@ -291,11 +292,13 @@ function ValueInput({
   value,
   filterOptions,
   onChange,
+  t,
 }: {
   dataType: TableDataType;
   value: unknown;
   filterOptions?: { label: string; value: string }[];
   onChange: (value: unknown) => void;
+  t: (key: string) => string;
 }) {
   const stringValue =
     value === undefined || value === null ? "" : String(value);
@@ -309,9 +312,9 @@ function ValueInput({
           onChange(event.target.value === "" ? "" : event.target.value === "true")
         }
       >
-        <option value="">All</option>
-        <option value="true">True</option>
-        <option value="false">False</option>
+        <option value="">{t("all")}</option>
+        <option value="true">{t("boolean_true")}</option>
+        <option value="false">{t("boolean_false")}</option>
       </select>
     );
   }
@@ -323,7 +326,7 @@ function ValueInput({
         value={stringValue}
         onChange={(event) => onChange(event.target.value)}
       >
-        <option value="">All</option>
+        <option value="">{t("all")}</option>
         {(filterOptions ?? []).map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -399,7 +402,7 @@ function RangeInputs({
           commit(event.target.value, to);
         }}
       />
-      <span className="text-xs text-[#98a2b3]">-</span>
+      <span className="text-xs text-[var(--admin-muted-soft)]">-</span>
       <input
         type={inputType}
         className="admin-input h-8 min-w-0 w-1/2 !py-0 text-xs"

@@ -77,7 +77,7 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                         className="rounded-md object-cover w-[30px] h-[30px]"
                     />
                 ) : (
-                    <div className="w-[30px] h-[30px] bg-gray-100 rounded-md" />
+                    <div className="w-[30px] h-[30px] bg-[var(--admin-surface-sunken)] rounded-md" />
                 )}
                 <span>{label}</span>
             </div>
@@ -296,10 +296,10 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
             className={`admin-modal-overlay ${isFormOpen ? "flex" : "hidden"}`}
         >
             {loading && (
-                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
-                    <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--admin-overlay-strong)]/55 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-3 rounded-2xl bg-[var(--admin-surface)] px-8 py-6 shadow-2xl">
                         <span className="admin-spinner !h-7 !w-7" />
-                        <p className="text-sm font-semibold text-[#475467]">
+                        <p className="text-sm font-semibold text-[var(--admin-ink-soft)]">
                             {t("loading")}
                         </p>
                     </div>
@@ -335,9 +335,9 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                             <button
                                 type="button"
                                 onClick={clearNewImage}
-                                className="absolute top-2 right-2 z-10 bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm hover:bg-red-800"
+                                className="absolute top-2 right-2 z-10 bg-[var(--admin-danger-solid)] text-white w-6 h-6 rounded-full flex items-center justify-center text-sm hover:bg-[var(--admin-danger-solid-hover)]"
                             >X</button>
-                            <div className="relative flex h-[170px] items-center justify-center overflow-hidden rounded-xl border border-[#e4e8f0] bg-[#f8fafc]">
+                            <div className="relative flex h-[170px] items-center justify-center overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)]">
                                 <div className="relative h-full w-full">
                                     <Image
                                         alt=""
@@ -355,9 +355,9 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                                 <button
                                     type="button"
                                     onClick={deleteImage}
-                                    className="absolute top-2 right-2 z-10 bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm hover:bg-red-800"
+                                    className="absolute top-2 right-2 z-10 bg-[var(--admin-danger-solid)] text-white w-6 h-6 rounded-full flex items-center justify-center text-sm hover:bg-[var(--admin-danger-solid-hover)]"
                                 >X</button>
-                                <div className="relative flex h-[170px] items-center justify-center overflow-hidden rounded-xl border border-[#e4e8f0] bg-[#f8fafc]">
+                                <div className="relative flex h-[170px] items-center justify-center overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)]">
                                     <div className="relative h-full w-full">
                                         <Image
                                             alt=""
@@ -372,17 +372,17 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                             </div>
 
                                 : <label htmlFor="AdFileInput" className="cursor-pointer">
-                                    <div className="relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#d3d9e5] bg-[#f8fafc] p-6 text-center transition-colors hover:border-[#cf4356] hover:bg-[#fdf7f8]">
+                                    <div className="relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--admin-border-strong)] bg-[var(--admin-surface-muted)] p-6 text-center transition-colors hover:border-[var(--admin-accent)] hover:bg-[var(--admin-danger-soft)]">
                                         {!photo.AdImage ? (
                                             <div className="flex flex-col items-center justify-center gap-2">
-                                                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg text-[#cf4356] shadow-sm">
+                                                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--admin-surface)] text-lg text-[var(--admin-accent)] shadow-sm">
                                                     <IoCloudUploadSharp />
                                                 </span>
-                                                <span className="text-sm font-semibold text-[#344054]">
+                                                <span className="text-sm font-semibold text-[var(--admin-ink-soft)]">
                                                     {t("add-photo")}
                                                 </span>
-                                                <span className="text-[10px] text-[#98a2b3]">
-                                                    PNG, JPG or GIF
+                                                <span className="text-[10px] text-[var(--admin-muted-soft)]">
+                                                    {t("image_formats")}
                                                 </span>
                                             </div>
                                         ) : (
@@ -450,7 +450,7 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                                     <label className="admin-label">
                                         {t("choose_product")}
                                     </label>
-                                    <div className="rounded-xl border border-[#d3d9e5] px-1 focus-within:border-[#cf4356]">
+                                    <div className="rounded-xl border border-[var(--admin-border-strong)] px-1 focus-within:border-[var(--admin-accent)]">
 
                                         <Select
                   options={options}
@@ -481,7 +481,7 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                     setSelectedProduct(selected);
                     setSearchText("");
                   }}
-                  noOptionsMessage={() => t("no_products") || "لا توجد منتجات"}
+                  noOptionsMessage={() => t("no_products")}
                   menuPortalTarget={
                     typeof document !== "undefined" ? document.body : undefined
                   }
@@ -497,21 +497,21 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                     }),
                     input: (base) => ({
                       ...base,
-                      color: "#374151",
+                      color: "var(--admin-ink-soft)",
                     }),
                     menuPortal: (base) => ({ ...base, zIndex: 90 }),
                     option: (base, state) => ({
                       ...base,
                       backgroundColor: state.isSelected
-                        ? "#dc2626"
+                        ? "var(--admin-accent-solid)"
                         : state.isFocused
-                          ? "#fee2e2"
-                          : "#ffffff",
-                      color: state.isSelected ? "#ffffff" : "#374151",
+                          ? "var(--admin-accent-soft)"
+                          : "var(--admin-surface)",
+                      color: state.isSelected ? "var(--admin-on-accent)" : "var(--admin-ink-soft)",
                       cursor: "pointer",
                       padding: "10px",
                       "&:hover": {
-                        backgroundColor: state.isSelected ? "#dc2626" : "#fee2e2",
+                        backgroundColor: state.isSelected ? "var(--admin-accent-solid)" : "var(--admin-accent-soft)",
                       },
                     }),
                   }}

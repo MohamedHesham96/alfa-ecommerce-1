@@ -102,28 +102,28 @@ export default function CategorysTable({ setIsFormOpen }) {
               }
               width={44}
               height={44}
-              className="h-11 w-11 shrink-0 rounded-xl border border-[#e4e8f0] bg-white object-cover p-0.5"
+              className="h-11 w-11 shrink-0 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] object-cover p-0.5"
             />
           ) : (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#e4e8f0] bg-[#f8fafc] text-[10px] text-[#98a2b3]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[10px] text-[var(--admin-muted-soft)]">
               {t("no_image")}
             </div>
           )}
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-[#101828]">
+            <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
               {locale === "ar" ? category.nameAr : category.nameEn}
             </p>
-            <p className="mt-0.5 text-xs text-[#667085]">
+            <p className="mt-0.5 text-xs text-[var(--admin-muted)]">
               {t("main_category")}
             </p>
           </div>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#f3c6cd] bg-[#fbeff2] px-2.5 py-1 text-xs font-semibold text-[#b4233a]">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--admin-danger-border)] bg-[var(--admin-danger-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--admin-danger-text)]">
           <span className="text-sm font-bold">{category.itemsCount ?? 0}</span>
           <span className="text-[10px]">{t("products_category")}</span>
         </span>
       </div>
-      <div className="mt-3 flex items-center gap-2 border-t border-[#eef1f6] pt-3">
+      <div className="mt-3 flex items-center gap-2 border-t border-[var(--admin-border-subtle)] pt-3">
         <button
           type="button"
           className="admin-action-edit"
@@ -188,7 +188,8 @@ export default function CategorysTable({ setIsFormOpen }) {
         onRetry={tableState.reload}
         toolbar={toolbar}
         mobileCard={renderMobileCard}
-        mobileWrapperClassName="lg:hidden mt-3 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc] p-3"
+        onRowClick={(category) => openProducts(category)}
+        mobileWrapperClassName="lg:hidden mt-3 rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] p-3"
         desktopWrapperClassName="admin-table-shell hidden lg:block mt-3 w-full overflow-x-auto overflow-y-auto"
         tableClassName="admin-table"
         rowClassName="cursor-pointer"

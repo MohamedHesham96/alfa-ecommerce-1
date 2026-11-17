@@ -110,7 +110,6 @@ export default function ProductsTable({
       createProductsColumns({
         t,
         locale,
-        onOpen: openForm,
         onToggleFavorite: productFavorite,
         onToggleActive: productActive,
         onToggleAvailable: productAvailable,
@@ -119,7 +118,6 @@ export default function ProductsTable({
     [
       t,
       locale,
-      openForm,
       productFavorite,
       productActive,
       productAvailable,
@@ -167,18 +165,18 @@ export default function ProductsTable({
                 )}`}
                 width={50}
                 height={50}
-                className="h-12 w-12 rounded-xl border border-[#e4e8f0] bg-white object-cover p-0.5"
+                className="h-12 w-12 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] object-cover p-0.5"
               />
             ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#e4e8f0] bg-[#f8fafc] text-[10px] text-[#98a2b3]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[10px] text-[var(--admin-muted-soft)]">
                 {t("no_image")}
               </div>
             )}
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[#101828]">
+              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
                 {productName(product)}
               </p>
-              <p className="truncate text-xs text-[#667085]">
+              <p className="truncate text-xs text-[var(--admin-muted)]">
                 {t("code")}: {product.code}
               </p>
             </div>
@@ -188,8 +186,8 @@ export default function ProductsTable({
             aria-label={t("featured-product")}
             className={`admin-action-icon shrink-0 ${
               product.favorite
-                ? "!text-[#d97706] hover:!bg-[#fdf6e7]"
-                : "!text-[#98a2b3]"
+                ? "!text-[var(--admin-warning-text)] hover:!bg-[var(--admin-warning-soft)]"
+                : "!text-[var(--admin-muted-soft)]"
             }`}
             onClick={async (event) => {
               event.stopPropagation();
@@ -199,27 +197,27 @@ export default function ProductsTable({
             <GoStarFill className="text-lg" />
           </button>
         </div>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#eef1f6] pt-3 text-xs text-[#667085]">
-          <span className="inline-flex items-center rounded-lg border border-[#e4e8f0] bg-[#f8fafc] px-2 py-1 font-semibold text-[#475467]">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--admin-border-subtle)] pt-3 text-xs text-[var(--admin-muted)]">
+          <span className="inline-flex items-center rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] px-2 py-1 font-semibold text-[var(--admin-ink-soft)]">
             {locale === "ar"
               ? product.itemCategory?.nameAr
               : product.itemCategory?.nameEn}
           </span>
-          <span className="text-base font-bold text-[#101828]">
+          <span className="text-base font-bold text-[var(--admin-ink)]">
             {Number(product.price).toLocaleString("en-US")}{" "}
-            <span className="text-xs font-medium text-[#667085]">
+            <span className="text-xs font-medium text-[var(--admin-muted)]">
               {t("currency")}
             </span>
           </span>
         </div>
-        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#eef1f6] pt-3">
+        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--admin-border-subtle)] pt-3">
           <div className="flex items-center gap-2">
             <button
               type="button"
               className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
                 product.active
-                  ? "border-[#bfe8d7] bg-[#e7f7f0] text-[#087443]"
-                  : "border-[#e4e8f0] bg-[#f8fafc] text-[#667085]"
+                  ? "border-[var(--admin-success-border)] bg-[var(--admin-success-soft)] text-[var(--admin-success-text)]"
+                  : "border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[var(--admin-muted)]"
               }`}
               onClick={(event) => {
                 event.stopPropagation();
@@ -228,7 +226,7 @@ export default function ProductsTable({
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  product.active ? "bg-[#0e8a5f]" : "bg-[#98a2b3]"
+                  product.active ? "bg-[var(--admin-success)]" : "bg-[var(--admin-muted-soft)]"
                 }`}
               />
               {product.active ? t("active") : t("inactive")}
@@ -243,9 +241,9 @@ export default function ProductsTable({
               }}
             >
               {product.available ? (
-                <IoCheckmarkCircleOutline className="text-lg text-[#0e8a5f]" />
+                <IoCheckmarkCircleOutline className="text-lg text-[var(--admin-success)]" />
               ) : (
-                <MdBlock className="text-[#c2415a]" />
+                <MdBlock className="text-[var(--admin-danger)]" />
               )}
             </button>
           </div>
@@ -305,11 +303,12 @@ export default function ProductsTable({
         onRetry={tableState.reload}
         toolbar={toolbar}
         mobileCard={renderMobileCard}
+        onRowClick={(product) => openForm(product.itemId)}
         className={fillContainer ? "flex h-full min-h-0 w-full flex-col" : ""}
         mobileWrapperClassName={
           fillContainer
-            ? "lg:hidden flex-1 min-h-0 mt-3 p-3 overflow-y-auto min-w-0 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc]"
-            : "lg:hidden max-h-[600px] mt-3 p-3 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc] overflow-y-auto min-w-0"
+            ? "lg:hidden flex-1 min-h-0 mt-3 p-3 overflow-y-auto min-w-0 rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)]"
+            : "lg:hidden max-h-[600px] mt-3 p-3 rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] overflow-y-auto min-w-0"
         }
         desktopWrapperClassName={
           fillContainer

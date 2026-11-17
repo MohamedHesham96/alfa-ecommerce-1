@@ -30,7 +30,7 @@ export default function ConfirmedEmailPage() {
                    <span className="w-12 h-12 ">
                      <Image
                        src="/Images/logo.png"
-                       alt="logo"
+                       alt="Alfa"
                        width={50}
                        height={50}
                        priority

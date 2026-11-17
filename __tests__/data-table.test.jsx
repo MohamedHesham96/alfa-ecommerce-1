@@ -33,9 +33,18 @@ const columns = [
     },
     cell: ({ row }) => (row.original.active ? "Yes" : "No"),
   },
+  {
+    id: "action",
+    header: "Action",
+    cell: ({ row }) => (
+      <button type="button" onClick={() => row.original.onAction?.()}>
+        Open
+      </button>
+    ),
+  },
 ];
 
-function TestTable({ data }) {
+function TestTable({ data, onRowClick }) {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -57,6 +66,7 @@ function TestTable({ data }) {
       <DataTable
         table={table}
         showInfiniteFooter={false}
+        onRowClick={onRowClick}
         toolbar={
           <DataTableToolbar
             table={table}
@@ -92,6 +102,51 @@ describe("DataTable", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /filters/i }));
     expect(screen.getAllByText("Name").length).toBeGreaterThan(1);
-    expect(screen.getAllByDisplayValue("All").length).toBeGreaterThan(0);
+    expect(screen.getAllByDisplayValue(/^all$/i).length).toBeGreaterThan(0);
+  });
+
+  it("calls onRowClick when a row is clicked", () => {
+    const onRowClick = jest.fn();
+    render(
+      <TestTable
+        data={[{ id: 1, name: "Ahmed", active: true }]}
+        onRowClick={onRowClick}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Ahmed"));
+    expect(onRowClick).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 1, name: "Ahmed" }),
+    );
+  });
+
+  it("does not trigger the row click when an inner control is clicked", () => {
+    const onRowClick = jest.fn();
+    const onAction = jest.fn();
+    render(
+      <TestTable
+        data={[{ id: 1, name: "Ahmed", active: true, onAction }]}
+        onRowClick={onRowClick}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Open" }));
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(onRowClick).not.toHaveBeenCalled();
+  });
+
+  it("supports keyboard activation of a row", () => {
+    const onRowClick = jest.fn();
+    render(
+      <TestTable
+        data={[{ id: 1, name: "Ahmed", active: true }]}
+        onRowClick={onRowClick}
+      />,
+    );
+
+    fireEvent.keyDown(screen.getByText("Ahmed").closest("tr"), {
+      key: "Enter",
+    });
+    expect(onRowClick).toHaveBeenCalledTimes(1);
   });
 });

@@ -78,49 +78,49 @@ export function ReturnStateFilter({
         styles={{
           control: (base) => ({
             ...base,
-            backgroundColor: "#ffffff",
-            border: "1px solid #d3d9e5",
+            backgroundColor: "var(--admin-surface)",
+            border: "1px solid var(--admin-border-strong)",
             borderRadius: "10px",
             minHeight: "40px",
             cursor: "pointer",
             boxShadow: "none",
-            "&:hover": { borderColor: "#c3cbd9" },
+            "&:hover": { borderColor: "var(--admin-border-strong)" },
           }),
           valueContainer: (base) => ({ ...base, paddingInline: "0.65rem" }),
           option: (base, state) => ({
             ...base,
             backgroundColor: state.isSelected
-              ? "#cf4356"
+              ? "var(--admin-accent-solid)"
               : state.isFocused
-                ? "#fbeff2"
-                : "#ffffff",
-            color: state.isSelected ? "#ffffff" : "#344054",
+                ? "var(--admin-accent-soft)"
+                : "var(--admin-surface)",
+            color: state.isSelected ? "var(--admin-on-accent)" : "var(--admin-ink-soft)",
             cursor: "pointer",
             fontSize: "13px",
           }),
           menu: (base) => ({
             ...base,
-            backgroundColor: "#ffffff",
+            backgroundColor: "var(--admin-surface)",
             borderRadius: "12px",
-            boxShadow: "0 20px 50px -20px rgba(15,23,42,0.35)",
+            boxShadow: "var(--admin-shadow-popover)",
             zIndex: 9999,
             overflow: "hidden",
           }),
           placeholder: (base) => ({
             ...base,
-            color: "#667085",
+            color: "var(--admin-muted)",
             fontSize: "13px",
             fontWeight: "600",
           }),
           singleValue: (base) => ({
             ...base,
-            color: "#344054",
+            color: "var(--admin-ink-soft)",
             fontSize: "13px",
             fontWeight: "600",
           }),
-          input: (base) => ({ ...base, color: "#344054" }),
-          clearIndicator: (base) => ({ ...base, color: "#98a2b3" }),
-          dropdownIndicator: (base) => ({ ...base, color: "#98a2b3" }),
+          input: (base) => ({ ...base, color: "var(--admin-ink-soft)" }),
+          clearIndicator: (base) => ({ ...base, color: "var(--admin-muted-soft)" }),
+          dropdownIndicator: (base) => ({ ...base, color: "var(--admin-muted-soft)" }),
         }}
       />
     </div>
@@ -148,7 +148,7 @@ export function createReturnColumns({
       cell: ({ row }) => (
         <button
           type="button"
-          className="text-sm font-bold text-[#b4233a] hover:underline"
+          className="text-sm font-bold text-[var(--admin-danger-text)] hover:underline"
           onClick={() => onOpen(row.original.returnOrderId)}
         >
           {row.original.code}
@@ -165,7 +165,7 @@ export function createReturnColumns({
         sortable: true,
         filterable: true,
         headerClassName: "",
-        cellClassName: "text-sm text-[#667085]",
+        cellClassName: "text-sm text-[var(--admin-muted)]",
       },
       cell: ({ row }) => formatReturnDate(row.original.createdDate),
     },
@@ -189,16 +189,16 @@ export function createReturnColumns({
             className="flex min-w-0 items-center gap-3 text-start"
             onClick={() => onOpen(order.returnOrderId)}
           >
-            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-[10px] font-bold text-[#667085]">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[10px] font-bold text-[var(--admin-muted)]">
               {(order.user?.firstName?.[0] ?? "U").toUpperCase()}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold text-[#101828]">
+              <span className="block truncate text-sm font-semibold text-[var(--admin-ink)]">
                 {(order.user?.firstName ?? "") +
                   " " +
                   (order.user?.lastName ?? "")}
               </span>
-              <span className="block truncate text-xs text-[#667085]">
+              <span className="block truncate text-xs text-[var(--admin-muted)]">
                 {order.user?.email}
               </span>
             </span>
@@ -219,9 +219,9 @@ export function createReturnColumns({
         cellClassName: "",
       },
       cell: ({ row }) => (
-        <span className="whitespace-nowrap text-sm font-bold text-[#101828]">
+        <span className="whitespace-nowrap text-sm font-bold text-[var(--admin-ink)]">
           {Number(row.original.unitPrice ?? 0).toLocaleString("en-US")}{" "}
-          <span className="text-xs font-medium text-[#667085]">
+          <span className="text-xs font-medium text-[var(--admin-muted)]">
             {t("currency")}
           </span>
         </span>
@@ -247,7 +247,7 @@ export function createReturnColumns({
         const reason = t(row.original.reason);
         return (
           <span
-            className="block max-w-[220px] truncate text-xs font-medium text-[#475467]"
+            className="block max-w-[220px] truncate text-xs font-medium text-[var(--admin-ink-soft)]"
             title={reason}
           >
             {reason.length <= 30 ? reason : `${reason.slice(0, 30)} ...`}

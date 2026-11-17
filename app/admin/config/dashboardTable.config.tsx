@@ -31,7 +31,7 @@ export function createDashboardColumns({
       cell: ({ row }) => (
         <button
           type="button"
-          className="text-sm font-bold text-[#b4233a] hover:underline"
+          className="text-sm font-bold text-[var(--admin-danger-text)] hover:underline"
           onClick={() => onOpen(row.original.orderId)}
         >
           {row.original.orderCode}
@@ -44,7 +44,7 @@ export function createDashboardColumns({
       header: t("date"),
       meta: {
         headerClassName: "",
-        cellClassName: "text-sm text-[#667085]",
+        cellClassName: "text-sm text-[var(--admin-muted)]",
       },
       cell: ({ row }) => formatDate(row.original.createdDate),
     },
@@ -63,14 +63,14 @@ export function createDashboardColumns({
             className="flex min-w-0 items-center gap-3 text-start"
             onClick={() => onOpen(order.orderId)}
           >
-            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-[10px] font-bold text-[#667085]">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[10px] font-bold text-[var(--admin-muted)]">
               {(order.userName?.[0] ?? "U").toUpperCase()}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold text-[#101828]">
+              <span className="block truncate text-sm font-semibold text-[var(--admin-ink)]">
                 {order.userName}
               </span>
-              <span className="block truncate text-xs text-[#667085]">
+              <span className="block truncate text-xs text-[var(--admin-muted)]">
                 {order.userEmail}
               </span>
             </span>
@@ -87,9 +87,9 @@ export function createDashboardColumns({
         cellClassName: "",
       },
       cell: ({ row }) => (
-        <span className="whitespace-nowrap text-sm font-bold text-[#101828]">
+        <span className="whitespace-nowrap text-sm font-bold text-[var(--admin-ink)]">
           {Number(row.original.orderTotal ?? 0).toLocaleString("en-US")}{" "}
-          <span className="text-xs font-medium text-[#667085]">
+          <span className="text-xs font-medium text-[var(--admin-muted)]">
             {t("currency")}
           </span>
         </span>

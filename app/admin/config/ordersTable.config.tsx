@@ -21,11 +21,11 @@ const NEXT_STATES: Record<string, string[]> = {
 };
 
 const STATE_COLORS: Record<string, string> = {
-  PROCESSING: "#2563eb",
-  SHIPPED: "#b7791f",
-  PENDING: "#946200",
-  CANCELLED: "#c2415a",
-  DELIVERED: "#0e8a5f",
+  PROCESSING: "var(--admin-info)",
+  SHIPPED: "var(--admin-warning)",
+  PENDING: "var(--admin-warning-text)",
+  CANCELLED: "var(--admin-danger)",
+  DELIVERED: "var(--admin-success)",
 };
 
 const STATE_TONES: Record<string, string> = {
@@ -73,49 +73,49 @@ export function OrderStateFilter({
         styles={{
           control: (base) => ({
             ...base,
-            backgroundColor: "#ffffff",
-            border: "1px solid #d3d9e5",
+            backgroundColor: "var(--admin-surface)",
+            border: "1px solid var(--admin-border-strong)",
             borderRadius: "10px",
             minHeight: "40px",
             cursor: "pointer",
             boxShadow: "none",
-            "&:hover": { borderColor: "#c3cbd9" },
+            "&:hover": { borderColor: "var(--admin-border-strong)" },
           }),
           valueContainer: (base) => ({ ...base, paddingInline: "0.65rem" }),
           option: (base, state) => ({
             ...base,
             backgroundColor: state.isSelected
-              ? "#cf4356"
+              ? "var(--admin-accent-solid)"
               : state.isFocused
-                ? "#fbeff2"
-                : "#ffffff",
-            color: state.isSelected ? "#ffffff" : "#344054",
+                ? "var(--admin-accent-soft)"
+                : "var(--admin-surface)",
+            color: state.isSelected ? "var(--admin-on-accent)" : "var(--admin-ink-soft)",
             cursor: "pointer",
             fontSize: "13px",
           }),
           menu: (base) => ({
             ...base,
-            backgroundColor: "#ffffff",
+            backgroundColor: "var(--admin-surface)",
             borderRadius: "12px",
-            boxShadow: "0 20px 50px -20px rgba(15,23,42,0.35)",
+            boxShadow: "var(--admin-shadow-popover)",
             zIndex: 9999,
             overflow: "hidden",
           }),
           placeholder: (base) => ({
             ...base,
-            color: "#667085",
+            color: "var(--admin-muted)",
             fontSize: "13px",
             fontWeight: "600",
           }),
           singleValue: (base) => ({
             ...base,
-            color: "#344054",
+            color: "var(--admin-ink-soft)",
             fontSize: "13px",
             fontWeight: "600",
           }),
-          input: (base) => ({ ...base, color: "#344054" }),
-          clearIndicator: (base) => ({ ...base, color: "#98a2b3" }),
-          dropdownIndicator: (base) => ({ ...base, color: "#98a2b3" }),
+          input: (base) => ({ ...base, color: "var(--admin-ink-soft)" }),
+          clearIndicator: (base) => ({ ...base, color: "var(--admin-muted-soft)" }),
+          dropdownIndicator: (base) => ({ ...base, color: "var(--admin-muted-soft)" }),
         }}
       />
     </div>
@@ -143,52 +143,52 @@ function statusSelect(
       styles={{
         control: (base) => ({
           ...base,
-          backgroundColor: "#f8fafc",
-          border: "1px solid #e4e8f0",
+          backgroundColor: "var(--admin-surface-muted)",
+          border: "1px solid var(--admin-border)",
           borderRadius: "9px",
           minHeight: "36px",
           cursor: "pointer",
           boxShadow: "none",
-          "&:hover": { borderColor: "#d3d9e5" },
+          "&:hover": { borderColor: "var(--admin-border-strong)" },
           "&:focus": {
-            borderColor: "#cf4356",
-            boxShadow: "0 0 0 3px rgba(207, 67, 86, 0.12)",
+            borderColor: "var(--admin-accent)",
+            boxShadow: "0 0 0 3px var(--admin-focus-ring)",
           },
         }),
         valueContainer: (base) => ({ ...base, paddingInline: "0.6rem" }),
         option: (base, state) => ({
           ...base,
           backgroundColor: state.isSelected
-            ? "#cf4356"
+            ? "var(--admin-accent-solid)"
             : state.isFocused
-              ? "#fbeff2"
-              : "#ffffff",
-          color: state.isSelected ? "#ffffff" : "#344054",
+              ? "var(--admin-accent-soft)"
+              : "var(--admin-surface)",
+          color: state.isSelected ? "var(--admin-on-accent)" : "var(--admin-ink-soft)",
           cursor: "pointer",
           fontSize: "13px",
         }),
         menu: (base) => ({
           ...base,
-          backgroundColor: "#ffffff",
+          backgroundColor: "var(--admin-surface)",
           borderRadius: "12px",
-          boxShadow: "0 20px 50px -20px rgba(15,23,42,0.35)",
+          boxShadow: "var(--admin-shadow-popover)",
           zIndex: 9999,
           overflow: "hidden",
         }),
         placeholder: (base) => ({
           ...base,
-          color: "#667085",
+          color: "var(--admin-muted)",
           fontSize: "13px",
           fontWeight: "600",
         }),
         singleValue: (base) => ({
           ...base,
-          color: STATE_COLORS[order.state] ?? "#0e8a5f",
+          color: STATE_COLORS[order.state] ?? "var(--admin-success)",
           fontSize: "13px",
           fontWeight: "700",
         }),
-        input: (base) => ({ ...base, color: "#344054" }),
-        dropdownIndicator: (base) => ({ ...base, color: "#98a2b3" }),
+        input: (base) => ({ ...base, color: "var(--admin-ink-soft)" }),
+        dropdownIndicator: (base) => ({ ...base, color: "var(--admin-muted-soft)" }),
         indicatorSeparator: () => ({ display: "none" }),
       }}
     />
@@ -233,7 +233,7 @@ export function createOrderColumns({
       cell: ({ row }) => (
         <button
           type="button"
-          className="text-sm font-bold text-[#b4233a] hover:underline"
+          className="text-sm font-bold text-[var(--admin-danger-text)] hover:underline"
           onClick={() => onOpen(row.original.orderId)}
         >
           {row.original.code}
@@ -250,7 +250,7 @@ export function createOrderColumns({
         sortable: true,
         filterable: true,
         headerClassName: "",
-        cellClassName: "text-sm text-[#667085]",
+        cellClassName: "text-sm text-[var(--admin-muted)]",
       },
       cell: ({ row }) => formatOrderDate(row.original.createdDate),
     },
@@ -274,16 +274,16 @@ export function createOrderColumns({
             className="flex min-w-0 items-center gap-3 text-start"
             onClick={() => onOpen(order.orderId)}
           >
-            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-[10px] font-bold text-[#667085]">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[10px] font-bold text-[var(--admin-muted)]">
               {(order.user?.firstName?.[0] ?? "U").toUpperCase()}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold text-[#101828]">
+              <span className="block truncate text-sm font-semibold text-[var(--admin-ink)]">
                 {(order.user?.firstName ?? "") +
                   " " +
                   (order.user?.lastName ?? "")}
               </span>
-              <span className="block truncate text-xs text-[#667085]">
+              <span className="block truncate text-xs text-[var(--admin-muted)]">
                 {order.user?.email}
               </span>
             </span>
@@ -301,7 +301,7 @@ export function createOrderColumns({
       cell: ({ row }) => (
         <button
           type="button"
-          className="inline-flex min-w-[44px] items-center justify-center rounded-full border border-[#f3c6cd] bg-[#fbeff2] px-2.5 py-1 text-xs font-bold text-[#b4233a]"
+          className="inline-flex min-w-[44px] items-center justify-center rounded-full border border-[var(--admin-danger-border)] bg-[var(--admin-danger-soft)] px-2.5 py-1 text-xs font-bold text-[var(--admin-danger-text)]"
           onClick={() => onOpen(row.original.orderId)}
         >
           {row.original.orderItemLines?.length ?? 0}
@@ -324,9 +324,9 @@ export function createOrderColumns({
         const value =
           mode === "admin" ? row.original.netTotal : row.original.total;
         return (
-          <span className="whitespace-nowrap text-sm font-bold text-[#101828]">
+          <span className="whitespace-nowrap text-sm font-bold text-[var(--admin-ink)]">
             {Number(value ?? 0).toLocaleString("en-US")}{" "}
-            <span className="text-xs font-medium text-[#667085]">
+            <span className="text-xs font-medium text-[var(--admin-muted)]">
               {t("currency")}
             </span>
           </span>
@@ -361,8 +361,15 @@ export function createOrderColumns({
             </StatusBadge>
           );
         }
-        return statusSelect(order, t, (state) =>
-          onUpdateState(order.orderId, state),
+        return (
+          <div
+            data-row-click-ignore
+            onClick={(event) => event.stopPropagation()}
+          >
+            {statusSelect(order, t, (state) =>
+              onUpdateState(order.orderId, state),
+            )}
+          </div>
         );
       },
     },

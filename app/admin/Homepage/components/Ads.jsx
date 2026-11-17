@@ -31,7 +31,7 @@ function AdActions({ offerId, editLabel, deleteLabel, onEdit, onDelete }) {
     <div className="absolute end-2 top-2 z-10 flex gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
       <button
         type="button"
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#475467] shadow-sm transition-colors hover:bg-[#f8fafc] hover:text-[#1d4ed8]"
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--admin-surface)] text-[var(--admin-ink-soft)] shadow-sm transition-colors hover:bg-[var(--admin-surface-muted)] hover:text-[var(--admin-info-text)]"
         title={editLabel}
         aria-label={editLabel}
         onClick={(e) => {
@@ -43,7 +43,7 @@ function AdActions({ offerId, editLabel, deleteLabel, onEdit, onDelete }) {
       </button>
       <button
         type="button"
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#475467] shadow-sm transition-colors hover:bg-[#fbeff2] hover:text-[#b4233a]"
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--admin-surface)] text-[var(--admin-ink-soft)] shadow-sm transition-colors hover:bg-[var(--admin-danger-soft)] hover:text-[var(--admin-danger-text)]"
         title={deleteLabel}
         aria-label={deleteLabel}
         onClick={(e) => {
@@ -156,11 +156,11 @@ export default function Ads() {
             const ad = ads[`ad${number}`];
             return (
               <div key={number} className="flex min-w-0 flex-col gap-2">
-                <p className="text-xs font-semibold text-[#667085]">
+                <p className="text-xs font-semibold text-[var(--admin-muted)]">
                   {t(`Advert${number}`)}
                 </p>
                 <div
-                  className="group relative h-[190px] w-full cursor-pointer overflow-hidden rounded-xl border border-[#e4e8f0] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                  className="group relative h-[190px] w-full cursor-pointer overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
                   onClick={() => openAdForm(number, ad.id)}
                 >
                   {ad.img ? (
@@ -183,15 +183,15 @@ export default function Ads() {
                       />
                     </div>
                   ) : (
-                    <div className="flex h-full w-full flex-col items-center justify-center gap-2 border-2 border-dashed border-transparent p-3 text-center transition-colors group-hover:border-[#cf4356] group-hover:bg-[#fdf7f8]">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f8fafc] text-lg text-[#cf4356]">
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-2 border-2 border-dashed border-transparent p-3 text-center transition-colors group-hover:border-[var(--admin-accent)] group-hover:bg-[var(--admin-danger-soft)]">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--admin-surface-muted)] text-lg text-[var(--admin-accent)]">
                         <IoCloudUploadSharp />
                       </span>
-                      <span className="text-xs font-semibold text-[#344054]">
+                      <span className="text-xs font-semibold text-[var(--admin-ink-soft)]">
                         {t("click_to_upload")}
                       </span>
-                      <span className="text-[10px] text-[#98a2b3]">
-                        PNG, JPG or GIF
+                      <span className="text-[10px] text-[var(--admin-muted-soft)]">
+                        {t("image_formats")}
                       </span>
                     </div>
                   )}

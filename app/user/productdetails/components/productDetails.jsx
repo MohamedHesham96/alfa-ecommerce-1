@@ -179,14 +179,14 @@ export default function ProductDetails({
 
   return (
     <div className="min-w-0  ">
-      <nav aria-label="Breadcrumb" className="border-b border-gray-100 py-3 sm:py-4 p-5">
+      <nav aria-label={t("breadcrumb")} className="border-b border-gray-100 py-3 sm:py-4 p-5">
         <ol className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-gray-500 sm:text-sm">
           <li className="shrink-0">
             <Link
               href={"/"}
               className="transition-colors hover:text-[#E14A5C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E14A5C]"
             >
-              {locale === "ar" ? "الرئيسية" : t("homepage")}
+              {t("homepage")}
             </Link>
           </li>
           {product.category.id ? (
@@ -234,7 +234,7 @@ export default function ProductDetails({
 
         <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6 lg:col-start-2 xl:col-start-3 xl:sticky xl:top-6">
           <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
-            {t("shipping") + " & " + t("delivery")}
+            {t("shipping_and_delivery")}
           </h2>
           <div className="mt-4 flex items-start justify-between gap-4">
             <div className="min-w-0">
@@ -248,7 +248,7 @@ export default function ProductDetails({
             </div>
             <div className="shrink-0 text-center text-xs text-gray-500">
               <div className="text-sm font-semibold text-gray-800">2-3</div>
-              <div>Days</div>
+              <div>{t("days")}</div>
             </div>
           </div>
           <hr className="my-4 border-gray-200 sm:my-5" />

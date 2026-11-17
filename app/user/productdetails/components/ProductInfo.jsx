@@ -38,6 +38,10 @@ export default function ProductInfo({
 
     const description =
         locale === "ar" ? product.descriptionAr : product.descriptionEn;
+    const productName =
+        locale === "ar"
+            ? product.nameAr || product.nameEn
+            : product.nameEn || product.nameAr;
 
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
@@ -72,8 +76,7 @@ export default function ProductInfo({
             if (existingItem) {
             } else {
                 favoriteItems.push(productItem);
-                // Same success message used by ProductCard for the wishlist action
-                toast.success("تم اضافة المنتج بنجاح");
+                toast.success(t("product_added_to_wishlist"));
             }
 
             localStorage.setItem("favoriteItems", JSON.stringify(favoriteItems));
@@ -85,12 +88,12 @@ export default function ProductInfo({
 
         if (navigator.share) {
             await navigator.share({
-                title: product.nameEn,
+                title: productName,
                 url: productUrl,
             });
         } else {
             await navigator.clipboard.writeText(productUrl);
-            toast.success("Link copied!");
+            toast.success(t("link_copied"));
         }
     };
 
@@ -245,12 +248,8 @@ export default function ProductInfo({
                             className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-[#E14A5C] transition-colors hover:text-[#CD4354] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E14A5C] sm:text-sm"
                         >
                             {descriptionExpanded
-                                ? locale === "ar"
-                                    ? "إظهار أقل"
-                                    : "Show less"
-                                : locale === "ar"
-                                  ? "إظهار المزيد"
-                                  : "Show more"}
+                                ? t("show_less")
+                                : t("show_more")}
                             <FaChevronDown
                                 aria-hidden
                                 className={`h-3 w-3 transition-transform duration-300 ${

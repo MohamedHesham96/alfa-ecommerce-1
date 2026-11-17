@@ -101,7 +101,7 @@ export default function Pagination({
   );
 
   return (
-    <nav aria-label="Pagination" className="mt-8 flex w-full justify-center">
+    <nav aria-label={t("pagination")} className="mt-8 flex w-full justify-center">
       <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
         {pageControl(
           currentPage - 1,

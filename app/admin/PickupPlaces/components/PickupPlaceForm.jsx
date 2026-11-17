@@ -120,7 +120,7 @@ export default function PickupPlaceForm({ place, onClose }) {
 
         <form className="admin-modal-body space-y-4" onSubmit={submit} noValidate>
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-700">
+            <label className="mb-1 block text-sm font-semibold text-[var(--admin-ink-soft)]">
               {t("pickup_place_name")} *
             </label>
             <input
@@ -131,14 +131,14 @@ export default function PickupPlaceForm({ place, onClose }) {
               className={`admin-input ${errors.name ? "admin-input-error" : ""}`}
             />
             {errors.name ? (
-              <p className="mt-1 text-xs font-semibold text-red-600">
+              <p className="mt-1 text-xs font-semibold text-[var(--admin-danger)]">
                 {errors.name}
               </p>
             ) : null}
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-700">
+            <label className="mb-1 block text-sm font-semibold text-[var(--admin-ink-soft)]">
               {t("description")} *
             </label>
             <textarea
@@ -149,14 +149,14 @@ export default function PickupPlaceForm({ place, onClose }) {
               className={`admin-textarea ${errors.description ? "admin-input-error" : ""}`}
             />
             {errors.description ? (
-              <p className="mt-1 text-xs font-semibold text-red-600">
+              <p className="mt-1 text-xs font-semibold text-[var(--admin-danger)]">
                 {errors.description}
               </p>
             ) : null}
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-700">
+            <label className="mb-1 block text-sm font-semibold text-[var(--admin-ink-soft)]">
               {t("address")} *
             </label>
             <textarea
@@ -167,7 +167,7 @@ export default function PickupPlaceForm({ place, onClose }) {
               className={`admin-textarea ${errors.address ? "admin-input-error" : ""}`}
             />
             {errors.address ? (
-              <p className="mt-1 text-xs font-semibold text-red-600">
+              <p className="mt-1 text-xs font-semibold text-[var(--admin-danger)]">
                 {errors.address}
               </p>
             ) : null}
@@ -175,7 +175,7 @@ export default function PickupPlaceForm({ place, onClose }) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-semibold text-gray-700">
+              <label className="mb-1 block text-sm font-semibold text-[var(--admin-ink-soft)]">
                 {t("phoneNumber")} *
               </label>
               <input
@@ -187,14 +187,14 @@ export default function PickupPlaceForm({ place, onClose }) {
                 className={`admin-input ${errors.phone ? "admin-input-error" : ""}`}
               />
               {errors.phone ? (
-                <p className="mt-1 text-xs font-semibold text-red-600">
+                <p className="mt-1 text-xs font-semibold text-[var(--admin-danger)]">
                   {errors.phone}
                 </p>
               ) : null}
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-semibold text-gray-700">
+              <label className="mb-1 block text-sm font-semibold text-[var(--admin-ink-soft)]">
                 {t("working_hours")} *
               </label>
               <input
@@ -210,26 +210,26 @@ export default function PickupPlaceForm({ place, onClose }) {
                 className={`admin-input ${errors.workingHours ? "admin-input-error" : ""}`}
               />
               {errors.workingHours ? (
-                <p className="mt-1 text-xs font-semibold text-red-600">
+                <p className="mt-1 text-xs font-semibold text-[var(--admin-danger)]">
                   {errors.workingHours}
                 </p>
               ) : null}
             </div>
           </div>
 
-          <label className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+          <label className="flex items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-sunken)] px-4 py-3">
             <input
               type="checkbox"
               checked={form.active}
               onChange={(event) => setField("active", event.target.checked)}
-              className="h-4 w-4 accent-[#204272]"
+              className="h-4 w-4 accent-[var(--admin-primary-hover)]"
             />
-            <span className="text-sm font-semibold text-gray-700">
+            <span className="text-sm font-semibold text-[var(--admin-ink-soft)]">
               {t("pickup_place_active")}
             </span>
           </label>
 
-          <div className="admin-form-footer border-t border-[#eef1f6] pt-4">
+          <div className="admin-form-footer border-t border-[var(--admin-border-subtle)] pt-4">
             <button
               type="button"
               onClick={onClose}

@@ -267,7 +267,7 @@ export default function SideMenu({
             />
           </span>
           <div className="admin-sidebar-brand-text">
-            <p className="admin-sidebar-brand-title">Alfa Admin</p>
+            <p className="admin-sidebar-brand-title">{t("admin_brand")}</p>
             <p className="admin-sidebar-brand-subtitle">
               {t("platform_mang")}
             </p>
@@ -331,7 +331,7 @@ export default function SideMenu({
                 {username || t("admin")}
               </p>
               <p className="admin-sidebar-user-role">
-                {role ? t(role === "ADMIN" ? "super_admin" : role) : t("admin")}
+                {role ? t(role === "ADMIN" ? "super_admin" : "user_label") : t("admin")}
               </p>
             </div>
           </div>

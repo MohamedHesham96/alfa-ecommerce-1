@@ -108,10 +108,10 @@ export default function AdminForm({ isFormOpen, setIsFormOpen }) {
   return (
     <div id="add-admin-form">
       {loading && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--admin-overlay-strong)]/55 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-[var(--admin-surface)] px-8 py-6 shadow-2xl">
             <span className="admin-spinner !h-7 !w-7" />
-            <p className="text-sm font-semibold text-[#475467]">
+            <p className="text-sm font-semibold text-[var(--admin-ink-soft)]">
               {t("loading")}
             </p>
           </div>

@@ -34,7 +34,6 @@ function renderProducts(locale) {
   const columns = createProductsColumns({
     t,
     locale,
-    onOpen: noop,
     onToggleFavorite: noop,
     onToggleActive: noop,
     onToggleAvailable: noop,

@@ -23,7 +23,7 @@ import { clearAuthStorage } from "../../../utils/authSession";
  */
 export default function AdminRouteGuard({ children }) {
   const router = useRouter();
-  const { locale } = useLanguage();
+  const { t } = useLanguage();
   const { role, ready, hasSession } = useAuthRole();
 
   useEffect(() => {
@@ -38,11 +38,11 @@ export default function AdminRouteGuard({ children }) {
   if (!ready || !hasSession) {
     return (
       <div
-        className="flex h-screen flex-col items-center justify-center gap-6 bg-[#f3f5f9]"
+        className="flex h-screen flex-col items-center justify-center gap-6 bg-[var(--admin-canvas)]"
         aria-busy="true"
         data-testid="admin-route-loading"
       >
-        <span className="flex h-20 w-20 items-center justify-center rounded-2xl border border-[#e4e8f0] bg-white shadow-sm">
+        <span className="flex h-20 w-20 items-center justify-center rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-sm">
           <Image
             src="/Images/logo.png"
             alt=""
@@ -54,8 +54,8 @@ export default function AdminRouteGuard({ children }) {
         </span>
         <div className="flex flex-col items-center gap-2">
           <span className="admin-spinner !h-6 !w-6" />
-          <p className="text-sm font-semibold text-[#667085]">
-            {locale === "ar" ? "جارٍ التحقق من الجلسة..." : "Checking your session..."}
+          <p className="text-sm font-semibold text-[var(--admin-muted)]">
+            {t("checking_session")}
           </p>
         </div>
       </div>
@@ -63,28 +63,24 @@ export default function AdminRouteGuard({ children }) {
   }
 
   if (role !== "ADMIN") {
-    const isArabic = locale === "ar";
-
     return (
       <div
-        className="flex h-screen w-full items-center justify-center bg-[#f3f5f9] p-5 text-center"
+        className="flex h-screen w-full items-center justify-center bg-[var(--admin-canvas)] p-5 text-center"
         role="alert"
         data-testid="admin-route-forbidden"
       >
         <div className="admin-card w-full max-w-lg p-8">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#e4e8f0] bg-[#f8fafc]">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)]">
             <Image
               src="/Images/logo.png"
               width={200}
               height={200}
-              alt="logo"
+              alt={t("logo_alt")}
               className="h-10 w-10 object-contain"
             />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#101828]">
-            {isArabic
-              ? "غير مصرح لك بالوصول إلى هذه الصفحة"
-              : "You are not authorized to view this page"}
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--admin-ink)]">
+            {t("unauthorized_page")}
           </h1>
         </div>
       </div>

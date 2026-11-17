@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { FaUserLarge } from "react-icons/fa6";
 
@@ -19,14 +19,19 @@ export default function ReturnTable() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const openReturn = useCallback(
+    (returnOrderId) =>
+      router.push(`/admin/returnorderdetails/${returnOrderId}`),
+    [router],
+  );
+
   const columns = useMemo(
     () =>
       createReturnColumns({
         t,
-        onOpen: (returnOrderId) =>
-          router.push(`/admin/returnorderdetails/${returnOrderId}`),
+        onOpen: openReturn,
       }),
-    [router, t],
+    [openReturn, t],
   );
 
   const tableState = useServerDataTable({
@@ -56,13 +61,13 @@ export default function ReturnTable() {
         key={order.returnOrderId}
         className="admin-mobile-card cursor-pointer"
         onClick={() =>
-          router.push(`/admin/returnorderdetails/${order.returnOrderId}`)
+          openReturn(order.returnOrderId)
         }
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <span className="text-sm font-bold text-[#b4233a]">{order.code}</span>
-            <div className="mt-1 text-xs text-[#667085]">{dateOnly}</div>
+            <span className="text-sm font-bold text-[var(--admin-danger-text)]">{order.code}</span>
+            <div className="mt-1 text-xs text-[var(--admin-muted)]">{dateOnly}</div>
           </div>
           <StatusBadge
             tone={
@@ -80,29 +85,29 @@ export default function ReturnTable() {
             {t(order.state)}
           </StatusBadge>
         </div>
-        <div className="mt-3 flex items-center gap-3 border-t border-[#eef1f6] pt-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-[10px] font-bold text-[#667085]">
+        <div className="mt-3 flex items-center gap-3 border-t border-[var(--admin-border-subtle)] pt-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[10px] font-bold text-[var(--admin-muted)]">
             <FaUserLarge />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-[#101828]">
+            <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
               {(order.user?.firstName ?? "") +
                 " " +
                 (order.user?.lastName ?? "")}
             </p>
-            <p className="truncate text-xs text-[#667085]">
+            <p className="truncate text-xs text-[var(--admin-muted)]">
               {order.user?.email}
             </p>
           </div>
         </div>
-        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#eef1f6] pt-3">
-          <span className="break-words text-base font-bold text-[#101828]">
+        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--admin-border-subtle)] pt-3">
+          <span className="break-words text-base font-bold text-[var(--admin-ink)]">
             {Number(order.unitPrice ?? 0).toLocaleString("en-US")}{" "}
-            <span className="text-xs font-medium text-[#667085]">
+            <span className="text-xs font-medium text-[var(--admin-muted)]">
               {t("currency")}
             </span>
           </span>
-          <span className="max-w-[45%] truncate text-end text-xs font-semibold text-[#667085]">
+          <span className="max-w-[45%] truncate text-end text-xs font-semibold text-[var(--admin-muted)]">
             {t(order.reason).length <= 30
               ? t(order.reason)
               : `${t(order.reason).slice(0, 30)} ...`}
@@ -138,7 +143,8 @@ export default function ReturnTable() {
       onRetry={tableState.reload}
       toolbar={toolbar}
       mobileCard={renderMobileCard}
-      mobileWrapperClassName="lg:hidden mt-3 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc] p-3"
+      onRowClick={(order) => openReturn(order.returnOrderId)}
+      mobileWrapperClassName="lg:hidden mt-3 rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] p-3"
       desktopWrapperClassName="admin-table-shell hidden lg:block max-h-[600px] mt-3 w-full min-w-0 overflow-x-auto overflow-y-auto"
       tableClassName="admin-table min-w-[800px]"
       rowClassName="cursor-pointer"

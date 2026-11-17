@@ -24,17 +24,17 @@ export function PreviewDialog({ changes, onClose, locale }) {
         </div>
         <div className="admin-modal-body max-h-[65vh]">
           {changes.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[var(--admin-muted)]">
               {isArabic ? "لا توجد تغييرات للمعاينة." : "There are no changes to preview."}
             </p>
           ) : (
             <div className="space-y-3">
               {changes.map((change) => (
-                <div key={change.key} className="rounded-xl border border-[#e4e8f0] bg-[#fbfcfe] p-3">
-                  <p className="break-all font-mono text-xs font-semibold text-gray-800">
+                <div key={change.key} className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-hover)] p-3">
+                  <p className="break-all font-mono text-xs font-semibold text-[var(--admin-ink)]">
                     {change.key}
                   </p>
-                  <div className="mt-2 grid gap-2 text-xs text-gray-600 sm:grid-cols-2">
+                  <div className="mt-2 grid gap-2 text-xs text-[var(--admin-muted)] sm:grid-cols-2">
                     <div>
                       <span className="font-semibold">{isArabic ? "القيمة الحالية" : "Current"}:</span>{" "}
                       {change.valueMasked ? "••••••••" : formatPreviewValue(change.oldValue)}
@@ -91,26 +91,26 @@ export function AuditDialog({ records, loading, error, onClose, locale }) {
         </div>
         <div className="admin-modal-body max-h-[70vh]">
           {loading ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[var(--admin-muted)]">
               {isArabic ? "جارٍ تحميل السجل..." : "Loading history..."}
             </p>
           ) : error ? (
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="text-sm text-[var(--admin-danger)]">{error}</p>
           ) : records.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[var(--admin-muted)]">
               {isArabic ? "لا توجد تغييرات مسجلة." : "No configuration changes have been recorded."}
             </p>
           ) : (
             <div className="space-y-3">
               {records.map((record) => (
-                <div key={record.auditId} className="rounded-xl border border-[#e4e8f0] bg-[#fbfcfe] p-3 text-xs">
+                <div key={record.auditId} className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-hover)] p-3 text-xs">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <code className="break-all font-semibold text-gray-800">{record.key}</code>
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 font-semibold text-gray-600">
+                    <code className="break-all font-semibold text-[var(--admin-ink)]">{record.key}</code>
+                    <span className="rounded-full bg-[var(--admin-surface-sunken)] px-2 py-0.5 font-semibold text-[var(--admin-muted)]">
                       {record.action}
                     </span>
                   </div>
-                  <div className="mt-2 grid gap-2 text-gray-600 sm:grid-cols-2">
+                  <div className="mt-2 grid gap-2 text-[var(--admin-muted)] sm:grid-cols-2">
                     <div>
                       <span className="font-semibold">{isArabic ? "المستخدم" : "User"}:</span>{" "}
                       {record.changedBy || "system"}
@@ -159,7 +159,7 @@ export function ConfirmDialog({
           <h2 id="configuration-confirm-title" className="admin-modal-title">
             {title}
           </h2>
-          <p className="mt-2 text-sm leading-6 text-[#667085]">{message}</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--admin-muted)]">{message}</p>
         </div>
         <div className="admin-modal-footer">
           <button

@@ -35,15 +35,15 @@ const toDimensionNumber = (value) => {
 const SELECT_STYLES = {
   control: (provided) => ({
     ...provided,
-    border: "1px solid #d3d9e5",
+    border: "1px solid var(--admin-border-strong)",
     borderRadius: "10px",
     minHeight: "40px",
     boxShadow: "none",
-    backgroundColor: "#ffffff",
-    "&:hover": { borderColor: "#c3cbd9" },
+    backgroundColor: "var(--admin-surface)",
+    "&:hover": { borderColor: "var(--admin-border-strong)" },
     "&:focus-within": {
-      borderColor: "#cf4356",
-      boxShadow: "0 0 0 3px rgba(207,67,86,0.12)",
+      borderColor: "var(--admin-accent)",
+      boxShadow: "0 0 0 3px var(--admin-focus-ring)",
     },
   }),
   valueContainer: (base) => ({ ...base, paddingInline: "0.65rem" }),
@@ -51,23 +51,23 @@ const SELECT_STYLES = {
     ...base,
     borderRadius: "12px",
     overflow: "hidden",
-    boxShadow: "0 20px 50px -20px rgba(15,23,42,0.35)",
+    boxShadow: "var(--admin-shadow-popover)",
     zIndex: 30,
   }),
   option: (base, state) => ({
     ...base,
     backgroundColor: state.isSelected
-      ? "#cf4356"
+      ? "var(--admin-accent-solid)"
       : state.isFocused
-        ? "#fbeff2"
-        : "#ffffff",
-    color: state.isSelected ? "#ffffff" : "#344054",
+        ? "var(--admin-danger-soft)"
+        : "var(--admin-surface)",
+    color: state.isSelected ? "var(--admin-on-accent)" : "var(--admin-ink-soft)",
     cursor: "pointer",
     fontSize: "13px",
   }),
-  input: (base) => ({ ...base, color: "#344054" }),
-  placeholder: (base) => ({ ...base, color: "#98a2b3" }),
-  singleValue: (base) => ({ ...base, color: "#344054", fontWeight: "600" }),
+  input: (base) => ({ ...base, color: "var(--admin-ink-soft)" }),
+  placeholder: (base) => ({ ...base, color: "var(--admin-muted-soft)" }),
+  singleValue: (base) => ({ ...base, color: "var(--admin-ink-soft)", fontWeight: "600" }),
   indicatorSeparator: () => ({ display: "none" }),
   menuPortal: (base) => ({ ...base, zIndex: 90 }),
 };
@@ -79,23 +79,23 @@ function ToggleCard({ label, description, active, onClick, icon, activeClass }) 
       onClick={onClick}
       className={`flex items-center justify-between gap-3 rounded-xl border p-3 text-start transition-colors ${
         active
-          ? "border-[#e4e8f0] bg-[#fbfcfe]"
-          : "border-[#e4e8f0] bg-white"
+          ? "border-[var(--admin-border)] bg-[var(--admin-surface-hover)]"
+          : "border-[var(--admin-border)] bg-[var(--admin-surface)]"
       }`}
     >
       <span className="min-w-0">
-        <span className="block text-xs font-semibold text-[#344054]">
+        <span className="block text-xs font-semibold text-[var(--admin-ink-soft)]">
           {label}
         </span>
         {description ? (
-          <span className="mt-0.5 block text-[10px] leading-4 text-[#98a2b3]">
+          <span className="mt-0.5 block text-[10px] leading-4 text-[var(--admin-muted-soft)]">
             {description}
           </span>
         ) : null}
       </span>
       <span
         className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-base ${
-          active ? activeClass : "bg-[#f8fafc] text-[#98a2b3]"
+          active ? activeClass : "bg-[var(--admin-surface-muted)] text-[var(--admin-muted-soft)]"
         }`}
       >
         {icon}
@@ -452,10 +452,10 @@ export default function FormProduct({
   return (
     <div id="add-product-form">
       {loading && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--admin-overlay-strong)]/55 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-[var(--admin-surface)] px-8 py-6 shadow-2xl">
             <span className="admin-spinner !h-7 !w-7" />
-            <p className="text-sm font-semibold text-[#475467]">
+            <p className="text-sm font-semibold text-[var(--admin-ink-soft)]">
               {t("loading")}
             </p>
           </div>
@@ -702,7 +702,7 @@ export default function FormProduct({
                             min="0"
                             step="0.01"
                           />
-                          <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[#667085]">
+                          <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[var(--admin-muted)]">
                             {t("currency")}
                           </span>
                         </div>
@@ -713,7 +713,7 @@ export default function FormProduct({
                           htmlFor="product-old-price"
                         >
                           {t("old_price")}{" "}
-                          <span className="text-xs font-medium text-[#98a2b3]">
+                          <span className="text-xs font-medium text-[var(--admin-muted-soft)]">
                             ({t("option")})
                           </span>
                         </label>
@@ -727,7 +727,7 @@ export default function FormProduct({
                             min="0"
                             step="0.01"
                           />
-                          <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[#667085]">
+                          <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[var(--admin-muted)]">
                             {t("currency")}
                           </span>
                         </div>
@@ -844,14 +844,14 @@ export default function FormProduct({
                         active={enabledActive}
                         onClick={() => setEnabledActive(!enabledActive)}
                         icon={<FaCircle />}
-                        activeClass="bg-[#e7f7f0] text-[#0e8a5f]"
+                        activeClass="bg-[var(--admin-success-soft)] text-[var(--admin-success)]"
                       />
                       <ToggleCard
                         label={t("featured-product")}
                         active={enabledFavorite}
                         onClick={() => setEnabledFavorite(!enabledFavorite)}
                         icon={<GoStarFill />}
-                        activeClass="bg-[#fdf6e7] text-[#d97706]"
+                        activeClass="bg-[var(--admin-warning-soft)] text-[var(--admin-warning-text)]"
                       />
                       <ToggleCard
                         label={t("available_in_store")}
@@ -864,7 +864,7 @@ export default function FormProduct({
                             <MdBlock />
                           )
                         }
-                        activeClass="bg-[#e7f7f0] text-[#0e8a5f]"
+                        activeClass="bg-[var(--admin-success-soft)] text-[var(--admin-success)]"
                       />
                     </div>
                   </section>
@@ -969,16 +969,16 @@ export default function FormProduct({
                     <div className="grid grid-cols-2 gap-3">
                       <label
                         htmlFor="productImg_fileInput"
-                        className="group flex h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#d3d9e5] bg-[#f8fafc] p-3 text-center transition-colors hover:border-[#cf4356] hover:bg-[#fdf7f8]"
+                        className="group flex h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--admin-border-strong)] bg-[var(--admin-surface-muted)] p-3 text-center transition-colors hover:border-[var(--admin-accent)] hover:bg-[var(--admin-danger-soft)]"
                       >
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-base text-[#cf4356] shadow-sm transition-transform group-hover:scale-105">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--admin-surface)] text-base text-[var(--admin-accent)] shadow-sm transition-transform group-hover:scale-105">
                           <IoCloudUploadSharp />
                         </span>
-                        <span className="text-[11px] font-semibold text-[#344054]">
+                        <span className="text-[11px] font-semibold text-[var(--admin-ink-soft)]">
                           {t("click_to_upload")}
                         </span>
-                        <span className="text-[9px] text-[#98a2b3]">
-                          PNG, JPG or GIF
+                        <span className="text-[9px] text-[var(--admin-muted-soft)]">
+                          {t("image_formats")}
                         </span>
                       </label>
                       <input
@@ -992,7 +992,7 @@ export default function FormProduct({
                       {itemImages.map((img, index) => (
                         <div
                           key={index}
-                          className="group relative h-28 overflow-hidden rounded-xl border border-[#e4e8f0] bg-white"
+                          className="group relative h-28 overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)]"
                         >
                           <Image
                             src={
@@ -1007,7 +1007,7 @@ export default function FormProduct({
                           />
                           <button
                             type="button"
-                            className="absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-[#475467] shadow-sm transition-colors hover:bg-[#b4233a] hover:text-white"
+                            className="absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--admin-surface)] text-[var(--admin-ink-soft)] shadow-sm transition-colors hover:bg-[var(--admin-danger-text)] hover:text-white"
                             onClick={() => deleteProductImg(img.existingId, index)}
                             aria-label={t("delete")}
                           >

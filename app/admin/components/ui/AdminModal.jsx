@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { MdClose } from "react-icons/md";
+import { useLanguage } from "../../../../context/LanguageContext";
 
 export default function AdminModal({
   open = true,
@@ -11,10 +12,12 @@ export default function AdminModal({
   children,
   footer,
   size = "md",
-  closeLabel = "Close",
+  closeLabel,
   bodyClassName = "",
   className = "",
 }) {
+  const { t } = useLanguage();
+  const resolvedCloseLabel = closeLabel ?? t("close");
   const widths = {
     sm: "max-w-md",
     md: "max-w-xl",
@@ -54,7 +57,7 @@ export default function AdminModal({
               type="button"
               onClick={onClose}
               className="admin-modal-close"
-              aria-label={closeLabel}
+              aria-label={resolvedCloseLabel}
             >
               <MdClose className="text-xl" />
             </button>

@@ -59,6 +59,19 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
       localStorage.setItem("lang", language);
       setLocale(language);
       localStorage.setItem("role", response.data.userDetails.role);
+      if (
+        response.data.userDetails.role === "ADMIN" &&
+        (response.data.userDetails.themePreference === "DARK" ||
+          response.data.userDetails.themePreference === "LIGHT")
+      ) {
+        // Per-admin rendering hint for the admin dashboard only. The backend
+        // value remains authoritative and is reloaded when the dashboard
+        // opens; customer accounts never read this key.
+        localStorage.setItem(
+          `adminThemePreference:${response.data.userDetails.userId}`,
+          response.data.userDetails.themePreference,
+        );
+      }
       localStorage.setItem(
         "systemSettingsAccess",
         String(response.data.userDetails.systemSettingsAccess === true),
@@ -138,18 +151,16 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
         </div>
         <div id="forgot_password_section" className="hidden">
           <h3 className="text-3xl my-3 font-semibold">
-            {t("إعادة تعين كلمة المرور")}
+            {t("resetPasswordTitle")}
           </h3>
           <h4 className="text-xl text-gray-500 ">
-            {t(
-              "سيتم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني إذا كان مسجلاً لدينا",
-            )}
+            {t("reset_password_helper")}
           </h4>
         </div>
        <button
           type="button"
           aria-label={
-            locale === "ar" ? "تغيير اللغة إلى الإنجليزية" : "Change language to Arabic"
+            locale === "ar" ? t("change_language_to_english") : t("change_language_to_arabic")
           }
           onClick={() => {
             const newLocale = locale === "ar" ? "en" : "ar";

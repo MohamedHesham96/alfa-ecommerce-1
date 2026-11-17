@@ -462,7 +462,7 @@ export default function SystemSettingsPage() {
     return (
       <div className="admin-page">
         <div className="admin-card p-6 text-center">
-          <p className="text-sm font-semibold text-[#b4233a]">
+          <p className="text-sm font-semibold text-[var(--admin-danger-text)]">
             {isArabic
               ? "تعذر تحميل إعدادات النظام. تحقق من الاتصال وحاول مرة أخرى."
               : "System settings could not be loaded. Check your connection and try again."}
@@ -596,7 +596,7 @@ export default function SystemSettingsPage() {
       <div className="grid gap-4 lg:grid-cols-[250px_minmax(0,1fr)]">
         <aside className="min-w-0">
           <div className="admin-card p-2">
-            <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-[#667085]">
+            <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-[var(--admin-muted)]">
               {isArabic ? "الفئات" : "Categories"}
             </p>
             <nav className="max-h-[70vh] overflow-y-auto">
@@ -605,8 +605,8 @@ export default function SystemSettingsPage() {
                 onClick={() => setCategory("all")}
                 className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-start text-sm transition-colors ${
                   category === "all"
-                    ? "bg-[#cf4356] font-semibold text-white"
-                    : "text-[#475467] hover:bg-[#f3f5f9]"
+                    ? "bg-[var(--admin-accent-solid)] font-semibold text-[var(--admin-on-accent)]"
+                    : "text-[var(--admin-ink-soft)] hover:bg-[var(--admin-canvas)]"
                 }`}
               >
                 <span>{isArabic ? "كل الفئات" : "All categories"}</span>
@@ -619,8 +619,8 @@ export default function SystemSettingsPage() {
                   onClick={() => setCategory(item.code)}
                   className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-start text-sm transition-colors ${
                     category === item.code
-                      ? "bg-[#cf4356] font-semibold text-white"
-                      : "text-[#475467] hover:bg-[#f3f5f9]"
+                      ? "bg-[var(--admin-accent-solid)] font-semibold text-[var(--admin-on-accent)]"
+                      : "text-[var(--admin-ink-soft)] hover:bg-[var(--admin-canvas)]"
                   }`}
                 >
                   <span className="truncate">
@@ -667,7 +667,7 @@ export default function SystemSettingsPage() {
             </select>
           </div>
 
-          <p className="mt-3 text-xs text-[#667085]">
+          <p className="mt-3 text-xs text-[var(--admin-muted)]">
             {isArabic
               ? `عرض ${filteredSettings.length} من ${settings.length} إعدادًا`
               : `Showing ${filteredSettings.length} of ${settings.length} settings`}
@@ -675,7 +675,7 @@ export default function SystemSettingsPage() {
 
           {filteredSettings.length === 0 ? (
             <div className="admin-card mt-4 p-10 text-center">
-              <p className="text-sm font-semibold text-[#344054]">
+              <p className="text-sm font-semibold text-[var(--admin-ink-soft)]">
                 {isArabic ? "لا توجد إعدادات مطابقة." : "No matching settings."}
               </p>
               <button
@@ -685,7 +685,7 @@ export default function SystemSettingsPage() {
                   setCategory("all");
                   setTypeFilter("all");
                 }}
-                className="mt-3 text-xs font-semibold text-[#b4233a] underline"
+                className="mt-3 text-xs font-semibold text-[var(--admin-danger-text)] underline"
               >
                 {isArabic ? "مسح الفلاتر" : "Clear filters"}
               </button>
@@ -707,17 +707,17 @@ export default function SystemSettingsPage() {
                   <article
                     key={key}
                     className={`admin-card p-4 ${
-                      dirty ? "!border-[#f1dfb3] !bg-[#fffdf7]" : ""
+                      dirty ? "!border-[var(--admin-warning-border)] !bg-[var(--admin-warning-soft)]" : ""
                     }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h2 className="text-base font-semibold text-[#101828]">
+                        <h2 className="text-base font-semibold text-[var(--admin-ink)]">
                           {isArabic
                             ? definition.displayNameAr || definition.displayName
                             : definition.displayName}
                         </h2>
-                        <code className="mt-0.5 block break-all text-xs text-[#667085]">
+                        <code className="mt-0.5 block break-all text-xs text-[var(--admin-muted)]">
                           {key}
                         </code>
                       </div>
@@ -762,13 +762,13 @@ export default function SystemSettingsPage() {
                       </div>
                     </div>
 
-                    <p className="mt-2 text-sm leading-6 text-[#667085]">
+                    <p className="mt-2 text-sm leading-6 text-[var(--admin-muted)]">
                       {isArabic
                         ? definition.descriptionAr || definition.description
                         : definition.description}
                     </p>
 
-                    <dl className="mt-3 grid gap-3 rounded-xl border border-[#eef1f6] bg-[#f8fafc] p-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                    <dl className="mt-3 grid gap-3 rounded-xl border border-[var(--admin-border-subtle)] bg-[var(--admin-surface-muted)] p-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
                       <Info
                         label={isArabic ? "القيمة الفعالة" : "Effective value"}
                         value={formatValue(setting.value, definition.sensitive)}
@@ -788,20 +788,20 @@ export default function SystemSettingsPage() {
                     </dl>
 
                     {constraintsSummary(definition, isArabic) ? (
-                      <p className="mt-2 text-xs text-[#98a2b3]">
+                      <p className="mt-2 text-xs text-[var(--admin-muted-soft)]">
                         {constraintsSummary(definition, isArabic)}
                       </p>
                     ) : null}
 
                     {isInternalAdmin ? (
-                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e4e8f0] bg-[#f8fafc] px-3 py-2">
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] px-3 py-2">
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-700">
+                          <p className="text-xs font-semibold text-[var(--admin-ink-soft)]">
                             {isArabic
                               ? "مرئي لمديري العملاء"
                               : "Visible to client administrators"}
                           </p>
-                          <p className="mt-0.5 text-xs text-gray-500">
+                          <p className="mt-0.5 text-xs text-[var(--admin-muted)]">
                             {setting.clientVisibilityConfigurable
                               ? isArabic
                                 ? "يظهر فقط عند تفعيل الوصول العام."
@@ -812,7 +812,7 @@ export default function SystemSettingsPage() {
                           </p>
                         </div>
                         {setting.clientVisibilityConfigurable ? (
-                          <label className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                          <label className="flex items-center gap-2 text-xs font-semibold text-[var(--admin-ink-soft)]">
                             <input
                               type="checkbox"
                               checked={Boolean(setting.visibleToClientAdmins)}
@@ -820,7 +820,7 @@ export default function SystemSettingsPage() {
                               onChange={(event) =>
                                 handleVisibilityChange(setting, event.target.checked)
                               }
-                              className="h-4 w-4 rounded border-gray-300 text-[#204272] focus:ring-[#204272]"
+                              className="h-4 w-4 rounded border-[var(--admin-border-strong)] text-[var(--admin-primary-hover)] focus:ring-[var(--admin-primary-hover)]"
                             />
                             {isVisibilitySaving
                               ? isArabic
@@ -846,7 +846,7 @@ export default function SystemSettingsPage() {
                     </div>
 
                     {validationErrors[key] ? (
-                      <p className="mt-2 text-xs font-semibold text-red-600" role="alert">
+                      <p className="mt-2 text-xs font-semibold text-[var(--admin-danger)]" role="alert">
                         {validationErrors[key]}
                       </p>
                     ) : null}
@@ -885,12 +885,12 @@ export default function SystemSettingsPage() {
                         </span>
                       )}
                       {setting.source === "DATABASE" ? (
-                        <span className="text-xs font-semibold text-[#204272]">
+                        <span className="text-xs font-semibold text-[var(--admin-primary-hover)]">
                           {isArabic ? "تجاوز محفوظ" : "Stored override"}
                         </span>
                       ) : null}
                       {setting.source === "INVALID_FALLBACK" ? (
-                        <span className="text-xs font-semibold text-red-600">
+                        <span className="text-xs font-semibold text-[var(--admin-danger)]">
                           {isArabic
                             ? "القيمة المخزنة غير صالحة؛ الافتراضي فعال"
                             : "Stored value is invalid; default is effective"}
@@ -957,8 +957,8 @@ export default function SystemSettingsPage() {
 function Info({ label, value }) {
   return (
     <div className="min-w-0">
-      <dt className="font-semibold text-[#667085]">{label}</dt>
-      <dd className="mt-0.5 break-words text-[#101828]">{value}</dd>
+      <dt className="font-semibold text-[var(--admin-muted)]">{label}</dt>
+      <dd className="mt-0.5 break-words text-[var(--admin-ink)]">{value}</dd>
     </div>
   );
 }

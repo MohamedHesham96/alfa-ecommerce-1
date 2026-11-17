@@ -5,12 +5,16 @@ const mockSlideNext = jest.fn();
 const mockSlidePrev = jest.fn();
 let mockLocale = "en";
 
-jest.mock("../context/LanguageContext", () => ({
-  useLanguage: () => ({
-    locale: mockLocale,
-    t: (key) => key,
-  }),
-}));
+jest.mock("../context/LanguageContext", () => {
+  const en = require("../public/locales/en.json");
+  const ar = require("../public/locales/ar.json");
+  return {
+    useLanguage: () => ({
+      locale: mockLocale,
+      t: (key) => (mockLocale === "ar" ? ar : en)[key] ?? key,
+    }),
+  };
+});
 
 jest.mock("next/image", () => ({
   __esModule: true,

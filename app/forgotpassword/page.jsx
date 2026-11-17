@@ -7,13 +7,13 @@ export default function ForgotPasswordPage() {
     <div className="h-screen">
       <div className="w-full h-screen">
         <div className="h-full flex md:flex-row xs:flex-col">
-          <Suspense fallback={<div className="p-10">Loading…</div>}>
+          <Suspense fallback={<div className="p-10" aria-busy="true">...</div>}>
             <ForgotPassword />
           </Suspense>
           <div className="h-full w-full md:order-2 xs:order-1">
             <Image
               src="/Images/imageSignUp.png"
-              alt="Background Image"
+              alt=""
               width={500}
               height={500}
               priority

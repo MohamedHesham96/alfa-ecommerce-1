@@ -27,7 +27,7 @@ const swiperRef = useRef()
     <div className="relative w-full  md:h-[450px] xs:h-[630px] my-10 flex justify-center items-center rounded-3xl ">
         <Image
     src="/Images/img2.png"
-    alt="banner"
+    alt={t("banner")}
     fill
     loading="lazy"
     sizes="(max-width: 1023px) calc(100vw - 24px), (max-width: 1499px) calc(100vw - 324px), 1176px"
@@ -38,7 +38,7 @@ const swiperRef = useRef()
 <div className=" w-full  h-full  flex xs:flex-row md:flex-col gap-5 p-5 xs:justify-between md:justify-center items-center">
    <div className=" md:order-1 xs:order-2 flex justify-end  ">
      <div className="w-20 h-20 rounded-full bg-red-700 shadow-lg shadow-red-700/40 flex flex-col items-center justify-center text-white gap-1">
-       <span className="text-[10px] font-medium leading-none tracking-wide">Save up to</span>
+       <span className="text-[10px] font-medium leading-none tracking-wide">{t("save_up_to")}</span>
        <span dir="ltr" className="text-xl font-bold leading-none">-45%</span>
      </div>
    </div>
@@ -99,7 +99,7 @@ const swiperRef = useRef()
     transition-all duration-300 ">
           <button
       type="button"
-      aria-label={isRtl ? "المنتجات التالية" : "Previous products"}
+      aria-label={isRtl ? t("next_products") : t("previous_products")}
       onClick={isRtl ? showNextProducts : showPreviousProducts}
       className="absolute left-0 top-1/2 -translate-y-1/2 z-50
                   text-2xl
@@ -110,7 +110,7 @@ const swiperRef = useRef()
     </button>
         <button
       type="button"
-      aria-label={isRtl ? "المنتجات السابقة" : "Next products"}
+      aria-label={isRtl ? t("previous_products") : t("next_products")}
       onClick={isRtl ? showPreviousProducts : showNextProducts}
       className="absolute right-0 top-1/2 -translate-y-1/2 z-50
               

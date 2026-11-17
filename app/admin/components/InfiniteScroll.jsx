@@ -522,16 +522,16 @@ const Spinner = () => <span className="admin-spinner" aria-hidden="true" />;
 const FooterContent = ({ loadingMore, hasMore, hasItems, error, onRetry, t }) => (
   <div className="flex flex-col items-center justify-center gap-2 py-3">
     {loadingMore ? (
-      <span className="inline-flex items-center gap-2 text-xs font-medium text-[#667085]">
+      <span className="inline-flex items-center gap-2 text-xs font-medium text-[var(--admin-muted)]">
         <Spinner />
         {t("loading_more")}
       </span>
     ) : null}
     {!loadingMore && !hasMore && hasItems ? (
-      <span className="inline-flex items-center gap-2 text-xs text-[#98a2b3]">
-        <span className="h-px w-6 bg-[#e4e8f0]" aria-hidden="true" />
+      <span className="inline-flex items-center gap-2 text-xs text-[var(--admin-muted-soft)]">
+        <span className="h-px w-6 bg-[var(--admin-border)]" aria-hidden="true" />
         {t("no_more_records")}
-        <span className="h-px w-6 bg-[#e4e8f0]" aria-hidden="true" />
+        <span className="h-px w-6 bg-[var(--admin-border)]" aria-hidden="true" />
       </span>
     ) : null}
     {error && hasMore && !loadingMore ? (

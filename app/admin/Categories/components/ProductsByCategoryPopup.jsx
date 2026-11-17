@@ -49,7 +49,7 @@ export default function ProductsByCategoryPopup({
           </button>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col bg-[#f8fafc]">
+        <div className="flex min-h-0 flex-1 flex-col bg-[var(--admin-surface-muted)]">
           <FormProduct
             isFormOpen={isFormOpen}
             isEditMode={isEditMode}

@@ -2,17 +2,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { MdEmail, MdLocationPin } from "react-icons/md";
 import { MdLocalPhone } from "react-icons/md";
-import { FiCreditCard, FiMapPin, FiTruck } from "react-icons/fi";
+import { FiMapPin } from "react-icons/fi";
 
 import { useLanguage } from "../../../../../context/LanguageContext.js";
 import { getRequest } from "../../../../../utils/requestsUtils.js";
 
 export default function Orders_Details({ orderId, orderType }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [orderUser, setOrderUser] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState();
   const [orderAddress, setOrderAddress] = useState();
   const [fulfillmentType, setFulfillmentType] = useState("DELIVERY");
   const [pickupPlace, setPickupPlace] = useState({
@@ -31,8 +30,7 @@ export default function Orders_Details({ orderId, orderType }) {
         orderType === "orders" ? "/api/admin/orders" : "/api/admin/return-orders";
       const res = await getRequest(`${adminBasePath}/${orderId}`);
       const resData = res.data;
-      setOrderUser(resData.user);
-      setPaymentMethod(resData.paymentMethod);
+      setOrderUser(resData.user ?? {});
       setOrderAddress(resData.address);
       setFulfillmentType(resData.fulfillmentType || "DELIVERY");
       setPickupPlace({
@@ -56,7 +54,7 @@ export default function Orders_Details({ orderId, orderType }) {
   if (loading) {
     return (
       <div className="min-w-0 w-full">
-        <div className="h-[420px] admin-skeleton rounded-2xl" aria-busy="true" />
+        <div className="h-[280px] admin-skeleton rounded-2xl" aria-busy="true" />
       </div>
     );
   }
@@ -80,98 +78,86 @@ export default function Orders_Details({ orderId, orderType }) {
       .map((part) => part[0])
       .join("")
       .toUpperCase() || "U";
+  const governorateName =
+    locale === "ar"
+      ? orderUser.governorate?.nameAr
+      : orderUser.governorate?.nameEn || orderUser.governorate?.nameAr;
 
   return (
     <aside className="min-w-0 w-full">
       <section className="admin-card overflow-hidden">
-        <div className="admin-card-header">
+        <div className="admin-card-header !px-4 !py-2.5">
           <h2 className="admin-card-title">{t("customer_details")}</h2>
         </div>
 
-        <div className="p-5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-[#163b5f] text-sm font-bold text-white">
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--admin-primary)] text-xs font-bold text-white">
               {initials}
             </span>
             <div className="min-w-0">
-              <p className="truncate text-base font-semibold text-[#101828]">
+              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
                 {fullName || "--"}
               </p>
+              {orderUser.username ? (
+                <p className="truncate text-[11px] text-[var(--admin-muted)]" dir="ltr">
+                  @{orderUser.username}
+                </p>
+              ) : null}
             </div>
           </div>
 
-          <div className="mt-5 space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="admin-stat-icon !h-9 !w-9 admin-tone-rose">
+          <div className="mt-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="admin-stat-icon !h-8 !w-8 admin-tone-rose">
                 <MdEmail />
               </span>
               <div className="min-w-0">
-                <p className="text-xs text-[#667085]">{t("email")}</p>
-                <p className="truncate text-sm font-semibold text-[#101828]">
+                <p className="text-[10.5px] text-[var(--admin-muted)]">{t("email")}</p>
+                <p className="truncate text-[13px] font-semibold text-[var(--admin-ink)]">
                   {orderUser.email || "--"}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="admin-stat-icon !h-9 !w-9 admin-tone-blue">
+            <div className="flex items-center gap-2">
+              <span className="admin-stat-icon !h-8 !w-8 admin-tone-blue">
                 <MdLocalPhone />
               </span>
               <div className="min-w-0">
-                <p className="text-xs text-[#667085]">{t("phoneNumber")}</p>
-                <p className="truncate text-sm font-semibold text-[#101828]" dir="ltr">
+                <p className="text-[10.5px] text-[var(--admin-muted)]">{t("phoneNumber")}</p>
+                <p className="truncate text-[13px] font-semibold text-[var(--admin-ink)]" dir="ltr">
                   {orderUser.phone || "--"}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="admin-stat-icon !h-9 !w-9 admin-tone-gray">
+            <div className="flex items-center gap-2">
+              <span className="admin-stat-icon !h-8 !w-8 admin-tone-gray">
                 <MdLocationPin />
               </span>
               <div className="min-w-0">
-                <p className="text-xs text-[#667085]">{t("governorate")}</p>
-                <p className="truncate text-sm font-semibold text-[#101828]">
-                  {orderUser.governorate?.nameAr || "--"}
+                <p className="text-[10.5px] text-[var(--admin-muted)]">{t("governorate")}</p>
+                <p className="truncate text-[13px] font-semibold text-[var(--admin-ink)]">
+                  {governorateName || "--"}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="mt-5 grid gap-3 border-t border-[#eef1f6] pt-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-[#e4e8f0] bg-[#f8fafc] p-3">
-              <p className="flex items-center gap-1.5 text-xs text-[#667085]">
-                <FiCreditCard />
-                {t("payment_method")}
-              </p>
-              <p className="mt-1 text-sm font-semibold text-[#101828]">
-                {t(paymentMethod)}
-              </p>
-            </div>
-            <div className="rounded-xl border border-[#e4e8f0] bg-[#f8fafc] p-3">
-              <p className="flex items-center gap-1.5 text-xs text-[#667085]">
-                <FiTruck />
-                {t("fulfillment_type")}
-              </p>
-              <p className="mt-1 text-sm font-semibold text-[#101828]">
-                {t(fulfillmentType === "PICKUP" ? "pickup" : "delivery")}
-              </p>
-            </div>
-          </div>
-
           {fulfillmentType === "PICKUP" ? (
-            <div className="mt-4 rounded-xl border border-[#e4e8f0] bg-[#fbfcfe] p-4">
-              <p className="flex items-center gap-1.5 text-xs font-semibold text-[#667085]">
+            <div className="mt-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-hover)] p-3">
+              <p className="flex items-center gap-1.5 text-[10.5px] font-semibold text-[var(--admin-muted)]">
                 <FiMapPin />
                 {t("pickup_details")}
               </p>
-              <p className="mt-2 text-sm font-semibold text-[#101828]">
+              <p className="mt-1 text-[13px] font-semibold text-[var(--admin-ink)]">
                 {pickupPlace.name || "—"}
               </p>
               {pickupPlace.description ? (
-                <p className="mt-1 text-xs leading-5 text-[#667085]">
+                <p className="mt-1 text-[11px] leading-4 text-[var(--admin-muted)]">
                   {pickupPlace.description}
                 </p>
               ) : null}
-              <div className="mt-3 space-y-2 text-xs text-[#475467]">
+              <div className="mt-2 space-y-1 text-[11px] text-[var(--admin-ink-soft)]">
                 <p>
                   <span className="font-semibold">{t("address")}:</span>{" "}
                   {pickupPlace.address || "—"}
@@ -187,11 +173,11 @@ export default function Orders_Details({ orderId, orderType }) {
               </div>
             </div>
           ) : (
-            <div className="mt-4 rounded-xl border border-[#e4e8f0] bg-[#fbfcfe] p-4">
-              <p className="text-xs font-semibold text-[#667085]">
+            <div className="mt-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-hover)] p-3">
+              <p className="text-[10.5px] font-semibold text-[var(--admin-muted)]">
                 {t("Shipping Address")}
               </p>
-              <p className="mt-1.5 text-sm leading-6 text-[#344054]">
+              <p className="mt-1 text-[13px] leading-5 text-[var(--admin-ink-soft)]">
                 {orderAddress || "—"}
               </p>
             </div>

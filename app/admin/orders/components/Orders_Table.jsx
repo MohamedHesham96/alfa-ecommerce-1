@@ -144,15 +144,22 @@ export default function Orders_Table({ mode = "admin", userId }) {
   const renderMobileCard = (order) => {
     const dateOnly = formatOrderDate(order.createdDate);
     return (
-      <div key={order.orderId} className="admin-mobile-card">
+      <div
+        key={order.orderId}
+        className="admin-mobile-card cursor-pointer"
+        onClick={() => openOrder(order.orderId)}
+      >
         <div className="flex items-start justify-between gap-3">
           <button
             type="button"
             className="min-w-0 text-start"
-            onClick={() => openOrder(order.orderId)}
+            onClick={(event) => {
+              event.stopPropagation();
+              openOrder(order.orderId);
+            }}
           >
-            <span className="text-sm font-bold text-[#b4233a]">{order.code}</span>
-            <span className="mt-1 block text-xs text-[#667085]">{dateOnly}</span>
+            <span className="text-sm font-bold text-[var(--admin-danger-text)]">{order.code}</span>
+            <span className="mt-1 block text-xs text-[var(--admin-muted)]">{dateOnly}</span>
           </button>
           {mode === "admin" ? (
             <span className="w-[160px] shrink-0">
@@ -184,33 +191,36 @@ export default function Orders_Table({ mode = "admin", userId }) {
 
         <button
           type="button"
-          className="mt-3 flex w-full cursor-pointer items-center gap-3 border-t border-[#eef1f6] pt-3 text-start"
-          onClick={() => openOrder(order.orderId)}
+          className="mt-3 flex w-full cursor-pointer items-center gap-3 border-t border-[var(--admin-border-subtle)] pt-3 text-start"
+          onClick={(event) => {
+            event.stopPropagation();
+            openOrder(order.orderId);
+          }}
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-[10px] font-bold text-[#667085]">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[10px] font-bold text-[var(--admin-muted)]">
             <FaUserLarge />
           </span>
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold text-[#101828]">
+            <span className="block truncate text-sm font-semibold text-[var(--admin-ink)]">
               {(order.user?.firstName ?? "") +
                 " " +
                 (order.user?.lastName ?? "")}
             </span>
-            <span className="block truncate text-xs text-[#667085]">
+            <span className="block truncate text-xs text-[var(--admin-muted)]">
               {order.user?.email}
             </span>
           </span>
         </button>
 
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[#eef1f6] pt-3">
-          <span className="inline-flex items-center rounded-full border border-[#f3c6cd] bg-[#fbeff2] px-2.5 py-1 text-xs font-semibold text-[#b4233a]">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--admin-border-subtle)] pt-3">
+          <span className="inline-flex items-center rounded-full border border-[var(--admin-danger-border)] bg-[var(--admin-danger-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--admin-danger-text)]">
             {order.orderItemLines?.length ?? 0} {t("items")}
           </span>
-          <span className="break-words text-base font-bold text-[#101828]">
+          <span className="break-words text-base font-bold text-[var(--admin-ink)]">
             {Number(
               (mode === "admin" ? order.netTotal : order.total) ?? 0,
             ).toLocaleString("en-US")}{" "}
-            <span className="text-xs font-medium text-[#667085]">
+            <span className="text-xs font-medium text-[var(--admin-muted)]">
               {t("currency")}
             </span>
           </span>
@@ -219,7 +229,7 @@ export default function Orders_Table({ mode = "admin", userId }) {
         {mode === "admin" &&
         order.state !== "CANCELLED" &&
         order.state !== "DELIVERED" ? (
-          <div className="mt-3 flex justify-end border-t border-[#eef1f6] pt-3">
+          <div className="mt-3 flex justify-end border-t border-[var(--admin-border-subtle)] pt-3">
             <button
               type="button"
               className="admin-action-delete"
@@ -262,10 +272,11 @@ export default function Orders_Table({ mode = "admin", userId }) {
       onRetry={tableState.reload}
       toolbar={toolbar}
       mobileCard={renderMobileCard}
+      onRowClick={(order) => openOrder(order.orderId)}
       mobileWrapperClassName={
         mode === "admin"
-          ? "lg:hidden mt-3 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc] p-3"
-          : "lg:hidden mt-3 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc] p-3"
+          ? "lg:hidden mt-3 rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] p-3"
+          : "lg:hidden mt-3 rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] p-3"
       }
       desktopWrapperClassName="admin-table-shell hidden lg:block max-h-[600px] mt-3 w-full overflow-x-auto overflow-y-auto"
       tableClassName="admin-table"

@@ -122,9 +122,11 @@ describe("admin screens use the shared server table contract", () => {
 
   it("order details loads the existing order endpoint", async () => {
     render(
-      <OrderDetailsProvider>
-        <OrderItems orderId="9" orderType="orders" />
-      </OrderDetailsProvider>,
+      <IdProvider>
+        <OrderDetailsProvider>
+          <OrderItems orderId="9" orderType="orders" />
+        </OrderDetailsProvider>
+      </IdProvider>,
     );
     await waitFor(() =>
       expect(getRequest).toHaveBeenCalledWith("/api/admin/orders/9"),

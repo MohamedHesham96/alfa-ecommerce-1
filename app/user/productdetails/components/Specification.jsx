@@ -37,8 +37,8 @@ export default function Specification({ product }) {
                         {t("Overview")}
                     </h3>
                     <div className="flex w-full flex-col gap-4">
-                        <SpecRow label="Brand" value={product.brand} />
-                        <SpecRow label="model" value={product.code} />
+                        <SpecRow label={t("brand")} value={product.brand} />
+                        <SpecRow label={t("model")} value={product.code} />
                     </div>
                     <hr className="h-px w-full border-0 bg-gray-200" />
                     {hasGeneral ? (
@@ -48,9 +48,9 @@ export default function Specification({ product }) {
                         </h3>
                     ) : null}
                     <div className="flex w-full flex-col gap-4">
-                        <SpecRow label="content" value={product.content} />
-                        <SpecRow label="flash" value={product.flash} />
-                        <SpecRow label="ram" value={product.ram} />
+                        <SpecRow label={t("content")} value={product.content} />
+                        <SpecRow label={t("flash")} value={product.flash} />
+                        <SpecRow label={t("ram")} value={product.ram} />
                         {itemDimensionsEnabled ? (
                             <>
                                 <SpecRow label={t("length")} value={product.length} />
@@ -58,7 +58,7 @@ export default function Specification({ product }) {
                                 <SpecRow label={t("height")} value={product.height} />
                             </>
                         ) : null}
-                        <SpecRow label="Release years" value={product.releaseYear} />
+                        <SpecRow label={t("release_years")} value={product.releaseYear} />
                     </div>
                 </div>
             </div>

@@ -110,7 +110,7 @@ export default function ForgotPassword() {
             <MdLanguage />
           </span>
           <select
-            aria-label="Language"
+            aria-label={t("language")}
             className="w-[80px] rounded text-white bg-red-700 py-1 px-1"
             value={locale}
             onChange={(event) => setLocale(event.target.value)}

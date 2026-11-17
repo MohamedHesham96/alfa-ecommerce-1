@@ -286,7 +286,7 @@ export default function ProductAdsSlider({ offers = [] }) {
 >        {slides.map((slide, index) => (
           <button
             key={slide.offerId || index}
-            aria-label={`Slide ${index + 1}`}
+            aria-label={t("slide_number").replace("{index}", index + 1)}
             onClick={() => {
               productSwiper?.slideToLoop(index, 700);
               imageSwiper?.slideToLoop(index, 700);

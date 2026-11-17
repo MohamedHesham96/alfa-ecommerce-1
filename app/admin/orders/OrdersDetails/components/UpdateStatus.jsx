@@ -107,11 +107,11 @@ export default function UpdateStatus({ orderId, orderType }) {
 
       <div className="relative flex h-20 items-center px-2">
         <div
-          className="absolute start-6 end-6 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[#e4e8f0]"
+          className="absolute start-6 end-6 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[var(--admin-border)]"
           aria-hidden="true"
         >
           <div
-            className="h-full rounded-full bg-[#cf4356] transition-all duration-300"
+            className="h-full rounded-full bg-[var(--admin-accent)] transition-all duration-300"
             style={{
               width: `${Math.min(100, activeStep * orderStepPath)}%`,
             }}
@@ -130,15 +130,15 @@ export default function UpdateStatus({ orderId, orderType }) {
                 <span
                   className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 ${
                     completed
-                      ? "border-[#cf4356] bg-[#fbeff2] text-[#cf4356] shadow-[0_0_0_4px_rgba(207,67,86,0.08)]"
-                      : "border-[#e4e8f0] bg-white text-[#98a2b3] group-hover:border-[#d3d9e5]"
+                      ? "border-[var(--admin-accent)] bg-[var(--admin-accent-soft)] text-[var(--admin-accent)] shadow-[0_0_0_4px_var(--admin-focus-ring)]"
+                      : "border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-muted-soft)] group-hover:border-[var(--admin-border-strong)]"
                   }`}
                 >
                   {step.icon}
                 </span>
                 <span
                   className={`text-[11px] font-semibold leading-4 ${
-                    completed ? "text-[#b4233a]" : "text-[#98a2b3]"
+                    completed ? "text-[var(--admin-danger-text)]" : "text-[var(--admin-muted-soft)]"
                   }`}
                 >
                   {step.label}

@@ -7,8 +7,10 @@ import { MenuOpenProvider } from "../../context/MenuOpenContext";
 import { FaWhatsapp } from "react-icons/fa6";
 import { getRequest } from "../../utils/requestsUtils";
 import { useEffect, useState } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function UserLayout({ children }) {
+  const { t } = useLanguage();
   const [whatsAppUrl, setWhatsAppUrl] = useState()
 
   const getWhatsappUrl = async () => {
@@ -30,7 +32,7 @@ export default function UserLayout({ children }) {
               href={whatsAppUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="واتساب"
+              aria-label={t("whatsapp")}
               className="fixed bottom-[5.5rem] right-5 z-40 sm:bottom-14"
             >
               <FaWhatsapp

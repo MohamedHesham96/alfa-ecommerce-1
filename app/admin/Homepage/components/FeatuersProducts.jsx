@@ -41,7 +41,7 @@ const [isFormOpen,setIsFormOpen] = useState(false)
 
       <div className=" flex justify-between items-center">
         <div className="flex  items-center gap-3">
-          <span className=" text-red-600 rounded-full text-xl  p-1">
+          <span className=" text-[var(--admin-danger)] rounded-full text-xl  p-1">
             <AiFillStar className="" />
           </span>
           <h1 className="font-semibold md:text-xl xs:text-lg">
@@ -50,7 +50,7 @@ const [isFormOpen,setIsFormOpen] = useState(false)
         </div>
         <Link
           href="/admin/Products"
-          className="md:text-4xl xs:text-3xl mx-10 text-red-700 hover:text-red-800"
+          className="md:text-4xl xs:text-3xl mx-10 text-[var(--admin-danger)] hover:text-[var(--admin-danger-text)]"
            onClick={() => setSelectedNamePage("Products Management")}
         >
           <FaCirclePlus />
@@ -71,7 +71,7 @@ const [isFormOpen,setIsFormOpen] = useState(false)
               }}
               className="cursor-pointer hover:shadow-md "
             >
-              <div className="min-h-[290px] h-auto bg-white border rounded-md">
+              <div className="min-h-[290px] h-auto bg-[var(--admin-surface)] border rounded-md">
                 <div className="">
                   <Image
                     src={`${process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL}${
@@ -92,7 +92,7 @@ const [isFormOpen,setIsFormOpen] = useState(false)
                       </h1>
                      
                     </div>
-                    {/* <h1 className="md:text-sm xs:text-xs mt-2 text-gray-400 ">
+                    {/* <h1 className="md:text-sm xs:text-xs mt-2 text-[var(--admin-muted-soft)] ">
                       {describtion.length <= 50
                         ? describtion
                         : describtion.slice(0, 50) + " ..."}
@@ -108,7 +108,7 @@ const [isFormOpen,setIsFormOpen] = useState(false)
                             >
                               <div className=" my-2 h-4">
                                 {product.oldPrice ? (
-                                  <span className=" font-semibold  w-full text-center bg-red-600 text-xs p-[4px]  text-white rounded-md">
+                                  <span className=" font-semibold  w-full text-center bg-[var(--admin-danger-solid)] text-xs p-[4px]  text-white rounded-md">
                                     {t("off")}
                                     {" " +
                                       (
@@ -128,7 +128,7 @@ const [isFormOpen,setIsFormOpen] = useState(false)
                                 </span>
                                 {product.oldPrice ? (
                                   <div className="flex gap-2">
-                                    <span className=" font-semibold line-through text-sm  mt-2 flex text-gray-400">
+                                    <span className=" font-semibold line-through text-sm  mt-2 flex text-[var(--admin-muted-soft)]">
                                       {product.oldPrice.toLocaleString("en-US")}{" "}
                                       {t("currency")}
                                     </span>
@@ -144,7 +144,7 @@ const [isFormOpen,setIsFormOpen] = useState(false)
                           {product.available ? (
                             ""
                           ) : (
-                            <span className="text-red-600 mt-8">
+                            <span className="text-[var(--admin-danger)] mt-8">
                               {t("Currently_unavailable")}
                             </span>
                           )}

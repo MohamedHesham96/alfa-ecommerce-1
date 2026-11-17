@@ -22,7 +22,11 @@ const heroHref = (image) =>
     : "/products";
 
 export default function ImageSlider({ sliderImages = [] }) {
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
+  const imageAlt = (image) =>
+    locale === "ar"
+      ? image?.titleAr || image?.title
+      : image?.titleEn || image?.title;
 
   if (!sliderImages.length) {
     return (
@@ -47,7 +51,7 @@ export default function ImageSlider({ sliderImages = [] }) {
         >
           <Image
             src={process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL + image.imageUrl}
-            alt={image.titleAr || image.title || "عرض"}
+            alt={imageAlt(image) || t("banner")}
             fill
             preload
             fetchPriority="high"
@@ -83,7 +87,7 @@ export default function ImageSlider({ sliderImages = [] }) {
             >
               <Image
                 src={process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL + img.imageUrl}
-                alt={img.titleAr || img.title || `عرض ${index + 1}`}
+                alt={imageAlt(img) || `${t("banner")} ${index + 1}`}
                 fill
                 preload={index === 0}
                 fetchPriority={index === 0 ? "high" : undefined}

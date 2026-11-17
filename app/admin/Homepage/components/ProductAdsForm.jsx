@@ -134,7 +134,7 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
             className="rounded-md object-cover w-[30px] h-[30px]"
           />
         ) : (
-          <div className="w-[30px] h-[30px] bg-gray-100 rounded-md" />
+          <div className="w-[30px] h-[30px] bg-[var(--admin-surface-sunken)] rounded-md" />
         )}
         <span>{label}</span>
       </div>
@@ -176,10 +176,10 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
       className={`admin-modal-overlay ${isFormOpen ? "flex" : "hidden"}`}
     >
       {loading && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--admin-overlay-strong)]/55 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-[var(--admin-surface)] px-8 py-6 shadow-2xl">
             <span className="admin-spinner !h-7 !w-7" />
-            <p className="text-sm font-semibold text-[#475467]">
+            <p className="text-sm font-semibold text-[var(--admin-ink-soft)]">
               {t("loading")}
             </p>
           </div>
@@ -214,7 +214,7 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
             {/* advert featured image upload */}
             <div className="flex flex-col items-center mt-2">
               {displayAdImage() ? (
-                <div className="relative h-[170px] w-full overflow-hidden rounded-xl border border-[#e4e8f0] bg-[#f8fafc]">
+                <div className="relative h-[170px] w-full overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)]">
                   <Image
                     alt=""
                     src={displayAdImage()}
@@ -225,15 +225,15 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
                 </div>
               ) : (
                 <label htmlFor="ProductAdFileInput" className="w-full cursor-pointer">
-                  <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#d3d9e5] bg-[#f8fafc] p-6 text-center transition-colors hover:border-[#cf4356] hover:bg-[#fdf7f8]">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg text-[#cf4356] shadow-sm">
+                  <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--admin-border-strong)] bg-[var(--admin-surface-muted)] p-6 text-center transition-colors hover:border-[var(--admin-accent)] hover:bg-[var(--admin-danger-soft)]">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--admin-surface)] text-lg text-[var(--admin-accent)] shadow-sm">
                       <IoCloudUploadSharp />
                     </span>
-                    <span className="text-sm font-semibold text-[#344054]">
+                    <span className="text-sm font-semibold text-[var(--admin-ink-soft)]">
                       {t("upload_ad_image")}
                     </span>
-                    <span className="text-[10px] text-[#98a2b3]">
-                      PNG, JPG or GIF
+                    <span className="text-[10px] text-[var(--admin-muted-soft)]">
+                      {t("image_formats")}
                     </span>
                   </div>
                 </label>
@@ -249,7 +249,7 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
 
             {/* selected product featured image */}
             {selectedProductImage() ? (
-              <div className="flex items-center gap-3 mt-4 p-2 border rounded-lg bg-gray-50">
+              <div className="flex items-center gap-3 mt-4 p-2 border rounded-lg bg-[var(--admin-surface-sunken)]">
                 <Image
                   alt=""
                   src={selectedProductImage()}
@@ -258,23 +258,23 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
                   className="rounded-md object-cover w-[50px] h-[50px]"
                 />
                 <div className="flex flex-col">
-                  <span className="text-xs text-gray-500">{t("product_featured_image")}</span>
+                  <span className="text-xs text-[var(--admin-muted)]">{t("product_featured_image")}</span>
                   <span className="text-sm font-semibold">{selectedProduct?.label}</span>
                 </div>
               </div>
             ) : null}
 
             <div className="mt-4 flex flex-col gap-2">
-              {/* <label className="text-md text-gray-500">{t("title")}</label>
+              {/* <label className="text-md text-[var(--admin-muted)]">{t("title")}</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={t("title_placeholder")}
-                className="w-full outline-none text-gray-900 text-lg p-1 border rounded-md placeholder:text-sm"
+                className="w-full outline-none text-[var(--admin-ink)] text-lg p-1 border rounded-md placeholder:text-sm"
               /> */}
               <label className="admin-label">{t("choose_product")}</label>
-              <div className="rounded-xl border border-[#d3d9e5] px-1 focus-within:border-[#cf4356]">
+              <div className="rounded-xl border border-[var(--admin-border-strong)] px-1 focus-within:border-[var(--admin-accent)]">
                 <Select
                   options={options}
                   value={selectedProduct}
@@ -299,7 +299,7 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
                     setSelectedProduct(selected);
                     setSearch("");
                   }}
-                  noOptionsMessage={() => t("no_products") || "لا توجد منتجات"}
+                  noOptionsMessage={() => t("no_products")}
                   menuPortalTarget={
                     typeof document !== "undefined" ? document.body : undefined
                   }
@@ -315,21 +315,21 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
                     }),
                     input: (base) => ({
                       ...base,
-                      color: "#374151",
+                      color: "var(--admin-ink-soft)",
                     }),
                     menuPortal: (base) => ({ ...base, zIndex: 90 }),
                     option: (base, state) => ({
                       ...base,
                       backgroundColor: state.isSelected
-                        ? "#dc2626"
+                        ? "var(--admin-accent-solid)"
                         : state.isFocused
-                          ? "#fee2e2"
-                          : "#ffffff",
-                      color: state.isSelected ? "#ffffff" : "#374151",
+                          ? "var(--admin-accent-soft)"
+                          : "var(--admin-surface)",
+                      color: state.isSelected ? "var(--admin-on-accent)" : "var(--admin-ink-soft)",
                       cursor: "pointer",
                       padding: "10px",
                       "&:hover": {
-                        backgroundColor: state.isSelected ? "#dc2626" : "#fee2e2",
+                        backgroundColor: state.isSelected ? "var(--admin-accent-solid)" : "var(--admin-accent-soft)",
                       },
                     }),
                   }}

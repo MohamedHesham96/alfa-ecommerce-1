@@ -8,6 +8,7 @@ export function OrderDetailsProvider({ children }) {
   const [selectedOrderState, setSelectedOrderState] = useState("");
   const [selectedOrderCode, setSelectedOrderCode] = useState("");
   const [selectedOrderDate, setSelectedOrderDate] = useState("");
+  const [orderSummary, setOrderSummary] = useState(null);
 
   return (
     <OrderDetailsContext.Provider
@@ -18,6 +19,8 @@ export function OrderDetailsProvider({ children }) {
         setSelectedOrderCode,
         selectedOrderDate,
         setSelectedOrderDate,
+        orderSummary,
+        setOrderSummary,
       }}
     >
       {children}

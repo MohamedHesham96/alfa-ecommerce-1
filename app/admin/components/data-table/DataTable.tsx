@@ -29,6 +29,8 @@ interface DataTableProps<T> {
   tableClassName?: string;
   headerClassName?: string;
   rowClassName?: string;
+  onRowClick?: (row: T) => void;
+  getRowAriaLabel?: (row: T) => string;
   emptyMessage?: string;
   skeletonRows?: number;
   renderSkeletonRow?: (index: number) => ReactNode;
@@ -52,6 +54,8 @@ export function DataTable<T>({
   tableClassName = "admin-table",
   headerClassName = "",
   rowClassName = "",
+  onRowClick,
+  getRowAriaLabel,
   emptyMessage,
   skeletonRows = 6,
   renderSkeletonRow,
@@ -62,6 +66,27 @@ export function DataTable<T>({
   const rows = table.getRowModel().rows;
   const columnCount = table.getAllLeafColumns().length;
   const hasItems = rows.length > 0;
+  const rowClickable = typeof onRowClick === "function";
+  // A click anywhere on the row navigates, except when it belongs to a
+  // control inside the row (links, buttons, inputs, selects, ...).
+  const interactiveSelector = [
+    "a[href]",
+    "button",
+    "input",
+    "select",
+    "textarea",
+    "label",
+    "summary",
+    "[contenteditable='true']",
+    "[role='button']",
+    "[role='combobox']",
+    "[role='listbox']",
+    "[role='option']",
+    "[role='menuitem']",
+    "[data-row-click-ignore]",
+  ].join(",");
+  const isInteractiveTarget = (target: EventTarget | null) =>
+    target instanceof Element && Boolean(target.closest(interactiveSelector));
   // Only show the skeleton when there is nothing to display yet. During a
   // refresh (search/filter change) the previous rows stay visible instead of
   // flashing the loading skeleton again.
@@ -154,7 +179,7 @@ export function DataTable<T>({
               </tr>
             ))}
           </thead>
-          <tbody className="w-full bg-white text-sm">
+          <tbody className="w-full bg-[var(--admin-surface)] text-sm">
             {showSkeleton
               ? Array.from({ length: skeletonRows }).map((_, index) =>
                   renderSkeletonRow ? (
@@ -170,7 +195,38 @@ export function DataTable<T>({
                   ),
                 )
               : rows.map((row) => (
-                  <tr key={row.id} className={rowClassName}>
+                  <tr
+                    key={row.id}
+                    className={`${rowClassName} ${
+                      rowClickable ? "admin-row-clickable" : ""
+                    }`}
+                    onClick={
+                      rowClickable
+                        ? (event) => {
+                            if (isInteractiveTarget(event.target)) return;
+                            onRowClick(row.original);
+                          }
+                        : undefined
+                    }
+                    onKeyDown={
+                      rowClickable
+                        ? (event) => {
+                            if (event.target !== event.currentTarget) return;
+                            if (event.key !== "Enter" && event.key !== " ") {
+                              return;
+                            }
+                            event.preventDefault();
+                            onRowClick(row.original);
+                          }
+                        : undefined
+                    }
+                    tabIndex={rowClickable ? 0 : undefined}
+                    aria-label={
+                      rowClickable && getRowAriaLabel
+                        ? getRowAriaLabel(row.original)
+                        : undefined
+                    }
+                  >
                     {row.getVisibleCells().map((cell) => {
                       const meta = cell.column.columnDef.meta;
                       const alignClass =

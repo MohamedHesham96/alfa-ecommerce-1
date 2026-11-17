@@ -41,12 +41,12 @@ export function createCategoryColumns({
               src={`${process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL}${getThumbnailUrl(
                 row.original.imageURL ?? "",
               )}`}
-              width={48}
-              height={48}
-              className="h-11 w-11 rounded-xl border border-[#e4e8f0] bg-white object-cover p-0.5"
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] object-cover p-0.5"
             />
           ) : (
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#e4e8f0] bg-[#f8fafc] text-[9px] text-[#98a2b3]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[9px] text-[var(--admin-muted-soft)]">
               {t("no_image")}
             </div>
           )}
@@ -72,10 +72,10 @@ export function createCategoryColumns({
           className="min-w-0 text-start"
           onClick={() => onOpen(row.original)}
         >
-          <p className="truncate text-sm font-semibold text-[#101828]">
+          <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
             {locale === "ar" ? row.original.nameAr : row.original.nameEn}
           </p>
-          <p className="mt-0.5 text-xs text-[#667085]">{t("main_category")}</p>
+          <p className="mt-0.5 text-xs text-[var(--admin-muted)]">{t("main_category")}</p>
         </button>
       ),
     },
@@ -89,7 +89,7 @@ export function createCategoryColumns({
       cell: ({ row }) => (
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 rounded-full border border-[#f3c6cd] bg-[#fbeff2] px-2.5 py-1 text-xs font-semibold text-[#b4233a]"
+          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--admin-danger-border)] bg-[var(--admin-danger-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--admin-danger-text)]"
           onClick={() => onOpen(row.original)}
         >
           <span className="text-sm font-bold">{row.original.itemsCount ?? 0}</span>
@@ -108,7 +108,7 @@ export function createCategoryColumns({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="admin-action-icon !text-[#1d4ed8] hover:!bg-[#eef4ff]"
+            className="admin-action-icon !text-[var(--admin-info-text)] hover:!bg-[var(--admin-info-soft)]"
             title={t("edit")}
             aria-label={t("edit")}
             onClick={() => onEdit(row.original.itemCategoryId)}
@@ -117,7 +117,7 @@ export function createCategoryColumns({
           </button>
           <button
             type="button"
-            className="admin-action-icon !text-[#b4233a] hover:!bg-[#fbeff2]"
+            className="admin-action-icon !text-[var(--admin-danger-text)] hover:!bg-[var(--admin-danger-soft)]"
             title={t("delete")}
             aria-label={t("delete")}
             onClick={() => onDelete(row.original.itemCategoryId)}

@@ -6,6 +6,7 @@ import { MdLanguage, MdMenu } from "react-icons/md";
 import { useLanguage } from "../../../context/LanguageContext.js";
 import { postRequest } from "../../../utils/requestsUtils.js";
 import { useNamePageInAdminContext } from "../../../context/namePageInAdmin.jsx";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 const PAGE_STATE_MAP = {
   "Categories Management": "categories_management",
@@ -96,7 +97,7 @@ export default function Header({ page_title, onMenuClick }) {
   const sectionKey = SECTION_MAP[pageKey];
   const title = sectionKey ? t(sectionKey) : t("platform_mang");
   const roleLabel = user.role
-    ? t(user.role === "ADMIN" ? "super_admin" : user.role)
+    ? t(user.role === "ADMIN" ? "super_admin" : "user_label")
     : t("admin");
 
   return (
@@ -119,6 +120,8 @@ export default function Header({ page_title, onMenuClick }) {
       </div>
 
       <div className="admin-topbar-actions">
+        <ThemeSwitcher />
+
         <button
           type="button"
           className="admin-language-switch"

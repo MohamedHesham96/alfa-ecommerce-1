@@ -61,7 +61,7 @@ export default function QuickActions() {
               navigate.push(action.href);
               setSelectedNamePage(action.page);
             }}
-            className="group flex items-center gap-3 rounded-xl border border-[#e4e8f0] bg-white p-3 text-start transition-all hover:-translate-y-0.5 hover:border-[#d3d9e5] hover:shadow-[0_14px_30px_-24px_rgba(15,23,42,0.45)]"
+            className="group flex items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-3 text-start transition-all hover:-translate-y-0.5 hover:border-[var(--admin-border-strong)] hover:shadow-[var(--admin-shadow)]"
           >
             <span
               className={`admin-stat-icon admin-tone-${action.tone} transition-transform group-hover:scale-105`}
@@ -69,7 +69,7 @@ export default function QuickActions() {
             >
               {action.icon}
             </span>
-            <span className="min-w-0 flex-1 text-sm font-semibold text-[#344054]">
+            <span className="min-w-0 flex-1 text-sm font-semibold text-[var(--admin-ink-soft)]">
               {t(action.key)}
             </span>
           </button>

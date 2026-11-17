@@ -55,14 +55,15 @@ export default function PickupPlaceTable({ onCreate, onEdit }) {
   const renderMobileCard = (place) => (
     <div
       key={place.pickupPlaceId}
-      className={`admin-mobile-card ${place.active ? "" : "opacity-80"}`}
+      className={`admin-mobile-card cursor-pointer ${place.active ? "" : "opacity-80"}`}
+      onClick={() => onEdit(place)}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-[#101828]">
+          <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
             {place.name}
           </p>
-          <p className="mt-1 text-xs leading-5 text-[#667085]">
+          <p className="mt-1 text-xs leading-5 text-[var(--admin-muted)]">
             {place.description}
           </p>
         </div>
@@ -73,30 +74,33 @@ export default function PickupPlaceTable({ onCreate, onEdit }) {
         </StatusBadge>
       </div>
 
-      <div className="mt-3 space-y-2 border-t border-[#eef1f6] pt-3 text-xs text-[#667085]">
+      <div className="mt-3 space-y-2 border-t border-[var(--admin-border-subtle)] pt-3 text-xs text-[var(--admin-muted)]">
         <p className="flex gap-1.5">
-          <span className="font-semibold text-[#344054]">{t("address")}:</span>
+          <span className="font-semibold text-[var(--admin-ink-soft)]">{t("address")}:</span>
           <span className="min-w-0 break-words">{place.address}</span>
         </p>
         <p className="flex gap-1.5">
-          <span className="font-semibold text-[#344054]">
+          <span className="font-semibold text-[var(--admin-ink-soft)]">
             {t("phoneNumber")}:
           </span>
           <span dir="ltr">{place.phone}</span>
         </p>
         <p className="flex gap-1.5">
-          <span className="font-semibold text-[#344054]">
+          <span className="font-semibold text-[var(--admin-ink-soft)]">
             {t("working_hours")}:
           </span>
           <span className="min-w-0 break-words">{place.workingHours}</span>
         </p>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#eef1f6] pt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--admin-border-subtle)] pt-3">
         <button
           type="button"
           className="admin-action-edit"
-          onClick={() => onEdit(place)}
+          onClick={(event) => {
+            event.stopPropagation();
+            onEdit(place);
+          }}
         >
           <MdEdit className="text-sm" />
           {t("edit")}
@@ -105,10 +109,13 @@ export default function PickupPlaceTable({ onCreate, onEdit }) {
           type="button"
           className={
             place.active
-              ? "inline-flex h-8 items-center justify-center rounded-lg border border-[#f1dfb3] bg-[#fdf6e7] px-2.5 text-xs font-semibold text-[#946200]"
-              : "inline-flex h-8 items-center justify-center rounded-lg border border-[#bfe8d7] bg-[#e7f7f0] px-2.5 text-xs font-semibold text-[#087443]"
+              ? "inline-flex h-8 items-center justify-center rounded-lg border border-[var(--admin-warning-border)] bg-[var(--admin-warning-soft)] px-2.5 text-xs font-semibold text-[var(--admin-warning-text)]"
+              : "inline-flex h-8 items-center justify-center rounded-lg border border-[var(--admin-success-border)] bg-[var(--admin-success-soft)] px-2.5 text-xs font-semibold text-[var(--admin-success-text)]"
           }
-          onClick={() => toggleActive(place)}
+          onClick={(event) => {
+            event.stopPropagation();
+            toggleActive(place);
+          }}
         >
           {place.active ? t("deactivate") : t("activate")}
         </button>
@@ -145,6 +152,7 @@ export default function PickupPlaceTable({ onCreate, onEdit }) {
       onRetry={tableState.reload}
       toolbar={toolbar}
       mobileCard={renderMobileCard}
+      onRowClick={(place) => onEdit(place)}
       mobileWrapperClassName="lg:hidden mt-3"
       desktopWrapperClassName="admin-table-shell hidden lg:block mt-3 max-h-[600px] w-full overflow-x-auto overflow-y-auto"
       tableClassName="admin-table min-w-[860px]"

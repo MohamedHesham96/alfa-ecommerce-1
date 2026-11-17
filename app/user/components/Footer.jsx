@@ -76,7 +76,7 @@ export default function Footer({ initialContact = null }) {
               <span className=" relative w-[60px] h-[60px]">
                 <Image
                   src="/Images/logo.png"
-                  alt="شعار ألفا جروب تكنولوجي"
+                  alt={t("logo_alt")}
                   fill
                   sizes="60px"
                   className="object-contain"
@@ -93,7 +93,7 @@ export default function Footer({ initialContact = null }) {
             href={contact.facebook}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="فيسبوك"
+            aria-label={t("facebook")}
             className={`w-8 h-8 bg-blue-600 text-white  p-[6px] rounded-full block ${contact.facebook === "" ? "hidden" : "block"
               }`}
           >
@@ -105,7 +105,7 @@ export default function Footer({ initialContact = null }) {
             href={contact.whatsApp}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="واتساب"
+            aria-label={t("whatsapp")}
             className={` w-8 h-8 bg-green-600 text-white rounded-full  p-[6px] ${contact.whatsApp === "" ? "hidden" : "block"
               } `}
           >
@@ -117,7 +117,7 @@ export default function Footer({ initialContact = null }) {
             href={contact.telegram}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="تيليجرام"
+            aria-label={t("telegram")}
             className={` w-8 h-8  bg-blue-600 text-white  p-[6px] rounded-full ${contact.telegram === "" ? "hidden" : "block"
               }`}
           >
@@ -130,7 +130,7 @@ export default function Footer({ initialContact = null }) {
             href={contact.instagram}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="إنستجرام"
+            aria-label={t("instagram")}
             className={` w-8 h-8 bg-pink-600 text-white rounded-full  p-[6px]  ${contact.instagram === "" ? "hidden" : "block"
               }`}
           >
@@ -143,7 +143,7 @@ export default function Footer({ initialContact = null }) {
             href={contact.x}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="إكس"
+            aria-label={t("x")}
             className={` w-8 h-8 bg-black text-white rounded-full  p-[7px] ${contact.x === "" ? "hidden" : "block"
               }`}
           >
@@ -155,7 +155,7 @@ export default function Footer({ initialContact = null }) {
             href={contact.youtube}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="يوتيوب"
+            aria-label={t("youtube")}
             className={` w-8 h-8 rounded-full bg-red-600 text-white p-[6px] ${contact.youtube === "" ? "hidden" : "block"
               }`}
           >
@@ -344,7 +344,7 @@ export default function Footer({ initialContact = null }) {
       <hr className="h-px  border-0 bg-gray-200 " />
       {showPoweredBy ? (
         <div className="flex justify-center items-center w-full mt-4">
-          <h2> {<div>  Designed & Developed by | <span className="font-semibold">BlueSoft</span> © {new Date().getFullYear()} </div>}   </h2>
+          <h2> {<div> {t("powered_by")} | <span className="font-semibold">BlueSoft</span> © {new Date().getFullYear()} </div>}   </h2>
         </div>
       ) : null}
     </div>

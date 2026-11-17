@@ -179,7 +179,7 @@ function HomeHero({
                       {hasAd ? (
                         <Image
                           src={formatAdImageUrl(ads.ad1.imageUrl)}
-                          alt="Advertisement"
+                          alt={t("advertisement")}
                           fill
                           sizes="230px"
                           quality={75}
@@ -587,7 +587,7 @@ export default function Homepage({
               {ads.ad2.imageUrl && (
                 <Image
                   src={IMAGE_BASE_URL + ads.ad2.imageUrl}
-                  alt="Advertisement"
+                  alt={t("advertisement")}
                   fill
                   sizes="280px"
                   quality={75}

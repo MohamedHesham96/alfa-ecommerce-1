@@ -43,11 +43,15 @@ export default function Table({
   });
 
   const renderMobileCard = (rate) => (
-    <div key={rate.shippingRateId} className="admin-mobile-card">
+    <div
+      key={rate.shippingRateId}
+      className="admin-mobile-card cursor-pointer"
+      onClick={() => editRate(rate)}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs text-[#667085]">{t("governorate")}</p>
-          <p className="mt-0.5 break-words text-sm font-semibold text-[#101828]">
+          <p className="text-xs text-[var(--admin-muted)]">{t("governorate")}</p>
+          <p className="mt-0.5 break-words text-sm font-semibold text-[var(--admin-ink)]">
             {locale === "ar"
               ? rate.governorate?.nameAr
               : rate.governorate?.nameEn}
@@ -55,18 +59,21 @@ export default function Table({
         </div>
         <button
           type="button"
-          className="admin-action-icon shrink-0 !text-[#1d4ed8] hover:!bg-[#eef4ff]"
-          onClick={() => editRate(rate)}
+          className="admin-action-icon shrink-0 !text-[var(--admin-info-text)] hover:!bg-[var(--admin-info-soft)]"
+          onClick={(event) => {
+            event.stopPropagation();
+            editRate(rate);
+          }}
           aria-label={t("edit")}
         >
           <BiEdit className="text-lg" />
         </button>
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-[#eef1f6] pt-3">
-        <span className="text-xs text-[#667085]">{t("shippingCost")}</span>
-        <span className="text-base font-bold text-[#101828]">
+      <div className="mt-3 flex items-center justify-between border-t border-[var(--admin-border-subtle)] pt-3">
+        <span className="text-xs text-[var(--admin-muted)]">{t("shippingCost")}</span>
+        <span className="text-base font-bold text-[var(--admin-ink)]">
           {Number(rate.shippingCost ?? 0).toLocaleString("en-US")}{" "}
-          <span className="text-xs font-medium text-[#667085]">
+          <span className="text-xs font-medium text-[var(--admin-muted)]">
             {t("currency")}
           </span>
         </span>
@@ -94,7 +101,8 @@ export default function Table({
         onRetry={tableState.reload}
         toolbar={toolbar}
         mobileCard={renderMobileCard}
-        mobileWrapperClassName="lg:hidden mt-3 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc] p-3"
+        onRowClick={(rate) => editRate(rate)}
+        mobileWrapperClassName="lg:hidden mt-3 rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] p-3"
         desktopWrapperClassName="admin-table-shell hidden lg:block max-h-[600px] min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
         tableClassName="admin-table min-w-[560px]"
         emptyMessage={t("no_data")}

@@ -31,7 +31,7 @@ export function createShippingColumns({
         cellClassName: "",
       },
       cell: ({ row }) => (
-        <span className="text-sm font-semibold text-[#101828]">
+        <span className="text-sm font-semibold text-[var(--admin-ink)]">
           {locale === "ar"
             ? row.original.governorate?.nameAr
             : row.original.governorate?.nameEn}
@@ -51,9 +51,9 @@ export function createShippingColumns({
         cellClassName: "",
       },
       cell: ({ row }) => (
-        <span className="whitespace-nowrap text-sm font-bold text-[#101828]">
+        <span className="whitespace-nowrap text-sm font-bold text-[var(--admin-ink)]">
           {Number(row.original.shippingCost ?? 0).toLocaleString("en-US")}{" "}
-          <span className="text-xs font-medium text-[#667085]">
+          <span className="text-xs font-medium text-[var(--admin-muted)]">
             {t("currency")}
           </span>
         </span>
@@ -69,7 +69,7 @@ export function createShippingColumns({
       cell: ({ row }) => (
         <button
           type="button"
-          className="admin-action-icon !text-[#1d4ed8] hover:!bg-[#eef4ff]"
+          className="admin-action-icon !text-[var(--admin-info-text)] hover:!bg-[var(--admin-info-soft)]"
           onClick={() => onEdit(row.original)}
           title={t("edit")}
           aria-label={t("edit")}
