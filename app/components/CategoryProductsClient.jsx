@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import Select from "react-select";
 import ProductCard from "../user/components/ProductCard";
 import CategoriesSideMenu from "../user/components/CategoriseSideMenu";
@@ -9,6 +9,7 @@ import Pagination from "../user/search/[searchInput]/components/Pagination";
 import { postRequest } from "../../utils/requestsUtils";
 import { useLanguage } from "../../context/LanguageContext";
 import { categoryPath } from "../../lib/seo";
+import { findCategoryPath } from "../../lib/categoryTree";
 
 const PAGE_SIZE = 40;
 
@@ -80,6 +81,19 @@ export default function CategoryProductsClient({
       ? category?.nameAr || category?.nameEn
       : category?.nameEn || category?.nameAr;
   const heading = categoryName || t("all_products") || "كل المنتجات";
+  // Flat lists produce a single category here, preserving the previous
+  // breadcrumb. A nested list adds the parent chain for hierarchical browsing.
+  const categoryPathItems = useMemo(() => {
+    const path = findCategoryPath(categories, category?.itemCategoryId);
+    // Preserve the previous single-category breadcrumb if the lookup cannot
+    // find the category in the list.
+    return path.length > 0 ? path : category ? [category] : [];
+  }, [categories, category]);
+
+  const categoryLabel = (item) =>
+    locale === "ar"
+      ? item.nameAr || item.nameEn
+      : item.nameEn || item.nameAr;
 
   const sortOptions = [
     { value: "true,price", label: t("priceLowToHigh") },
@@ -157,14 +171,31 @@ export default function CategoryProductsClient({
               {t("all_products") || "كل المنتجات"}
             </Link>
           </li>
-          {category ? (
-            <>
-              <li aria-hidden className="text-gray-300">/</li>
-              <li aria-current="page" className="font-semibold text-gray-900">
-                {heading}
-              </li>
-            </>
-          ) : null}
+          {category
+            ? categoryPathItems.map((item, index) => {
+                const isLast = index === categoryPathItems.length - 1;
+                return (
+                  <Fragment key={item.itemCategoryId || item.seoCode || index}>
+                    <li aria-hidden className="text-gray-300">/</li>
+                    <li
+                      aria-current={isLast ? "page" : undefined}
+                      className={isLast ? "font-semibold text-gray-900" : ""}
+                    >
+                      {isLast ? (
+                        heading
+                      ) : (
+                        <Link
+                          href={categoryPath(item)}
+                          className="hover:text-[#E14A5C]"
+                        >
+                          {categoryLabel(item)}
+                        </Link>
+                      )}
+                    </li>
+                  </Fragment>
+                );
+              })
+            : null}
         </ol>
       </nav>
 

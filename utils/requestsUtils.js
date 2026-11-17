@@ -5,6 +5,11 @@ import {
   invalidateCatalogCaches,
 } from "../lib/pwa/client";
 import { clearAuthStorage } from "./authSession";
+import {
+  SIGN_IN_PATH,
+  buildSignInUrl,
+  getCurrentRelativeUrl,
+} from "./authRedirect";
 
 // Confirmation dialogs are rare and must not put sweetalert2 (~23 KB) in the
 // initial bundle of every public page. The module is loaded on first use.
@@ -143,9 +148,22 @@ const invalidateCatalogAfterAdminChange = (endpoint) => {
 
 const redirectToSignIn = () => {
   if (typeof window === "undefined") return;
-  if (!window.location.pathname.startsWith("/signin")) {
-    window.location.href = new URL("/signin", window.location.origin).toString();
+
+  const pathname = window.location.pathname;
+  if (
+    pathname === SIGN_IN_PATH ||
+    pathname.startsWith(`${SIGN_IN_PATH}/`)
+  ) {
+    return;
   }
+
+  const signInUrl = buildSignInUrl(
+    getCurrentRelativeUrl(),
+    window.location.origin,
+  );
+  window.location.replace(
+    new URL(signInUrl, window.location.origin).toString(),
+  );
 };
 
 const getRefreshedAccessToken = async () => {

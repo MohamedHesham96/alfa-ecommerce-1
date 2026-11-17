@@ -22,6 +22,21 @@ export function isAdminRole(role) {
 }
 
 /**
+ * A session needs both the user id and a refresh token. The short-lived access
+ * token may be absent until requestsUtils refreshes it.
+ */
+export function hasStoredSession() {
+  if (typeof window === "undefined") return false;
+  try {
+    return Boolean(
+      localStorage.getItem("id") && localStorage.getItem("refreshToken"),
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Event-handler guard that does not depend on a component's render state.
  * This keeps a programmatic click from reaching a customer API even during
  * the first render before the role hook has hydrated.
@@ -37,11 +52,13 @@ export function isAdminSession() {
  */
 export function useAuthRole() {
   const [role, setRole] = useState(null);
+  const [hasSession, setHasSession] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const syncRole = () => {
       setRole(getStoredRole());
+      setHasSession(hasStoredSession());
       setReady(true);
     };
 
@@ -53,6 +70,7 @@ export function useAuthRole() {
   return {
     role,
     ready,
+    hasSession,
     isAdmin: isAdminRole(role),
   };
 }

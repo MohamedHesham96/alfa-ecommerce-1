@@ -35,6 +35,8 @@
   "cat_remove_image": "إزالة الصورة",
   "save": "حفظ",
   "main_category": "القسم الرئيسية",
+  "parent_category": "القسم الأب",
+  "no_parent_category": "بدون قسم أب (قسم رئيسي)",
   "products_category": "منتج",
   "product": "المنتج",
   "product_category": "القسم",

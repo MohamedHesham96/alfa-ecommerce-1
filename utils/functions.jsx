@@ -11,6 +11,19 @@ export const getCategories = async () => {
   );
   return await response;
 };
+
+/**
+ * Full category list. While ENABLE_CATEGORIES_TREE is enabled the backend
+ * returns root categories with nested `children`, otherwise it returns the
+ * existing flat list. Callers can use the shared categoryTree helpers for both
+ * shapes without hardcoding the setting.
+ */
+export const getCategoryTree = async () => {
+  const response = await getRequest("/api/public/itemCategory/all");
+  const data = response?.data;
+  if (Array.isArray(data)) return data;
+  return data?.content || [];
+};
 export const getSliderImage = async () => {
   const response = await getRequest("/api/public/sliderImages");
   return await response.data;

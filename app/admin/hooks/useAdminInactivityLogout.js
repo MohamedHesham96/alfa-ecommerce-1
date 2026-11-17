@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { logoutRequest } from "../../../utils/requestsUtils";
+import {
+  buildSignInUrl,
+  getCurrentRelativeUrl,
+} from "../../../utils/authRedirect";
 
 const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 const WARNING_BEFORE_LOGOUT = 30 * 1000; // 30 seconds before logout
@@ -74,6 +78,7 @@ export function useAdminInactivityLogout(options = {}) {
       return;
     }
     isLoggingOutRef.current = true;
+    const returnUrl = getCurrentRelativeUrl();
     clearAllTimers();
     logoutDeadlineRef.current = null;
     setWarningVisible(false);
@@ -99,7 +104,7 @@ export function useAdminInactivityLogout(options = {}) {
       onLogoutRef.current();
     }
 
-    router.replace("/signin");
+    router.replace(buildSignInUrl(returnUrl));
   }, [clearAllTimers, router, setWarningVisible]);
 
   const scheduleLogoutAtDeadline = useCallback(

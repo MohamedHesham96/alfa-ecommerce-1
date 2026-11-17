@@ -7,6 +7,7 @@ import "swiper/css";
 import { useLanguage } from "../../../context/LanguageContext";
 import { getCategories, getThumbnailUrl } from "../../../utils/functions";
 import { categoryPath } from "../../../lib/seo";
+import CategoryTreeNav from "./CategoryTreeNav";
 
 export default function CategoriesSideMenu({
   category,
@@ -151,6 +152,10 @@ export default function CategoriesSideMenu({
                 );
               })}
             </Swiper>
+            <CategoryTreeNav
+              categories={categoriesList}
+              activeSlug={activeSlug}
+            />
           </div>
         )}
       </div>

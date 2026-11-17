@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../../context/LanguageContext";
 import { useFeature } from "../../../context/AppConfigContext";
-import { getCategories } from "../../../utils/functions";
+import { getCategories, getCategoryTree } from "../../../utils/functions";
 import { categoryPath } from "../../../lib/seo";
 import { useMenuOpen } from "../../../context/MenuOpenContext";
 import { useAuthRole } from "../../../utils/authRole";
@@ -35,28 +35,93 @@ const getCategoryIcon = (name) => {
   return <PiSquaresFour />;
 };
 
+function MobileCategoryNode({ item, depth = 0, locale, closeMenu }) {
+  const children = Array.isArray(item.children) ? item.children : [];
+  const name =
+    locale === "ar"
+      ? item.nameAr || item.nameEn
+      : item.nameEn || item.nameAr;
+
+  return (
+    <>
+      <Link
+        href={categoryPath(item)}
+        onClick={closeMenu}
+        className="flex items-center gap-3 border-b border-gray-200 hover:bg-gray-50"
+        style={{
+          paddingInlineStart: 16 + depth * 20,
+          paddingInlineEnd: 16,
+          minHeight: depth === 0 ? 56 : 46,
+        }}
+      >
+        <span
+          className={`shrink-0 text-gray-500 ${
+            depth === 0 ? "text-2xl" : "text-base"
+          }`}
+        >
+          {depth === 0 ? (
+            getCategoryIcon(item.nameEn)
+          ) : (
+            <span className="block h-1.5 w-1.5 rounded-full bg-gray-400" />
+          )}
+        </span>
+        <span
+          className={`text-gray-800 ${
+            depth === 0 ? "text-sm font-semibold" : "text-xs font-medium"
+          }`}
+        >
+          {name}
+        </span>
+      </Link>
+      {children.map((child) => (
+        <MobileCategoryNode
+          key={child.itemCategoryId || child.seoCode}
+          item={child}
+          depth={depth + 1}
+          locale={locale}
+          closeMenu={closeMenu}
+        />
+      ))}
+    </>
+  );
+}
+
 export default function Menu() {
   const { t, locale } = useLanguage();
   const { isMenuOpen, closeMenu } = useMenuOpen();
   const { canInstall, openInstallPrompt } = usePwa();
   const wishlistEnabled = useFeature("features.wishlist.enabled");
+  const categoriesTreeEnabled = useFeature("ENABLE_CATEGORIES_TREE");
   const { isAdmin } = useAuthRole();
   const [activeTab, setActiveTab] = useState("categories");
   const [categoriesList, setCategoriesList] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const categoriesLoaded = useRef(false);
+  const categoriesMode = useRef(categoriesTreeEnabled);
+
+  useEffect(() => {
+    if (categoriesMode.current === categoriesTreeEnabled) return;
+    categoriesMode.current = categoriesTreeEnabled;
+    categoriesLoaded.current = false;
+    setCategoriesList([]);
+  }, [categoriesTreeEnabled]);
 
   const getCategoriesList = useCallback(async () => {
     try {
       setCategoriesLoading(true);
-      const res = await getCategories();
-      setCategoriesList(res.data.content || []);
+      if (categoriesTreeEnabled) {
+        const tree = await getCategoryTree();
+        setCategoriesList(Array.isArray(tree) ? tree : []);
+      } else {
+        const res = await getCategories();
+        setCategoriesList(res.data.content || []);
+      }
     } catch (err) {
       console.error("Failed to get categories", err);
     } finally {
       setCategoriesLoading(false);
     }
-  }, []);
+  }, [categoriesTreeEnabled]);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -145,6 +210,15 @@ export default function Menu() {
                   key={`cat-skeleton-${i}`}
                   className="h-14 border-b border-gray-200 bg-gray-100 animate-pulse"
                 ></div>
+              ))
+            ) : categoriesTreeEnabled ? (
+              categoriesList.map((item) => (
+                <MobileCategoryNode
+                  key={item.itemCategoryId || item.seoCode}
+                  item={item}
+                  locale={locale}
+                  closeMenu={closeMenu}
+                />
               ))
             ) : (
               categoriesList.map((item) => (

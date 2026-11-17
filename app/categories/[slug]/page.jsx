@@ -20,6 +20,7 @@ import {
   productDisplayName,
   serializeJsonLd,
 } from "../../../lib/seo";
+import { findCategorySummary } from "../../../lib/categoryTree";
 
 export const revalidate = 300;
 export const dynamic = "force-dynamic";
@@ -56,10 +57,10 @@ export async function generateMetadata({ params, searchParams }) {
   const page = pageFromSearchParams(resolvedSearchParams);
   const category = await resolveCategory(decodedSlug);
   const categories = await loadCategories();
+  // The list is a tree while ENABLE_CATEGORIES_TREE is enabled and a flat list
+  // otherwise; lookup works for both shapes.
   const categoryWithCount =
-    categories.find(
-      (item) => item.itemCategoryId === category.itemCategoryId,
-    ) || category;
+    findCategorySummary(categories, category.itemCategoryId) || category;
   const products = await loadProducts(category.itemCategoryId, page);
   const productsPage = normalizePagePayload(products, 40);
   const itemsCount = Number(
@@ -87,9 +88,7 @@ export default async function CategoryPage({ params, searchParams }) {
   const category = await resolveCategory(decodedSlug);
   const categories = await loadCategories();
   const categoryWithCount =
-    categories.find(
-      (item) => item.itemCategoryId === category.itemCategoryId,
-    ) || category;
+    findCategorySummary(categories, category.itemCategoryId) || category;
 
   const products = await loadProducts(category.itemCategoryId, page);
   const productsPage = normalizePagePayload(products, 40);

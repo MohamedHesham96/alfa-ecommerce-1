@@ -1,4 +1,5 @@
 import React from "react";
+import axios from "axios";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ForgotPassword from "../app/components/ForgotPassword_form";
@@ -52,8 +53,14 @@ jest.mock("react-toastify", () => ({
   },
 }));
 
+const { toast } = require("react-toastify");
+
 jest.mock("sweetalert2", () => ({
   fire: jest.fn(),
+}));
+
+jest.mock("../lib/pwa/client", () => ({
+  clearUserScopedCaches: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock("axios", () => ({
@@ -238,5 +245,141 @@ describe("ResetPasswordForm (authenticated change)", () => {
 
     expect(putRequest).not.toHaveBeenCalled();
     expect(setIsFormOpen).toHaveBeenCalledWith(false);
+  });
+});
+
+describe("SignIn post-login destination", () => {
+  const adminSession = {
+    data: {
+      message: "ok",
+      accessToken: "admin-access",
+      refreshToken: "admin-refresh",
+      userDetails: {
+        userId: 1,
+        firstName: "Admin",
+        role: "ADMIN",
+        language: "en",
+        systemSettingsAccess: false,
+      },
+    },
+  };
+
+  const customerSession = {
+    data: {
+      message: "ok",
+      accessToken: "customer-access",
+      refreshToken: "customer-refresh",
+      userDetails: {
+        userId: 7,
+        firstName: "Customer",
+        role: "USER",
+        language: "en",
+        systemSettingsAccess: false,
+      },
+    },
+  };
+
+  const submitLogin = async () => {
+    const user = userEvent.setup();
+
+    render(<SignInForm popUp={false} />);
+    await user.type(screen.getByPlaceholderText("username"), "alfa-user");
+    await user.type(screen.getByPlaceholderText("password"), "secret123");
+    await user.click(screen.getByRole("button", { name: "login" }));
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    window.history.replaceState({}, "", "/signin");
+    axios.post.mockResolvedValue(adminSession);
+  });
+
+  it("returns to the exact requested order after a successful login", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/signin?returnUrl=%2Fadmin%2Forders%2FOrdersDetails%2F42%3Ftab%3Ditems%23timeline",
+    );
+
+    await submitLogin();
+
+    await waitFor(() =>
+      expect(mockReplace).toHaveBeenCalledWith(
+        "/admin/orders/OrdersDetails/42?tab=items#timeline",
+      ),
+    );
+    expect(mockReplace).not.toHaveBeenCalledWith("/admin/Dashboard");
+  });
+
+  it("keeps the existing admin destination when no return URL is present", async () => {
+    await submitLogin();
+
+    await waitFor(() =>
+      expect(mockReplace).toHaveBeenCalledWith("/admin/Dashboard"),
+    );
+  });
+
+  it("keeps the existing customer destination when no return URL is present", async () => {
+    axios.post.mockResolvedValue(customerSession);
+
+    await submitLogin();
+
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/"));
+  });
+
+  it("resumes the requested URL for a role that must be checked by the route guard", async () => {
+    axios.post.mockResolvedValue(customerSession);
+    window.history.replaceState(
+      {},
+      "",
+      "/signin?returnUrl=%2Fadmin%2Forders%2FOrdersDetails%2F42",
+    );
+
+    await submitLogin();
+
+    await waitFor(() =>
+      expect(mockReplace).toHaveBeenCalledWith(
+        "/admin/orders/OrdersDetails/42",
+      ),
+    );
+    // The admin route guard is responsible for showing Forbidden; the login
+    // form must not silently downgrade the user to a different page.
+    expect(mockReplace).not.toHaveBeenCalledWith("/");
+  });
+
+  it("ignores an external return URL and uses the safe default", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/signin?returnUrl=https%3A%2F%2Fevil.example%2Forder%2F42",
+    );
+
+    await submitLogin();
+
+    await waitFor(() =>
+      expect(mockReplace).toHaveBeenCalledWith("/admin/Dashboard"),
+    );
+  });
+
+  it("stays on the sign-in page and preserves the destination after a failed login", async () => {
+    axios.post.mockRejectedValue({
+      response: { data: { error: { message: "Invalid credentials" } } },
+    });
+    window.history.replaceState(
+      {},
+      "",
+      "/signin?returnUrl=%2Fuser%2Forderdetails%2F7",
+    );
+
+    await submitLogin();
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Invalid credentials"),
+    );
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(window.location.search).toContain(
+      "returnUrl=%2Fuser%2Forderdetails%2F7",
+    );
   });
 });

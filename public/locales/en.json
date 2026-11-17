@@ -35,6 +35,8 @@
   "cat_remove_image": "Remove Image",
   "save": "Save",
   "main_category": "Main Category",
+  "parent_category": "Parent Category",
+  "no_parent_category": "No parent (root category)",
   "products_category": "Products",
   "product": "PRODUCT",
   "product_category": "CATEGORY",

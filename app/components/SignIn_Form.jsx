@@ -14,6 +14,7 @@ import { reportApiFailure } from "../../utils/connectivityStore";
 import { resolveLanguage } from "../../utils/languageUtils";
 import { postRequest } from "../../utils/requestsUtils";
 import { clearUserScopedCaches } from "../../lib/pwa/client";
+import { getReturnUrlFromLocation } from "../../utils/authRedirect";
 
 export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm }) {
   const navigate = useRouter();
@@ -74,7 +75,13 @@ export default function SignIn({ popUp, setShowSignUp, setShowSignIn,setOpenForm
       // previously cached page/API data before navigating.
       await clearUserScopedCaches().catch(() => {});
 
-      if (response.data.userDetails.role === "ADMIN") {
+      // A protected page (for example an order link opened from an email)
+      // sends the user here with its full URL. Resume it before applying the
+      // normal role-based defaults. Route guards still enforce permissions.
+      const returnUrl = getReturnUrlFromLocation();
+      if (returnUrl) {
+        navigate.replace(returnUrl);
+      } else if (response.data.userDetails.role === "ADMIN") {
         navigate.replace("/admin/Dashboard");
       } else if (popUp) {
         router.refresh();

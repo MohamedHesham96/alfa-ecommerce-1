@@ -2,13 +2,18 @@
 import Image from "next/image";
 import { MdCancel } from "react-icons/md";
 import { IoCloudUploadSharp } from "react-icons/io5";
-import {useCallback, useEffect, useRef, useState } from "react";
+import {useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "../../../../context/LanguageContext.js";
+import { useFeature } from "../../../../context/AppConfigContext.jsx";
 import { postRequest, putRequest } from "../../../../utils/requestsUtils.js";
 import { getRequest } from "../../../../utils/requestsUtils.js";
 import { useIdContext } from "../../../../context/idContext";
 import { useRefresh } from "../../../../context/refreshContext.jsx";
 import { getThumbnailUrl } from "../../../../utils/functions.jsx";
+import {
+  collectDescendantIds,
+  flattenCategoryTree,
+} from "../../../../lib/categoryTree";
 
 export default function CategoryForm({ isFormOpen, setIsFormOpen }) {
   const [photo, setPhoto] = useState({
@@ -25,12 +30,45 @@ export default function CategoryForm({ isFormOpen, setIsFormOpen }) {
 
   const [nameEn, setNameEn] = useState("");
   const [nameAr, setNameAr] = useState("");
-  const { t } = useLanguage();
+  const [parentCategoryId, setParentCategoryId] = useState("");
+  const [originalParentCategoryId, setOriginalParentCategoryId] = useState(null);
+  const [parentOptions, setParentOptions] = useState([]);
+  const { t, locale } = useLanguage();
   const { triggerRefresh } = useRefresh();
   const [loading, setLoading] = useState();
+  const categoriesTreeEnabled = useFeature("ENABLE_CATEGORIES_TREE");
 
   const { selectedCategoryId, setSelectedCategoryId } = useIdContext();
   const isEditMode = selectedCategoryId !== null;
+
+  const loadParentOptions = useCallback(async () => {
+    if (!categoriesTreeEnabled) {
+      setParentOptions([]);
+      return;
+    }
+    try {
+      const res = await getRequest(
+        "/api/admin/itemCategory/getCategoryWithItemCounts",
+      );
+      const tree = Array.isArray(res.data) ? res.data : [];
+      setParentOptions(flattenCategoryTree(tree));
+    } catch {
+      setParentOptions([]);
+    }
+  }, [categoriesTreeEnabled]);
+
+  const blockedParentIds = useMemo(() => {
+    const blocked = new Set();
+    if (!isEditMode) return blocked;
+    blocked.add(selectedCategoryId);
+    const current = parentOptions.find(
+      (option) => option.category.itemCategoryId === selectedCategoryId,
+    );
+    if (current) {
+      collectDescendantIds(current.category).forEach((id) => blocked.add(id));
+    }
+    return blocked;
+  }, [isEditMode, parentOptions, selectedCategoryId]);
 
   const clearNewPhoto = useCallback(() => {
     if (photoObjectUrlRef.current) {
@@ -123,9 +161,15 @@ export default function CategoryForm({ isFormOpen, setIsFormOpen }) {
       formData.append("nameAr", nameAr);
       formData.append("imageFile", photo.imageFile);
       formData.append("iconFile", icon.iconFile);
+      if (categoriesTreeEnabled && parentCategoryId !== "") {
+        formData.append("parentCategoryId", parentCategoryId);
+      }
       await postRequest("/api/admin/itemCategory", formData, t("message"));
       triggerRefresh();
-      
+      if (categoriesTreeEnabled) {
+        await loadParentOptions();
+      }
+
       setSelectedCategoryId(null);
     } catch (error) {
     } finally {
@@ -144,7 +188,9 @@ export default function CategoryForm({ isFormOpen, setIsFormOpen }) {
         const resData = res.data
         setNameAr(resData.nameAr)
          setNameEn(resData.nameEn);
-         console.log(resData)
+        const parentId = resData.parentCategoryId ?? "";
+        setParentCategoryId(parentId);
+        setOriginalParentCategoryId(parentId === "" ? null : parentId);
         setPhoto((prev) => ({
           ...prev,
           imageFile: "",
@@ -162,6 +208,8 @@ export default function CategoryForm({ isFormOpen, setIsFormOpen }) {
         }));
       } else {
         (setNameAr(""), setNameEn(""));
+        setParentCategoryId("");
+        setOriginalParentCategoryId(null);
         clearNewPhoto();
         clearNewIcon();
       }
@@ -183,12 +231,24 @@ export default function CategoryForm({ isFormOpen, setIsFormOpen }) {
       if (icon.iconFile) {
         formData.append("iconFile", icon.iconFile);
       }
+      if (categoriesTreeEnabled) {
+        if (parentCategoryId !== "") {
+          formData.append("parentCategoryId", parentCategoryId);
+        } else if (originalParentCategoryId !== null) {
+          // An omitted parent field means "keep the current parent" for older
+          // clients. The explicit flag lets the admin detach this category.
+          formData.append("clearParent", "true");
+        }
+      }
       await putRequest(
         `/api/admin/itemCategory/${selectedCategoryId}`,
         formData,
         t("message"),
       );
       triggerRefresh();
+      if (categoriesTreeEnabled) {
+        await loadParentOptions();
+      }
       setSelectedCategoryId(null);
       setIsFormOpen(false);
     } catch (error) {
@@ -200,6 +260,11 @@ export default function CategoryForm({ isFormOpen, setIsFormOpen }) {
   useEffect(() => {
     CategoryData();
   }, [selectedCategoryId, CategoryData]);
+
+  useEffect(() => {
+    if (!isFormOpen || !categoriesTreeEnabled) return;
+    loadParentOptions();
+  }, [isFormOpen, categoriesTreeEnabled, loadParentOptions]);
 
   useEffect(() => {
     return () => {
@@ -273,6 +338,37 @@ export default function CategoryForm({ isFormOpen, setIsFormOpen }) {
                   onChange={(e) => setNameAr(e.target.value)}
                   className="w-full  outline-none text-gray-900 text-lg  p-1 border rounded-md"
                 />
+                {categoriesTreeEnabled ? (
+                  <>
+                    <label className="text-md text-gray-500">
+                      {t("parent_category")}
+                    </label>
+                    <select
+                      value={parentCategoryId}
+                      onChange={(e) => setParentCategoryId(e.target.value)}
+                      className="w-full outline-none text-gray-900 text-lg p-1 border rounded-md bg-white"
+                    >
+                      <option value="">{t("no_parent_category")}</option>
+                      {parentOptions.map(({ category, depth }) => {
+                        const optionId = category.itemCategoryId;
+                        const name =
+                          locale === "ar"
+                            ? category.nameAr || category.nameEn
+                            : category.nameEn || category.nameAr;
+                        return (
+                          <option
+                            key={optionId || category.seoCode}
+                            value={optionId}
+                            disabled={blockedParentIds.has(optionId)}
+                          >
+                            {"— ".repeat(depth)}
+                            {name}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </>
+                ) : null}
               </div>
             </div>
 <div className="w-full flex  items-center justify-between">
