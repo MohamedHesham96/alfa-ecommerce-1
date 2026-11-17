@@ -1,8 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import Select from "react-select";
-import { FaUserLarge } from "react-icons/fa6";
 
 import type { ReturnOrderRow } from "../types/api.types";
+import StatusBadge from "../components/ui/StatusBadge";
 
 interface ReturnColumnActions {
   t: (key: string) => string;
@@ -35,6 +35,14 @@ const RETURN_REASONS = [
   "OTHER",
 ];
 
+const RETURN_STATE_TONES: Record<string, string> = {
+  PENDING: "pending",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+  REFUNDED: "refunded",
+  CANCELLED: "cancelled",
+};
+
 export function formatReturnDate(value?: string | null) {
   if (!value) return "--";
   const date = new Date(value);
@@ -52,7 +60,7 @@ export function ReturnStateFilter({
   t: (key: string) => string;
 }) {
   return (
-    <div className="flex h-9 items-center justify-center rounded-md border bg-gray-100 px-3">
+    <div className="min-w-[170px]">
       <Select
         value={value ? { value, label: t(value) } : null}
         onChange={(option) => onChange(option?.value ?? "")}
@@ -66,48 +74,53 @@ export function ReturnStateFilter({
         placeholder={t("all_statuses")}
         isClearable
         isSearchable={false}
-        className="w-[200px] text-sm font-semibold"
+        className="text-sm font-semibold"
         styles={{
           control: (base) => ({
             ...base,
-            backgroundColor: "#f3f4f6",
-            border: "none",
-            borderRadius: "0.375rem",
-            minHeight: "36px",
+            backgroundColor: "#ffffff",
+            border: "1px solid #d3d9e5",
+            borderRadius: "10px",
+            minHeight: "40px",
             cursor: "pointer",
             boxShadow: "none",
+            "&:hover": { borderColor: "#c3cbd9" },
           }),
+          valueContainer: (base) => ({ ...base, paddingInline: "0.65rem" }),
           option: (base, state) => ({
             ...base,
             backgroundColor: state.isSelected
-              ? "#dc2626"
+              ? "#cf4356"
               : state.isFocused
-                ? "#fee2e2"
+                ? "#fbeff2"
                 : "#ffffff",
-            color: state.isSelected ? "#ffffff" : "#374151",
+            color: state.isSelected ? "#ffffff" : "#344054",
             cursor: "pointer",
-            fontSize: "14px",
+            fontSize: "13px",
           }),
           menu: (base) => ({
             ...base,
             backgroundColor: "#ffffff",
-            borderRadius: "0.375rem",
-            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+            borderRadius: "12px",
+            boxShadow: "0 20px 50px -20px rgba(15,23,42,0.35)",
             zIndex: 9999,
+            overflow: "hidden",
           }),
           placeholder: (base) => ({
             ...base,
-            color: "#374151",
-            fontSize: "14px",
+            color: "#667085",
+            fontSize: "13px",
             fontWeight: "600",
           }),
           singleValue: (base) => ({
             ...base,
-            color: "#374151",
-            fontSize: "14px",
+            color: "#344054",
+            fontSize: "13px",
             fontWeight: "600",
           }),
-          input: (base) => ({ ...base, color: "#374151" }),
+          input: (base) => ({ ...base, color: "#344054" }),
+          clearIndicator: (base) => ({ ...base, color: "#98a2b3" }),
+          dropdownIndicator: (base) => ({ ...base, color: "#98a2b3" }),
         }}
       />
     </div>
@@ -129,13 +142,17 @@ export function createReturnColumns({
         searchable: true,
         sortable: true,
         filterable: true,
-        headerClassName: "px-5",
-        cellClassName: "font-semibold text-red-500",
+        headerClassName: "",
+        cellClassName: "",
       },
       cell: ({ row }) => (
-        <span onClick={() => onOpen(row.original.returnOrderId)}>
+        <button
+          type="button"
+          className="text-sm font-bold text-[#b4233a] hover:underline"
+          onClick={() => onOpen(row.original.returnOrderId)}
+        >
           {row.original.code}
-        </span>
+        </button>
       ),
     },
     {
@@ -148,7 +165,7 @@ export function createReturnColumns({
         sortable: true,
         filterable: true,
         headerClassName: "",
-        cellClassName: "text-sm",
+        cellClassName: "text-sm text-[#667085]",
       },
       cell: ({ row }) => formatReturnDate(row.original.createdDate),
     },
@@ -167,22 +184,25 @@ export function createReturnColumns({
       cell: ({ row }) => {
         const order = row.original;
         return (
-          <div
-            className="flex items-center gap-3"
+          <button
+            type="button"
+            className="flex min-w-0 items-center gap-3 text-start"
             onClick={() => onOpen(order.returnOrderId)}
           >
-            <span className="my-2 flex h-[40px] w-[40px] items-center justify-center rounded-full border bg-gray-50 p-2 text-gray-600">
-              <FaUserLarge />
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-[10px] font-bold text-[#667085]">
+              {(order.user?.firstName?.[0] ?? "U").toUpperCase()}
             </span>
-            <div>
-              <h1 className="text-sm font-semibold">
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-[#101828]">
                 {(order.user?.firstName ?? "") +
                   " " +
                   (order.user?.lastName ?? "")}
-              </h1>
-              <h1 className="text-xs text-gray-500">{order.user?.email}</h1>
-            </div>
-          </div>
+              </span>
+              <span className="block truncate text-xs text-[#667085]">
+                {order.user?.email}
+              </span>
+            </span>
+          </button>
         );
       },
     },
@@ -196,12 +216,16 @@ export function createReturnColumns({
         sortable: true,
         filterable: true,
         headerClassName: "",
-        cellClassName: "text-sm",
+        cellClassName: "",
       },
-      cell: ({ row }) =>
-        `${Number(row.original.unitPrice ?? 0).toLocaleString("en-US")} ${t(
-          "currency",
-        )}`,
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-sm font-bold text-[#101828]">
+          {Number(row.original.unitPrice ?? 0).toLocaleString("en-US")}{" "}
+          <span className="text-xs font-medium text-[#667085]">
+            {t("currency")}
+          </span>
+        </span>
+      ),
     },
     {
       id: "reason",
@@ -216,12 +240,19 @@ export function createReturnColumns({
           value: reason,
           label: t(reason),
         })),
-        headerClassName: "px-5",
-        cellClassName: "text-xs font-semibold",
+        headerClassName: "",
+        cellClassName: "",
       },
       cell: ({ row }) => {
         const reason = t(row.original.reason);
-        return reason.length <= 30 ? reason : `${reason.slice(0, 30)} ...`;
+        return (
+          <span
+            className="block max-w-[220px] truncate text-xs font-medium text-[#475467]"
+            title={reason}
+          >
+            {reason.length <= 30 ? reason : `${reason.slice(0, 30)} ...`}
+          </span>
+        );
       },
     },
     {
@@ -238,28 +269,13 @@ export function createReturnColumns({
           label: t(state),
         })),
         headerClassName: "",
-        cellClassName: "text-xs font-semibold",
+        cellClassName: "",
       },
-      cell: ({ row }) => {
-        const state = row.original.state;
-        return (
-          <span
-            className={
-              state === "PROCESSING"
-                ? "text-blue-500"
-                : state === "SHIPPED"
-                  ? "text-yellow-500"
-                  : state === "PENDING"
-                    ? "text-orange-700"
-                    : state === "CANCELLED" || state === "REJECTED"
-                      ? "text-red-500"
-                      : "text-green-500"
-            }
-          >
-            {t(state)}
-          </span>
-        );
-      },
+      cell: ({ row }) => (
+        <StatusBadge tone={RETURN_STATE_TONES[row.original.state] ?? "neutral"}>
+          {t(row.original.state)}
+        </StatusBadge>
+      ),
     },
   ];
 }

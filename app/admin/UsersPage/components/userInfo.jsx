@@ -1,20 +1,31 @@
 "use client";
-import { IoLocationSharp } from "react-icons/io5";
-import { TbPointFilled } from "react-icons/tb";
-import { useLanguage } from "../../../../context/LanguageContext.js";
-import { useCallback, useEffect, useState } from "react";
-import { getRequest, postRequest } from "../../../../utils/requestsUtils";
-import { useIdContext } from "../../../../context/idContext";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { FaUserLarge } from "react-icons/fa6";
-import { MdEmail } from "react-icons/md";
-import { MdLocalPhone } from "react-icons/md";
-import { PiUserListFill } from "react-icons/pi";
-import { useParams } from "next/navigation";
 import { ImBlocked } from "react-icons/im";
-import { VscCircleFilled } from "react-icons/vsc";
+import { IoLocationSharp } from "react-icons/io5";
+import { MdEmail, MdLocalPhone } from "react-icons/md";
+import { PiUserListFill } from "react-icons/pi";
+import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
+
+import { useLanguage } from "../../../../context/LanguageContext.js";
+import { getRequest, postRequest } from "../../../../utils/requestsUtils";
 import UserOrders from "./userOrder";
+import AdminPageHeader from "../../components/ui/AdminPageHeader";
+import StatCard from "../../components/ui/StatCard";
+import StatusBadge from "../../components/ui/StatusBadge";
+
+const ORDER_STAT_TONES = {
+  PENDING: "amber",
+  PROCESSING: "blue",
+  SHIPPED: "purple",
+  DELIVERED: "green",
+};
+
 export default function UserInfo({ userId }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const isArabic = locale === "ar";
+  const BackIcon = isArabic ? FiArrowRight : FiArrowLeft;
 
   const [userInfo, setUserInfo] = useState({
     username: "",
@@ -32,13 +43,13 @@ export default function UserInfo({ userId }) {
     PENDING: 0,
     DELIVERED: 0,
     SHIPPED: 0,
-
   });
-const [totalOrders, setTotalOrders] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+
   const getUserInfo = async () => {
     const res = await getRequest(`/api/admin/users/${userId}`);
-    const resData = res.data
-    
+    const resData = res.data;
+
     setUserInfo((prev) => ({
       ...prev,
       username: resData.username,
@@ -51,15 +62,13 @@ const [totalOrders, setTotalOrders] = useState(0);
       address: resData.address,
       birthDate: resData.birthDate,
     }));
-     resData.ordersState.map((state) => {
+    resData.ordersState.map((state) => {
       setOrderState((prevState) => ({
         ...prevState,
         [state.state]: state.count,
       }));
-
-     });
-    
-   };
+    });
+  };
 
   const addBlock = async () => {
     await postRequest(`/api/admin/users/${userId}/block`);
@@ -69,205 +78,206 @@ const [totalOrders, setTotalOrders] = useState(0);
     await postRequest(`/api/admin/users/${userId}/unblock`);
     getUserInfo();
   };
+
   useEffect(() => {
     getUserInfo();
   }, []);
+
+  const fullName = `${userInfo.firstName ?? ""} ${userInfo.lastName ?? ""}`.trim();
+  const initials =
+    fullName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "U";
+
+  const orderCards = [
+    { key: "PENDING", label: t("pending_orders") },
+    { key: "PROCESSING", label: t("processing_orders") },
+    { key: "SHIPPED", label: t("shipped_orders") },
+    { key: "DELIVERED", label: t("delivered_orders") },
+  ];
+
   return (
-    <div className="w-full h-full">
-      <div className="flex items-center gap-4 bg-white rounded-lg border p-5">
-        <span className="w-[50px] h-[50px] text-gray-600 my-2  bg-gray-50 flex justify-center items-center p-2 rounded-full border ">
-          <FaUserLarge />
-        </span>
-        <div>
-          <h1 className="text-lg font-semibold mb-2">
-            {userInfo.firstName + " " + userInfo.lastName}
-          </h1>
-          <div className="flex md:flex-row xs:flex-col items-start gap-3 text-sm  text-gray-600">
-            <div className="flex gap-3">
-              <h1 className="flex items-center">
-                ID: #{userId}
-                <TbPointFilled className="text-xs text-gray-200" />
-              </h1>
-              <h1 className="flex items-center">
-                <IoLocationSharp />
-                Egypt <TbPointFilled className="text-xs text-gray-200" />
-              </h1>
-            </div>
-            <div className="flex  gap-3">
-              <div
-                className={`${
-                  userInfo.active === true
-                    ? "text-green-600 bg-green-50"
-                    : "text-red-600 bg-gray-100"
-                }  flex px-3 gap-2 rounded-2xl items-center justify-center`}
-              >
-                <span
-                  className={`flex items-center justify-center ${
-                    userInfo.active === true ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  <VscCircleFilled />
-                </span>
-                <h1>{userInfo.active === true ? "Active" : "Deactive"}</h1>
-              </div>
+    <div className="admin-page">
+      <AdminPageHeader
+        eyebrow={t("nav_customers")}
+        title={t("page_account_title")}
+        description={t("users_description")}
+        actions={
+          <Link href="/admin/UsersPage/Users" className="admin-btn admin-btn-secondary admin-btn-sm">
+            <BackIcon className="text-sm" />
+            {t("users_management")}
+          </Link>
+        }
+      />
 
-              <div
-                className={`${
-                  userInfo.blocked === false
-                    ? "text-gray-600 bg-gray-100  hover:bg-red-100 hover:text-red-600"
-                    : "text-red-600 bg-red-50  hover:bg-gray-100"
-                }  flex px-3 gap-2 rounded-2xl items-center justify-center`}
-              >
-                <span
-                // className={` ${
-                //   userInfo.blocked === false
-                //     ? "text-gray-600"
-                //     : "text-red-600"
-                // }`}
-                >
-                  <ImBlocked />
+      <section className="admin-card overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+          <div className="flex min-w-0 items-center gap-4">
+            <span className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-[#163b5f] text-lg font-bold text-white shadow-sm">
+              {initials || <FaUserLarge />}
+            </span>
+            <div className="min-w-0">
+              <h2 className="truncate text-xl font-bold tracking-tight text-[#101828]">
+                {fullName || t("user")}
+              </h2>
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#667085]">
+                <span className="inline-flex items-center gap-1">
+                  {t("username")}: {userInfo.username || "--"}
                 </span>
-                <button
-                  // className={`${
-                  //   userInfo.blocked === false
-                  //     ? "text-gray-600 bg-gray-100 "
-                  //     : "text-red-600 bg-red-50 "
-                  // }   rounded-2xl`}
-                  onClick={() => {
-                    if (userInfo.blocked === false) {
-                      addBlock();
-                    } else {
-                      removeBlock();
-                    }
-                  }}
-                >
-                  {userInfo.blocked === false ? "Unblocked" : "Blocked"}
-                </button>
+                <span className="inline-flex items-center gap-1">
+                  <IoLocationSharp className="text-xs" />
+                  {isArabic ? "مصر" : "Egypt"}
+                </span>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      <div className="grid xl:grid-cols-5 md:grid-cols-3 xs:grid-cols-2 gap-7 mt-3">
-        <div className="bg-white border flex flex-col gap-5 rounded-lg p-5">
-          <div className="flex items-center  gap-2">
-            <span className="text-lg text-red-600 bg-red-100 p-1 rounded-md"></span>
-            <h1 className="text-base  text-gray-500 font-semibold">
-              {t("total_orders")}
-            </h1>
-          </div>
-          <h1 className="text-xl font-bold text-gray-700 bg-gray-100  w-[50px] rounded-xl px-2">
-            {totalOrders}
-          </h1>
-        </div>
 
-        <div className="bg-white border flex flex-col gap-5 rounded-lg p-5">
-          <div className="flex items-center  gap-2">
-            <span className="text-lg text-red-600 bg-red-100 p-1 rounded-md"></span>
-            <h1 className="text-base text-gray-500 font-semibold">
-              {t("pending_orders")}
-            </h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge tone={userInfo.active === true ? "success" : "neutral"}>
+              {userInfo.active === true ? t("active") : t("inactive")}
+            </StatusBadge>
+            <button
+              type="button"
+              className={`admin-btn admin-btn-sm ${
+                userInfo.blocked === false
+                  ? "admin-btn-danger"
+                  : "admin-btn-secondary"
+              }`}
+              onClick={() => {
+                if (userInfo.blocked === false) {
+                  addBlock();
+                } else {
+                  removeBlock();
+                }
+              }}
+            >
+              <ImBlocked className="text-sm" />
+              {userInfo.blocked === false ? t("inactive") : t("active")}
+            </button>
           </div>
-          <h1 className="text-xl font-bold text-red-700 bg-red-100  w-[50px] rounded-xl px-2">
-            {orderState.PENDING}
-          </h1>
         </div>
-        <div className="bg-white border flex flex-col gap-5 rounded-lg p-5">
-          <div className="flex items-center  gap-2">
-            <span className="text-lg text-red-600 bg-red-100 p-1 rounded-md"></span>
-            <h1 className="text-base text-gray-500 font-semibold">
-              {t("processing_orders")}
-            </h1>
+        <div className="grid gap-4 border-t border-[#eef1f6] bg-[#fbfcfe] p-5 md:grid-cols-3">
+          <div className="flex items-center gap-3">
+            <span className="admin-stat-icon !h-9 !w-9 admin-tone-rose">
+              <MdEmail />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs text-[#667085]">{t("email")}</p>
+              <p className="truncate text-sm font-semibold text-[#101828]">
+                {userInfo.email || "--"}
+              </p>
+            </div>
           </div>
-          <h1 className="text-xl font-bold text-blue-700 bg-blue-100  w-[50px] rounded-xl px-2">
-            {orderState.PROCESSING}
-          </h1>
+          <div className="flex items-center gap-3">
+            <span className="admin-stat-icon !h-9 !w-9 admin-tone-blue">
+              <MdLocalPhone />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs text-[#667085]">{t("phoneNumber")}</p>
+              <p className="truncate text-sm font-semibold text-[#101828]" dir="ltr">
+                {userInfo.phone || "--"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="admin-stat-icon !h-9 !w-9 admin-tone-gray">
+              <PiUserListFill />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs text-[#667085]">ID</p>
+              <p className="truncate text-sm font-semibold text-[#101828]">
+                #{userId}
+              </p>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div className="bg-white border flex flex-col gap-5 rounded-lg p-5">
-          <div className="flex items-center  gap-2">
-            <span className="text-lg text-red-600 bg-red-100 p-1 rounded-md"></span>
-            <h1 className="text-base text-gray-500 font-semibold">
-              {t("shipped_orders")}
-            </h1>
-          </div>
-          <h1 className="text-xl font-bold text-yellow-700 bg-yellow-100  w-[50px] rounded-xl px-2">
-            {orderState.SHIPPED}
-          </h1>
-        </div>
-        <div className="bg-white border flex flex-col gap-5 rounded-lg p-5">
-          <div className="flex items-center  gap-2">
-            <span className="text-lg text-red-600 bg-red-100 p-1 rounded-md"></span>
-            <h1 className="text-base  text-gray-500 font-semibold">
-              {t("delivered_orders")}
-            </h1>
-          </div>
-          <h1 className="text-xl font-bold text-green-700 bg-green-100  w-[50px] rounded-xl px-2">
-            {orderState.DELIVERED}
-          </h1>
-        </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        <StatCard
+          label={t("total_orders")}
+          value={totalOrders}
+          icon={<PiUserListFill />}
+          tone="rose"
+        />
+        {orderCards.map((card) => (
+          <StatCard
+            key={card.key}
+            label={card.label}
+            value={orderState[card.key] ?? 0}
+            icon={<PiUserListFill />}
+            tone={ORDER_STAT_TONES[card.key]}
+          />
+        ))}
       </div>
 
-      <div className="flex xl:flex-row xs:flex-col items-start  justify-between my-7  gap-5">
-        <div className="md:order-1 w-full   xs:order-2">
-          <UserOrders userId={userId} />
-        </div>
-        <div className="md:order-2 xs:order-1 xs:w-full h-[400px] md:w-[50%] bg-white">
-          <div className="  bg-white p-7  border rounded-lg">
-            <div className="flex justify-between items-center ">
-              <h1 className="text-lg font-semibold">{t("user_info")}</h1>
-              {/* <button className={`text-red-700`}>{t("view_profile")}</button> */}
-            </div>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <section className="admin-card min-w-0 overflow-hidden">
+          <div className="admin-card-header">
             <div>
-              <div className="flex gap-5 mt-5 items-center">
-                <span className="text-2xl text-red-500 bg-gray-100 p-2 rounded-md">
-                  <PiUserListFill />
-                </span>
-
-                <div>
-                  <h1 className="font-semibold">
-                    {userInfo.firstName + " " + userInfo.lastName}
-                  </h1>
-                  {/* <h2 className="text-sm text-gray-500">B.D birthDate</h2> */}
-                </div>
-              </div>
-              <div className="flex gap-5 mt-5 items-center">
-                <span className="text-2xl text-red-500 bg-gray-100 p-2 rounded-md">
-                  <MdEmail />
-                </span>
-                <div>
-                  {/* <h1 className="font-semibold text-gray-500">
-                {t("Email Address")}
-              </h1> */}
-                  <h2 className=" font-semibold">{userInfo.email}</h2>
-                </div>
-              </div>
-              <div className="flex gap-5 mt-5 items-center">
-                <span className="text-2xl text-red-500 bg-gray-100 p-2 rounded-md">
-                  <MdLocalPhone />
-                </span>
-
-                <div>
-                  {/* <h1 className="font-semibold text-gray-500">
-                {t("Phone Number")}
-              </h1> */}
-                  <h2 className="font-semibold">{userInfo.phone}</h2>
-                </div>
-              </div>
-            </div>
-            <hr className="my-10" />
-            <div>
-              <div>
-                <h1 className="font-semibold text-lg">
-                  {t("Shipping Address")}
-                </h1>
-                <h2 className="texxt-sm text-gray-500 mt-5">
-                  {userInfo.address}
-                </h2>
-              </div>
+              <h2 className="admin-card-title">{t("order_activity")}</h2>
+              <p className="admin-card-description">
+                {t("recent_orders_description")}
+              </p>
             </div>
           </div>
-        </div>
+          <div className="p-3 sm:p-4">
+            <UserOrders userId={userId} />
+          </div>
+        </section>
+
+        <section className="admin-card h-fit overflow-hidden">
+          <div className="admin-card-header">
+            <h2 className="admin-card-title">{t("customer_details")}</h2>
+          </div>
+          <div className="space-y-4 p-5">
+            <div className="flex items-start gap-3">
+              <span className="admin-stat-icon !h-9 !w-9 admin-tone-rose">
+                <PiUserListFill />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-[#667085]">{t("user_info")}</p>
+                <p className="text-sm font-semibold text-[#101828]">
+                  {fullName || "--"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="admin-stat-icon !h-9 !w-9 admin-tone-blue">
+                <MdEmail />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-[#667085]">{t("email")}</p>
+                <p className="break-all text-sm font-semibold text-[#101828]">
+                  {userInfo.email || "--"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="admin-stat-icon !h-9 !w-9 admin-tone-green">
+                <MdLocalPhone />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-[#667085]">{t("phoneNumber")}</p>
+                <p className="text-sm font-semibold text-[#101828]" dir="ltr">
+                  {userInfo.phone || "--"}
+                </p>
+              </div>
+            </div>
+            <div className="border-t border-[#eef1f6] pt-4">
+              <p className="text-xs font-semibold text-[#667085]">
+                {t("Shipping Address")}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-[#344054]">
+                {userInfo.address || "--"}
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

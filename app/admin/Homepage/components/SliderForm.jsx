@@ -311,53 +311,55 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
     return (
         <div
             id="add-slider-form"
-            className={`fixed inset-0 bg-black/40 flex items-center justify-center z-50 ${isFormOpen ? "flex" : "hidden"}`}
+            className={`admin-modal-overlay ${isFormOpen ? "flex" : "hidden"}`}
         >
             {loading && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <Image
-                        src="/Images/logo.png"
-                        alt=""
-                        className="w-[100px] h-[100px]  border-t-transparent rounded-full animate-pulse"
-                        width={100}
-                        height={100}
-                        priority
-                    />
+                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+                        <span className="admin-spinner !h-7 !w-7" />
+                        <p className="text-sm font-semibold text-[#475467]">
+                            {t("loading")}
+                        </p>
+                    </div>
                 </div>
             )}
-            <div className="bg-white shadow-md shadow-slate-400 min-h-[450px] h-auto w-[95%] max-w-[500px] flex flex-col border rounded-md max-h-[90vh] overflow-y-auto">
-                <div className="m-4 flex justify-between items-center">
-                    <h1 id="nameFormCategory" className="text-lg font-semibold">
+            <div className="admin-modal max-w-[520px]">
+                <div className="admin-modal-header">
+                    <h1 id="nameFormCategory" className="admin-modal-title">
                         {isUpdateMode ? t("edit_slider") : t("add_slider")}
                     </h1>
                     <button
-                        className="text-3xl text-red-950  hover:text-red-800"
+                        type="button"
+                        className="admin-modal-close"
                         onClick={() => {
                             setIsFormOpen(false);
                             resetForm();
                         }}
+                        aria-label={t("close")}
                     >
-                        <MdCancel />
+                        <MdCancel className="text-xl" />
                     </button>
                 </div>
-                <hr className="h-1 mb-3"></hr>
-                <div className="flex justify-center items-center ">
+                <div className="admin-modal-body">
                     <form
-                        className=" md:w-[60%] xs:w-[80%] "
+                        className="w-full"
                         onSubmit={(e) => {
                             e.preventDefault();
                             handleSubmit();
                         }}
                     >
-                        <label htmlFor="fileInput" className="cursor-pointer ">
-                            <div className="flex flex-col items-center relative h-[150px] justify-center p-3 border-2 border-dashed border-red-300 rounded-lg hover:bg-gray-50">
+                        <label htmlFor="fileInput" className="cursor-pointer">
+                            <div className="relative flex h-[170px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#d3d9e5] bg-[#f8fafc] p-4 text-center transition-colors hover:border-[#cf4356] hover:bg-[#fdf7f8]">
                                 {!photo.image ? (
-                                    <div className="flex flex-col justify-center items-center">
-                                        <span className="text-4xl text-red-600">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg text-[#cf4356] shadow-sm">
                                             <IoCloudUploadSharp />
                                         </span>
-                                        <span className="text-sm ">
+                                        <span className="text-sm font-semibold text-[#344054]">
                                             {t("add-photo")}
+                                        </span>
+                                        <span className="text-[10px] text-[#98a2b3]">
+                                            PNG, JPG or GIF
                                         </span>
                                     </div>
                                 ) : (
@@ -391,10 +393,10 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
                         <div className="mt-4">
                             <div className="flex flex-col gap-2 ">
 
-                                <label className="text-md ">
+                                <label className="admin-label">
                                     {t("choose_product")}
                                 </label>
-                                <div className="border rounded-lg border-red-300 px-1 ">
+                                <div className="rounded-xl border border-[#d3d9e5] px-1 focus-within:border-[#cf4356]">
 
                                 <Select
                                     options={options}
@@ -476,16 +478,25 @@ export default function SliderForm({ isFormOpen, setIsFormOpen, sliderData = nul
 
 
 
-                        <div className="flex justify-center items-center">
+                        <div className="mt-5 flex justify-end gap-2">
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn-secondary"
+                                onClick={() => {
+                                    setIsFormOpen(false);
+                                    resetForm();
+                                }}
+                            >
+                                {t("cancel")}
+                            </button>
                             <button
                                 type="submit"
                                 id="btn-saveCategory"
                                 disabled={loading}
-                                className={`bg-red-600 py-2 px-3 text-white mt-7  hover:bg-red-800 rounded-lg disabled:opacity-60 disabled:cursor-not-allowed`}
+                                className="admin-btn admin-btn-primary"
                             >
                                 {t("save")}
                             </button>
-
                         </div>
                     </form>
                 </div>

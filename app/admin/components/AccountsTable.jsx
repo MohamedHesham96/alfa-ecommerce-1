@@ -1,8 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { FaCircle, FaPlus } from "react-icons/fa";
-import { FaUserLarge } from "react-icons/fa6";
+import { FaPlus } from "react-icons/fa";
 import { ImBlocked } from "react-icons/im";
 
 import { useLanguage } from "../../../context/LanguageContext.js";
@@ -15,8 +14,22 @@ import {
   createAccountColumns,
   formatAccountDate,
 } from "../config/accountsTable.config";
+import StatusBadge from "./ui/StatusBadge";
 
 const PAGE_SIZE = 15;
+
+function initials(name) {
+  const parts = String(name || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "U";
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
 
 export default function AccountsTable({ mode, setIsFormOpen }) {
   const { t } = useLanguage();
@@ -83,96 +96,69 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
   }, [tableState.setItems]);
 
   const renderMobileCard = (user) => {
-    if (mode === "admin") {
-      return (
-        <div
-          className="mx-2 my-3 cursor-pointer rounded-xl border-b bg-white p-3 hover:bg-gray-50"
-          onClick={() => openAccount(user.userId)}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="truncate text-sm font-semibold">
-                {user.firstName + " " + user.lastName}
-              </h1>
-              <h1 className="truncate text-xs text-gray-400">{user.email}</h1>
-            </div>
-            <div className="flex shrink-0 items-center gap-4">
-              <span
-                className={`flex items-center justify-center text-sm ${
-                  user.active ? "text-green-600" : "text-gray-600"
-                }`}
-              >
-                <FaCircle />
-              </span>
-              <button
-                type="button"
-                className={`flex items-center justify-center text-base ${
-                  user.blocked ? "text-red-600" : "text-gray-600"
-                }`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  toggleBlocked(user.userId, !user.blocked);
-                }}
-              >
-                <ImBlocked />
-              </button>
-            </div>
-          </div>
-          <div className="mt-3 truncate border-t pt-3 text-xs text-gray-500">
-            {t("username")} : {user.username}
-          </div>
-          <div className="mt-2 text-xs text-gray-500">
-            {t("last_login")} : {formatAccountDate(user.lastLoginDate)}
-          </div>
-        </div>
-      );
-    }
-
+    const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
     return (
       <div
-        className="mx-2 my-3 cursor-pointer rounded-xl border-b bg-white p-3 hover:bg-gray-50"
+        className="admin-mobile-card cursor-pointer"
         onClick={() => openAccount(user.userId)}
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold">
-              {user.firstName + " " + user.lastName}
-            </h1>
-            <h1 className="truncate text-xs text-gray-400">{user.username}</h1>
-          </div>
-          <div className="flex shrink-0 items-center gap-4">
-            <span
-              className={`flex items-center justify-center text-sm ${
-                user.active ? "text-green-600" : "text-gray-600"
-              }`}
-            >
-              <FaCircle />
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-xs font-bold text-[#475467]">
+              {initials(fullName)}
             </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-[#101828]">
+                {fullName}
+              </p>
+              <p className="truncate text-xs text-[#667085]">
+                {mode === "admin" ? user.email : user.username}
+              </p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <StatusBadge tone={user.active ? "success" : "neutral"}>
+              {user.active ? t("active") : t("inactive")}
+            </StatusBadge>
             <button
               type="button"
-              className={`flex items-center justify-center text-base ${
-                user.blocked ? "text-red-600" : "text-gray-600"
+              className={`admin-action-icon ${
+                user.blocked ? "!text-[#b4233a]" : ""
               }`}
               onClick={(event) => {
                 event.stopPropagation();
                 toggleBlocked(user.userId, !user.blocked);
               }}
+              aria-label={user.blocked ? t("activate") : t("deactivate")}
             >
               <ImBlocked />
             </button>
           </div>
         </div>
-        <div className="mt-3 truncate border-t pt-3 text-xs text-gray-500">
-          {user.email}
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#eef1f6] pt-3 text-xs text-[#667085]">
+          <span className="truncate">
+            {mode === "admin"
+              ? `${t("username")}: ${user.username}`
+              : user.email}
+          </span>
+          <span>
+            {mode === "admin"
+              ? `${t("last_login")}: ${formatAccountDate(user.lastLoginDate)}`
+              : `${t("registered-on")}: ${formatAccountDate(user.registrationDate)}`}
+          </span>
         </div>
-        <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
-          <div className="text-xs text-gray-500">
-            {t("registered-on")} : {formatAccountDate(user.registrationDate)}
+
+        {mode !== "admin" ? (
+          <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#eef1f6] pt-3">
+            <span className="text-xs text-[#667085]">
+              {t("order_activity")}
+            </span>
+            <span className="rounded-full border border-[#e4e8f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#344054]">
+              {user.ordersCount ?? 0} {t("orders")}
+            </span>
           </div>
-          <div className="shrink-0 rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-            {user.ordersCount ?? 0} {t("orders")}
-          </div>
-        </div>
+        ) : null}
       </div>
     );
   };
@@ -182,21 +168,18 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
       table={tableState.table}
       searchValue={tableState.globalFilter}
       onSearchChange={tableState.setGlobalFilter}
-      className={mode === "admin" ? "!p-4" : "!p-3"}
       actions={
         mode === "admin" ? (
           <button
             type="button"
-            className="flex items-center justify-center gap-2 rounded-md bg-red-500 p-2 text-center text-white xs:text-xs md:text-sm"
+            className="admin-btn admin-btn-primary"
             onClick={() => {
               setIsFormOpen?.(true);
               setSelectedAdminId(null);
             }}
           >
-            <span className="text-xs">
-              <FaPlus />
-            </span>
-            <h1>{t("add_admin")}</h1>
+            <FaPlus className="text-xs" />
+            {t("add_admin")}
           </button>
         ) : null
       }
@@ -215,21 +198,9 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
         onRetry={tableState.reload}
         toolbar={toolbar}
         mobileCard={renderMobileCard}
-        mobileWrapperClassName={
-          mode === "admin"
-            ? "lg:hidden mt-3 h-[600px] w-full overflow-y-auto rounded-xl border"
-            : "lg:hidden mt-3 h-[600px] w-full overflow-x-scroll overflow-y-scroll rounded-xl border"
-        }
-        desktopWrapperClassName={
-          mode === "admin"
-            ? "hidden lg:block max-h-[570px] min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
-            : "hidden lg:block h-[520px] mt-3 w-full overflow-y-scroll"
-        }
-        tableClassName={
-          mode === "admin" ? "h-auto w-full" : "h-auto w-full border"
-        }
-        headerClassName="bg-[#f0eff0] text-xs text-justify sticky top-0 z-10"
-        rowClassName="text-red-950 border hover:bg-gray-50 cursor-pointer"
+        mobileWrapperClassName="lg:hidden mt-3"
+        desktopWrapperClassName="admin-table-shell hidden lg:block max-h-[600px] min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
+        tableClassName="admin-table"
         emptyMessage={t("no_data")}
       />
     </div>

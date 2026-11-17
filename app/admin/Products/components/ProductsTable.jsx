@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { FaCircle, FaPlus } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
 import { GoStarFill } from "react-icons/go";
 import { IoCheckmarkCircleOutline } from "react-icons/io5";
 import { MdBlock, MdDelete } from "react-icons/md";
@@ -154,7 +154,7 @@ export default function ProductsTable({
     const imageUrl = product.images?.[0]?.imageUrl;
     return (
       <div
-        className="mb-3 cursor-pointer rounded-xl border bg-white p-3 hover:bg-gray-100"
+        className="admin-mobile-card cursor-pointer"
         onClick={() => openForm(product.itemId)}
       >
         <div className="flex items-start justify-between gap-3">
@@ -167,83 +167,97 @@ export default function ProductsTable({
                 )}`}
                 width={50}
                 height={50}
-                className="my-1 h-14 w-14 rounded-xl border p-1"
+                className="h-12 w-12 rounded-xl border border-[#e4e8f0] bg-white object-cover p-0.5"
               />
             ) : (
-              <div className="my-1 flex h-14 w-14 items-center justify-center rounded-xl border bg-gray-100 text-[10px] text-gray-400">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#e4e8f0] bg-[#f8fafc] text-[10px] text-[#98a2b3]">
                 {t("no_image")}
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="truncate text-sm font-semibold">
+              <p className="truncate text-sm font-semibold text-[#101828]">
                 {productName(product)}
-              </h1>
-              <h1 className="truncate text-xs text-gray-500">
-                {t("code")} : {product.code}
-              </h1>
+              </p>
+              <p className="truncate text-xs text-[#667085]">
+                {t("code")}: {product.code}
+              </p>
             </div>
           </div>
           <button
             type="button"
-            className={`flex shrink-0 items-center justify-center text-lg ${
-              product.favorite ? "text-yellow-500" : "text-gray-500"
+            aria-label={t("featured-product")}
+            className={`admin-action-icon shrink-0 ${
+              product.favorite
+                ? "!text-[#d97706] hover:!bg-[#fdf6e7]"
+                : "!text-[#98a2b3]"
             }`}
             onClick={async (event) => {
               event.stopPropagation();
               await productFavorite(product.itemId, !product.favorite);
             }}
           >
-            <GoStarFill />
+            <GoStarFill className="text-lg" />
           </button>
         </div>
-        <div className="mt-3 border-t pt-3 text-xs text-gray-500">
-          {locale === "ar"
-            ? product.itemCategory?.nameAr
-            : product.itemCategory?.nameEn}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#eef1f6] pt-3 text-xs text-[#667085]">
+          <span className="inline-flex items-center rounded-lg border border-[#e4e8f0] bg-[#f8fafc] px-2 py-1 font-semibold text-[#475467]">
+            {locale === "ar"
+              ? product.itemCategory?.nameAr
+              : product.itemCategory?.nameEn}
+          </span>
+          <span className="text-base font-bold text-[#101828]">
+            {Number(product.price).toLocaleString("en-US")}{" "}
+            <span className="text-xs font-medium text-[#667085]">
+              {t("currency")}
+            </span>
+          </span>
         </div>
-        <div className="mt-2 flex items-end justify-between gap-3">
-          <div className="min-w-0 text-base font-bold">
-            {Number(product.price).toLocaleString("en-US")} {t("currency")}
-          </div>
-        </div>
-        <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
-          <div className="flex items-center gap-3">
+        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#eef1f6] pt-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              className={`flex items-center justify-center text-base ${
-                product.active ? "text-green-600" : "text-gray-600"
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                product.active
+                  ? "border-[#bfe8d7] bg-[#e7f7f0] text-[#087443]"
+                  : "border-[#e4e8f0] bg-[#f8fafc] text-[#667085]"
               }`}
               onClick={(event) => {
                 event.stopPropagation();
                 productActive(product.itemId, !product.active);
               }}
             >
-              <FaCircle />
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  product.active ? "bg-[#0e8a5f]" : "bg-[#98a2b3]"
+                }`}
+              />
+              {product.active ? t("active") : t("inactive")}
             </button>
             <button
               type="button"
-              className="flex items-center justify-center text-lg"
+              aria-label={product.available ? t("available_in_store") : t("Currently_unavailable")}
+              className="admin-action-icon"
               onClick={(event) => {
                 event.stopPropagation();
                 productAvailable(product.itemId, !product.available);
               }}
             >
               {product.available ? (
-                <IoCheckmarkCircleOutline className="text-green-500" />
+                <IoCheckmarkCircleOutline className="text-lg text-[#0e8a5f]" />
               ) : (
-                <MdBlock className="text-red-500" />
+                <MdBlock className="text-[#c2415a]" />
               )}
             </button>
           </div>
           <button
             type="button"
-            className="flex items-center gap-1 rounded-md bg-red-300 px-2 py-1 text-sm font-semibold text-red-800 hover:bg-red-400"
+            className="admin-action-delete"
             onClick={(event) => {
               event.stopPropagation();
               deleteProduct(product);
             }}
           >
-            <MdDelete />
+            <MdDelete className="text-sm" />
             {t("delete")}
           </button>
         </div>
@@ -256,21 +270,18 @@ export default function ProductsTable({
       table={tableState.table}
       searchValue={tableState.globalFilter}
       onSearchChange={tableState.setGlobalFilter}
-      className="!p-3 xs:gap-4"
       actions={
         <button
           type="button"
-          className="flex items-center justify-center gap-2 rounded-md bg-[#E76E7D] p-2 text-center text-white xs:text-xs md:text-sm"
+          className="admin-btn admin-btn-primary"
           onClick={() => {
             setIsFormOpen(true);
             setSelectedProductId(null);
             setIsEditMode(false);
           }}
         >
-          <span className="text-base">
-            <FaPlus />
-          </span>
-          <h1 className="xs:hidden md:block">{t("add_new_product")}</h1>
+          <FaPlus className="text-xs" />
+          <span className="hidden sm:inline">{t("add_new_product")}</span>
         </button>
       }
     />
@@ -280,8 +291,8 @@ export default function ProductsTable({
     <div
       className={
         fillContainer
-          ? "flex h-full min-h-0 w-full flex-col p-5"
-          : "w-full p-5"
+          ? "flex h-full min-h-0 w-full flex-col"
+          : "w-full"
       }
     >
       <DataTable
@@ -297,17 +308,16 @@ export default function ProductsTable({
         className={fillContainer ? "flex h-full min-h-0 w-full flex-col" : ""}
         mobileWrapperClassName={
           fillContainer
-            ? "lg:hidden flex-1 min-h-0 mt-3 border p-3 rounded-3xl overflow-y-auto min-w-0"
-            : "lg:hidden h-[600px] mt-3 border p-3 rounded-3xl overflow-y-auto min-w-0"
+            ? "lg:hidden flex-1 min-h-0 mt-3 p-3 overflow-y-auto min-w-0 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc]"
+            : "lg:hidden max-h-[600px] mt-3 p-3 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc] overflow-y-auto min-w-0"
         }
         desktopWrapperClassName={
           fillContainer
-            ? "hidden lg:block flex-1 min-h-0 min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
-            : "hidden lg:block max-h-[520px] min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
+            ? "admin-table-shell hidden lg:block flex-1 min-h-0 min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
+            : "admin-table-shell hidden lg:block max-h-[560px] min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
         }
-        tableClassName="w-full h-auto border rounded-3xl"
-        headerClassName="bg-[#ececec] text-xs text-justify sticky top-0 z-10"
-        rowClassName="border hover:bg-gray-100 hover:bg-opacity-40 cursor-pointer"
+        tableClassName="admin-table"
+        rowClassName="cursor-pointer"
         emptyMessage={t("no_data")}
       />
     </div>

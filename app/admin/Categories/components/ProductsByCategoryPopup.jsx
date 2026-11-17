@@ -27,29 +27,29 @@ export default function ProductsByCategoryPopup({
       role="dialog"
       aria-modal="true"
       aria-label={categoryName}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="admin-modal-overlay"
     >
       {/* The panel keeps one full size for every category, regardless of how
           many product rows the selected category has. */}
-      <div className="flex h-[85vh] w-[90%] flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-        <div className="flex shrink-0 items-center justify-between gap-4 border-b px-4 py-2">
-          <h2 className="truncate text-lg font-semibold text-gray-800">
+      <div className="admin-modal max-w-6xl h-[85vh]">
+        <div className="admin-modal-header shrink-0 items-center">
+          <h2 className="truncate admin-modal-title">
             {categoryName}
           </h2>
           <button
             type="button"
             aria-label={t("close")}
             title={t("close")}
-            className="shrink-0"
+            className="admin-modal-close shrink-0"
             onClick={() => {
               setPopupShow(false);
             }}
           >
-            <MdCancel className="text-3xl text-red-700" />
+            <MdCancel className="text-xl" />
           </button>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col bg-white">
+        <div className="flex min-h-0 flex-1 flex-col bg-[#f8fafc]">
           <FormProduct
             isFormOpen={isFormOpen}
             isEditMode={isEditMode}

@@ -1,5 +1,11 @@
 "use client";
-import { MdContactPage, MdEmail } from "react-icons/md";
+import { useEffect, useState } from "react";
+import {
+  MdContactPage,
+  MdEmail,
+  MdSave,
+  MdSupportAgent,
+} from "react-icons/md";
 import { FaSquarePhone, FaSquareWhatsapp, FaXTwitter } from "react-icons/fa6";
 import {
   FaFacebookSquare,
@@ -8,15 +14,80 @@ import {
   FaTimes,
   FaYoutube,
 } from "react-icons/fa";
-import { IoMdSave, IoMdShare } from "react-icons/io";
-import { useEffect, useState } from "react";
+import { IoMdShare } from "react-icons/io";
+
 import { getRequest, putRequest } from "../../../../utils/requestsUtils";
 import { useLanguage } from "../../../../context/LanguageContext";
-import Image from "next/image";
+import FormField from "../../components/ui/FormField";
+
+const CONTACT_FIELDS = [
+  {
+    key: "email",
+    labelKey: "official-email-address",
+    icon: <MdEmail />,
+    tone: "rose",
+    type: "email",
+    placeholder: "hello@example.com",
+    dir: "ltr",
+  },
+  {
+    key: "phone",
+    labelKey: "support-phone-number",
+    icon: <FaSquarePhone />,
+    tone: "blue",
+    type: "tel",
+    placeholder: "+20 100 000 0000",
+    dir: "ltr",
+  },
+];
+
+const SOCIAL_FIELDS = [
+  {
+    key: "facebock",
+    label: "Facebook",
+    icon: <FaFacebookSquare />,
+    tone: "blue",
+    placeholder: "https://facebook.com/...",
+  },
+  {
+    key: "whatsApp",
+    label: "WhatsApp",
+    icon: <FaSquareWhatsapp />,
+    tone: "green",
+    placeholder: "https://wa.me/...",
+  },
+  {
+    key: "telegram",
+    label: "Telegram",
+    icon: <FaTelegram />,
+    tone: "blue",
+    placeholder: "https://t.me/...",
+  },
+  {
+    key: "instagram",
+    label: "Instagram",
+    icon: <FaInstagramSquare />,
+    tone: "rose",
+    placeholder: "https://instagram.com/...",
+  },
+  {
+    key: "x",
+    label: "X",
+    icon: <FaXTwitter />,
+    tone: "gray",
+    placeholder: "https://x.com/...",
+  },
+  {
+    key: "youtube",
+    label: "YouTube",
+    icon: <FaYoutube />,
+    tone: "rose",
+    placeholder: "https://youtube.com/...",
+  },
+];
 
 export default function ContactForm() {
-    const [loading, setLoading] = useState();
-
+  const [loading, setLoading] = useState();
   const [contactInfo, setContactInfo] = useState({
     phone: "",
     email: "",
@@ -25,39 +96,39 @@ export default function ContactForm() {
     instagram: "",
     x: "",
     telegram: "",
-    youtube:""
+    youtube: "",
   });
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const isArabic = locale === "ar";
 
   const addContactInfo = async () => {
-    try{
-        setLoading(true);
+    try {
+      setLoading(true);
 
-      const res = await putRequest(
-      "/api/admin/contact",
-      {
-        phone: contactInfo.phone,
-        email: contactInfo.email,
-        facebookURL: contactInfo.facebock,
-        whatsappURL: contactInfo.whatsApp,
-        telegramURL: contactInfo.telegram,
-        instagramURL: contactInfo.instagram,
-        xurl: contactInfo.x,
-        youtubeURL: contactInfo.youtube
-      },
-      t("message")
-    );
-    getcontactInfo();
-    }catch(error){
-    }finally {
+      await putRequest(
+        "/api/admin/contact",
+        {
+          phone: contactInfo.phone,
+          email: contactInfo.email,
+          facebookURL: contactInfo.facebock,
+          whatsappURL: contactInfo.whatsApp,
+          telegramURL: contactInfo.telegram,
+          instagramURL: contactInfo.instagram,
+          xurl: contactInfo.x,
+          youtubeURL: contactInfo.youtube,
+        },
+        t("message"),
+      );
+      getcontactInfo();
+    } catch (error) {
+    } finally {
       setLoading(false);
     }
-   
   };
 
   const getcontactInfo = async () => {
     const res = await getRequest("/api/public/contact");
-    const resData = res.data
+    const resData = res.data;
     setContactInfo((prev) => ({
       ...prev,
       phone: resData.phone,
@@ -67,344 +138,149 @@ export default function ContactForm() {
       instagram: resData.instagramURL,
       x: resData.xurl,
       telegram: resData.telegramURL,
-      youtube: resData.youtubeURL
+      youtube: resData.youtubeURL,
     }));
   };
+
   useEffect(() => {
     getcontactInfo();
   }, []);
-  // useEffect(() => {
-  //   console.log(contactInfo);
-  // }, []);
+
+  const clearField = (key) => {
+    setContactInfo((prev) => ({
+      ...prev,
+      [key]: "",
+    }));
+  };
+
+  const renderField = (field) => (
+    <div key={field.key} className="flex items-center gap-3">
+      <span
+        className={`admin-stat-icon !h-9 !w-9 !rounded-lg text-base admin-tone-${field.tone}`}
+        aria-hidden="true"
+      >
+        {field.icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <FormField
+          label={field.labelKey ? t(field.labelKey) : field.label}
+          htmlFor={`contact-${field.key}`}
+        >
+          <div className="relative">
+            <input
+              id={`contact-${field.key}`}
+              type={field.type ?? "url"}
+              className="admin-input pe-10"
+              placeholder={field.placeholder}
+              dir={field.dir ?? "ltr"}
+              value={contactInfo[field.key]}
+              onChange={(e) =>
+                setContactInfo((prev) => ({
+                  ...prev,
+                  [field.key]: e.target.value,
+                }))
+              }
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 end-2 my-auto flex h-7 w-7 items-center justify-center rounded-lg text-[#98a2b3] transition-colors hover:bg-[#fbeff2] hover:text-[#b4233a]"
+              onClick={() => clearField(field.key)}
+              aria-label={t("clear")}
+            >
+              <FaTimes className="text-xs" />
+            </button>
+          </div>
+        </FormField>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="bg-white border rounded-md px-5 h-[100%]">
-       {loading && (
-              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                <Image
-                  src="/Images/logo.png"
-                  alt=""
-                  className="w-[100px] h-[100px]  border-t-transparent rounded-full animate-pulse"
-                  width={100}
-                  height={100}
-                  priority
-                />
-              </div>
-            )}
+    <div className="relative flex flex-col gap-4">
+      {loading && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+            <span className="admin-spinner !h-7 !w-7" />
+            <p className="text-sm font-semibold text-[#475467]">
+              {t("loading")}
+            </p>
+          </div>
+        </div>
+      )}
+
       <form
-        className="h-full"
+        className="flex flex-col gap-4"
         onSubmit={(e) => {
           e.preventDefault();
         }}
       >
-        <div className="flex justify-between items-center ">
-          <div className="flex items-center gap-3 p-4">
-            <span className="text-2xl text-red-700">
-              <MdContactPage />
-            </span>
-            <h1 className="lg:text-xl xs:text-base font-semibold ">
-              {t("contact-details")}
-            </h1>
-          </div>
-          <div className="flex justify-end  ">
+        <section className="admin-card overflow-hidden">
+          <div className="admin-card-header">
+            <div className="flex items-center gap-3">
+              <span className="admin-section-title-icon !h-9 !w-9 text-base">
+                <MdContactPage />
+              </span>
+              <div>
+                <h2 className="admin-card-title">{t("contact-details")}</h2>
+                <p className="admin-card-description">
+                  {t("section_contact_details_description")}
+                </p>
+              </div>
+            </div>
             <button
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-md flex items-center justify-end gap-2  md:text-base xs:text-base "
+              type="button"
+              className="admin-btn admin-btn-primary admin-btn-sm"
               onClick={addContactInfo}
             >
-              <IoMdSave />{" "}
-              <h1 className="sm:block xs:hidden">{t("save-changes")}</h1>
+              <MdSave className="text-base" />
+              <span className="hidden sm:inline">{t("save-changes")}</span>
             </button>
           </div>
-        </div>
-
-        <hr className="h-1"></hr>
-        <div className=" w-full flex justify-center items-center">
-          <div className=" md:w-[80%] xs:w-full flex flex-col gap-3  my-3">
-            <div className="flex lg:flex-row xs:flex-col w-full  justify-between gap-3 xs:px-5 lg:px-10 rounded-md py-2 bg-[#f3f4f6a1] ">
-              <label className="font-semibold xs:w-[200px] lg:w-[320px] flex gap-3 items-center">
-                <span className="text-xl text-gray-700">
-                  <MdEmail />
-                </span>
-                <h1 className=" text-gray-500 md:text-sm xs:text-xs">
-                  {t("official-email-address")}
-                </h1>
-              </label>
-              <div className="flex items-center gap-5 w-full">
-                <input
-                  type="text"
-                  className=" border w-full border-gray-300 rounded-md px-3 py-1 "
-                  onChange={(e) => {
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }));
-                  }}
-                  value={contactInfo.email}
-                />
-                <button
-                  className=" text-gray-500 text-base"
-                  onClick={() => {
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      email: "",
-                    }));
-                  }}
-                >
-                  <FaTimes />
-                </button>
-              </div>
+          <div className="admin-card-body">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {CONTACT_FIELDS.map(renderField)}
             </div>
-            <div className="flex lg:flex-row xs:flex-col w-full  justify-between   gap-3 xs:px-5 lg:px-10 rounded-md py-2 bg-[#f3f4f6a1] ">
-              <label className="font-semibold xs:w-[200px] lg:w-[320px]  flex gap-3 items-center">
-                <span className="text-xl text-gray-700">
-                  <FaSquarePhone />
-                </span>
-                <h1 className=" text-gray-500 md:text-sm xs:text-xs ">
-                  {t("support-phone-number")}
-                </h1>
-              </label>
-              <div className="flex items-center gap-5 w-full">
-                <input
-                  type="text"
-                  className=" border w-full border-gray-300 rounded-md px-3 py-1 "
-                  onChange={(e) => {
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      phone: e.target.value,
-                    }));
-                  }}
-                  value={contactInfo.phone}
-                />
-                <button
-                  className=" text-gray-500 text-base"
-                  onClick={() => {
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      phone: "",
-                    }));
-                  }}
-                >
-                  <FaTimes />
-                </button>
+          </div>
+        </section>
+
+        <section className="admin-card overflow-hidden">
+          <div className="admin-card-header">
+            <div className="flex items-center gap-3">
+              <span className="admin-section-title-icon !h-9 !w-9 text-base">
+                <IoMdShare />
+              </span>
+              <div>
+                <h2 className="admin-card-title">
+                  {t("social-media-links")}
+                </h2>
+                <p className="admin-card-description">
+                  {t("section_social_links_description")}
+                </p>
               </div>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3 mt-4 p-4">
-          <span className="text-2xl text-red-700">
-            <IoMdShare />
-          </span>
-          <h1 className="lg:text-xl xs:text-base font-semibold ">
-            {t("social-media-links")}
-          </h1>
-        </div>
-        <hr className="h-1"></hr>
-        <div className=" w-full flex justify-center items-center">
-          <div className=" md:w-[80%] xs:w-full flex flex-col gap-3   my-3">
-            <div className="flex lg:flex-row xs:flex-col w-full  justify-between gap-2 xs:px-5 lg:px-10 rounded-md py-2 bg-[#f3f4f6a1] ">
-              <label className="font-semibold xs:w-[200px] lg:w-[320px]  flex gap-3 items-center">
-                <span className="text-xl text-blue-700">
-                  <FaFacebookSquare />
-                </span>
-                <h1 className=" text-gray-500  md:text-sm xs:text-xs">
-                  Facebock
-                </h1>
-              </label>
-              <div className="flex items-center gap-5 w-full">
-                <input
-                  type="text"
-                  className=" border w-full border-gray-300 rounded-md px-3 py-1 "
-                  onChange={(e) =>
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      facebock: e.target.value,
-                    }))
-                  }
-                  value={contactInfo.facebock}
-                />
-                <button
-                  className=" text-gray-500 text-base"
-                  onClick={() => {
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      facebock: "",
-                    }));
-                  }}
-                >
-                  <FaTimes />
-                </button>
-              </div>
+          <div className="admin-card-body">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {SOCIAL_FIELDS.map(renderField)}
             </div>
-            <div className="flex lg:flex-row xs:flex-col w-full  justify-between gap-2 xs:px-5 lg:px-10 rounded-md py-2 bg-[#f3f4f6a1] ">
-              <label className="font-semibold xs:w-[200px] lg:w-[320px]  flex gap-3 items-center">
-                <span className="text-2xl text-green-600">
-                  <FaSquareWhatsapp />
-                </span>
-                <h1 className=" text-gray-500  md:text-sm xs:text-xs ">
-                  WhatsApp
-                </h1>
-              </label>
-              <div className="flex items-center gap-5 w-full">
-                <input
-                  type="text"
-                  className=" border w-full border-gray-300 rounded-md px-3 py-1 "
-                  onChange={(e) =>
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      whatsApp: e.target.value,
-                    }))
-                  }
-                  value={contactInfo.whatsApp}
-                />
-                <button
-                  className=" text-gray-500 text-base"
-                  onClick={() => {
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      whatsApp: "",
-                    }));
-                  }}
-                >
-                  <FaTimes />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex lg:flex-row xs:flex-col w-full  justify-between gap-2 xs:px-5 lg:px-10 rounded-md py-2 bg-[#f3f4f6a1] ">
-              <label className="font-semibold xs:w-[200px] lg:w-[320px]  flex gap-3 items-center">
-                <span className="text-2xl text-blue-600">
-                  <FaTelegram />
-                </span>
-                <h1 className=" text-gray-500   md:text-sm xs:text-xs">
-                  Telegram
-                </h1>
-              </label>
-              <div className="flex items-center gap-5 w-full">
-                <input
-                  type="text"
-                  className=" border w-full border-gray-300 rounded-md px-3 py-1 "
-                  onChange={(e) =>
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      telegram: e.target.value,
-                    }))
-                  }
-                  value={contactInfo.telegram}
-                />
-                <button
-                  className=" text-gray-500 text-base"
-                  onClick={() => {
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      telegram: "",
-                    }));
-                  }}
-                >
-                  <FaTimes />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex lg:flex-row xs:flex-col w-full  justify-between gap-2 xs:px-5 lg:px-10 rounded-md py-2 bg-[#f3f4f6a1] ">
-              <label className="font-semibold xs:w-[200px] lg:w-[320px]  flex gap-3 items-center">
-                <span className="text-xl text-pink-600">
-                  <FaInstagramSquare />
-                </span>
-                <h1 className=" text-gray-500  md:text-sm xs:text-xs">
-                  Instagram
-                </h1>
-              </label>
-              <div className="flex items-center gap-5 w-full">
-                <input
-                  type="text"
-                  className=" border w-full border-gray-300 rounded-md px-3 py-1 "
-                  onChange={(e) =>
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      instagram: e.target.value,
-                    }))
-                  }
-                  value={contactInfo.instagram}
-                />
-                <button
-                  className=" text-gray-500 text-base"
-                  onClick={() => {
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      instagram: "",
-                    }));
-                  }}
-                >
-                  <FaTimes />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex lg:flex-row xs:flex-col w-full  justify-between gap-2 xs:px-5 lg:px-10 rounded-md py-2 bg-[#f3f4f6a1] ">
-              <label className="font-semibold xs:w-[200px] lg:w-[320px]  flex gap-3 items-center">
-                <span className="text-2xl text-black">
-                  <FaXTwitter />
-                </span>
-                <h1 className=" text-gray-500  md:text-sm xs:text-xs">X</h1>
-              </label>
-              <div className="flex items-center gap-5 w-full">
-                <input
-                  type="text"
-                  className=" border w-full border-gray-300 rounded-md px-3 py-1 "
-                  onChange={(e) =>
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      x: e.target.value,
-                    }))
-                  }
-                  value={contactInfo.x}
-                />
-                <button
-                  className=" text-gray-500 text-base"
-                  onClick={() => {
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      x: "",
-                    }));
-                  }}
-                >
-                  <FaTimes />
-                </button>
-              </div>
-            </div>
-             <div className="flex lg:flex-row xs:flex-col w-full  justify-between gap-2 xs:px-5 lg:px-10 rounded-md py-2 bg-[#f3f4f6a1] ">
-              <label className="font-semibold xs:w-[200px] lg:w-[320px]  flex gap-3 items-center">
-                <span className="text-2xl text-red-600">
-                 <FaYoutube />
-                </span>
-                <h1 className=" text-gray-500  md:text-sm xs:text-xs">Youtube</h1>
-              </label>
-              <div className="flex items-center gap-5 w-full">
-                <input
-                  type="text"
-                  className=" border w-full border-gray-300 rounded-md px-3 py-1 "
-                  onChange={(e) =>
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      youtube: e.target.value,
-                    }))
-                  }
-                  value={contactInfo.youtube}
-                />
-                <button
-                  className=" text-gray-500 text-base"
-                  onClick={() => {
-                    setContactInfo((prev) => ({
-                      ...prev,
-                      youtube: "",
-                    }));
-                  }}
-                >
-                  <FaTimes />
-                </button>
-              </div>
-            </div> 
-            </div>
-        </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e4e8f0] bg-[#fbfcfe] px-5 py-3">
+            <p className="flex items-center gap-2 text-xs text-[#667085]">
+              <MdSupportAgent className="text-base" />
+              {isArabic
+                ? "تظهر هذه الروابط في تذييل المتجر."
+                : "These links appear in the storefront footer."}
+            </p>
+            <button
+              type="button"
+              className="admin-btn admin-btn-primary admin-btn-sm"
+              onClick={addContactInfo}
+            >
+              <MdSave className="text-base" />
+              {t("save-changes")}
+            </button>
+          </div>
+        </section>
       </form>
     </div>
   );

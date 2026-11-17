@@ -1,145 +1,177 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { useLanguage } from "../../../../../context/LanguageContext.js";
-import { MdEmail, MdLocationCity, MdLocationPin, MdMyLocation } from "react-icons/md";
+import { MdEmail, MdLocationPin } from "react-icons/md";
 import { MdLocalPhone } from "react-icons/md";
-import { PiUserListFill } from "react-icons/pi";
+import { FiCreditCard, FiMapPin, FiTruck } from "react-icons/fi";
+
+import { useLanguage } from "../../../../../context/LanguageContext.js";
 import { getRequest } from "../../../../../utils/requestsUtils.js";
 
-export default function Orders_Details({ orderId , orderType }) {
+export default function Orders_Details({ orderId, orderType }) {
   const { t } = useLanguage();
   const [orderUser, setOrderUser] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [paymentMethod , setPaymentMethod] = useState()
-  const [orderAddress, setOrderAddress] = useState()
-  const [fulfillmentType, setFulfillmentType] = useState("DELIVERY")
+  const [paymentMethod, setPaymentMethod] = useState();
+  const [orderAddress, setOrderAddress] = useState();
+  const [fulfillmentType, setFulfillmentType] = useState("DELIVERY");
   const [pickupPlace, setPickupPlace] = useState({
     name: "",
     description: "",
     address: "",
     phone: "",
     workingHours: "",
-  })
+  });
+
   const orderItem = useCallback(async () => {
     setLoading(true);
     setLoadError(false);
     try {
       const adminBasePath =
         orderType === "orders" ? "/api/admin/orders" : "/api/admin/return-orders";
-      const res= await getRequest(`${adminBasePath}/${orderId}`)
-      const resData = res.data
+      const res = await getRequest(`${adminBasePath}/${orderId}`);
+      const resData = res.data;
       setOrderUser(resData.user);
-      setPaymentMethod(resData.paymentMethod)
-      setOrderAddress(resData.address)
-      setFulfillmentType(resData.fulfillmentType || "DELIVERY")
+      setPaymentMethod(resData.paymentMethod);
+      setOrderAddress(resData.address);
+      setFulfillmentType(resData.fulfillmentType || "DELIVERY");
       setPickupPlace({
         name: resData.pickupPlaceName || "",
         description: resData.pickupPlaceDescription || "",
         address: resData.pickupPlaceAddress || "",
         phone: resData.pickupPlacePhone || "",
         workingHours: resData.pickupPlaceWorkingHours || "",
-      })
+      });
     } catch {
       setLoadError(true);
     } finally {
       setLoading(false);
     }
   }, [orderType, orderId]);
+
   useEffect(() => {
     orderItem();
   }, [orderItem]);
+
   if (loading) {
     return (
-      <div className="md:order-2 xs:order-1 xs:w-full md:w-[50%]">
-        <div className="h-[420px] animate-pulse rounded-lg bg-white" aria-busy="true" />
+      <div className="min-w-0 w-full">
+        <div className="h-[420px] admin-skeleton rounded-2xl" aria-busy="true" />
       </div>
     );
   }
+
   if (loadError) {
     return (
-      <div className="md:order-2 xs:order-1 xs:w-full md:w-[50%]">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-700">
+      <div className="min-w-0 w-full">
+        <div className="admin-alert admin-alert-danger">
           {t("orderDetailsLoadError")}
         </div>
       </div>
     );
   }
+
+  const fullName = `${orderUser.firstName ?? ""} ${orderUser.lastName ?? ""}`.trim();
+  const initials =
+    fullName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "U";
+
   return (
-    <div className="md:order-2 xs:order-1 xs:w-full md:w-[50%] bg-white">
-      <div className="  bg-white p-7  border rounded-lg">
-        <div className="flex justify-between items-center ">
-          <h1 className="text-lg font-semibold">{t("user_info")}</h1>
-          {/* <button className={`text-red-700`}>{t("view_profile")}</button> */}
+    <aside className="min-w-0 w-full">
+      <section className="admin-card overflow-hidden">
+        <div className="admin-card-header">
+          <h2 className="admin-card-title">{t("customer_details")}</h2>
         </div>
-        <div>
-          <div className="flex gap-5 mt-5 items-center">
-            <span className="text-2xl text-[#E76E7D] bg-gray-100 p-2 rounded-md">
-              <PiUserListFill />
-            </span>
 
-            <div>
-              <h1 className="font-semibold">
-                {orderUser.firstName + " " + orderUser.lastName}
-              </h1>
-              {/* <h2 className="text-sm text-gray-500">B.D birthDate</h2> */}
+        <div className="p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-[#163b5f] text-sm font-bold text-white">
+              {initials}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold text-[#101828]">
+                {fullName || "--"}
+              </p>
             </div>
           </div>
-          <div className="flex gap-5 mt-3 items-center">
-            <span className="text-2xl text-[#E76E7D] bg-gray-100 p-2 rounded-md">
-              <MdEmail />
-            </span>
-            <div>
-              {/* <h1 className="font-semibold text-gray-500">
-                {t("Email Address")}
-              </h1> */}
-              <h2 className=" font-semibold">{orderUser.email}</h2>
-            </div>
-          </div>
-          <div className="flex gap-5 mt-3 items-center">
-            <span className="text-2xl text-[#E76E7D] bg-gray-100 p-2 rounded-md">
-              <MdLocalPhone />
-            </span>
 
-            <div>
-              {/* <h1 className="font-semibold text-gray-500">
-                {t("Phone Number")}
-              </h1> */}
-              <h2 className="font-semibold">{orderUser.phone}</h2>
+          <div className="mt-5 space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="admin-stat-icon !h-9 !w-9 admin-tone-rose">
+                <MdEmail />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-[#667085]">{t("email")}</p>
+                <p className="truncate text-sm font-semibold text-[#101828]">
+                  {orderUser.email || "--"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="admin-stat-icon !h-9 !w-9 admin-tone-blue">
+                <MdLocalPhone />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-[#667085]">{t("phoneNumber")}</p>
+                <p className="truncate text-sm font-semibold text-[#101828]" dir="ltr">
+                  {orderUser.phone || "--"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="admin-stat-icon !h-9 !w-9 admin-tone-gray">
+                <MdLocationPin />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-[#667085]">{t("governorate")}</p>
+                <p className="truncate text-sm font-semibold text-[#101828]">
+                  {orderUser.governorate?.nameAr || "--"}
+                </p>
+              </div>
             </div>
           </div>
-           <div className="flex gap-5 mt-3 items-center">
-            <span className="text-2xl text-[#E76E7D] bg-gray-100 p-2 rounded-md">
-              <MdLocationPin />
-            </span>
 
-            <div>
-         
-              <h2 className="font-semibold">{orderUser.governorate?.nameAr}</h2>
+          <div className="mt-5 grid gap-3 border-t border-[#eef1f6] pt-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-[#e4e8f0] bg-[#f8fafc] p-3">
+              <p className="flex items-center gap-1.5 text-xs text-[#667085]">
+                <FiCreditCard />
+                {t("payment_method")}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-[#101828]">
+                {t(paymentMethod)}
+              </p>
+            </div>
+            <div className="rounded-xl border border-[#e4e8f0] bg-[#f8fafc] p-3">
+              <p className="flex items-center gap-1.5 text-xs text-[#667085]">
+                <FiTruck />
+                {t("fulfillment_type")}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-[#101828]">
+                {t(fulfillmentType === "PICKUP" ? "pickup" : "delivery")}
+              </p>
             </div>
           </div>
-        </div>
-        <hr className="my-10" />
-        
-        <div>
-          <div className="" >
-            <h1 className="font-semibold text-sm text-gray-500 ">{t("payment_method")}</h1>
-            <h2 className="text-lg mt-2 font-semibold">{t(paymentMethod)}</h2>
-          </div>
-          <div>
-            <h1 className="font-semibold text-sm text-gray-500 mt-5">{t("fulfillment_type")}</h1>
-            <h2 className="text-lg mt-2 font-semibold">
-              {t(fulfillmentType === "PICKUP" ? "pickup" : "delivery")}
-            </h2>
-          </div>
+
           {fulfillmentType === "PICKUP" ? (
-            <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 p-4">
-              <h1 className="font-semibold text-sm text-gray-500">{t("pickup_details")}</h1>
-              <h2 className="text-lg mt-2 font-semibold">{pickupPlace.name || "—"}</h2>
+            <div className="mt-4 rounded-xl border border-[#e4e8f0] bg-[#fbfcfe] p-4">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-[#667085]">
+                <FiMapPin />
+                {t("pickup_details")}
+              </p>
+              <p className="mt-2 text-sm font-semibold text-[#101828]">
+                {pickupPlace.name || "—"}
+              </p>
               {pickupPlace.description ? (
-                <p className="mt-1 text-sm text-gray-600">{pickupPlace.description}</p>
+                <p className="mt-1 text-xs leading-5 text-[#667085]">
+                  {pickupPlace.description}
+                </p>
               ) : null}
-              <div className="mt-3 space-y-2 text-sm text-gray-700">
+              <div className="mt-3 space-y-2 text-xs text-[#475467]">
                 <p>
                   <span className="font-semibold">{t("address")}:</span>{" "}
                   {pickupPlace.address || "—"}
@@ -155,13 +187,17 @@ export default function Orders_Details({ orderId , orderType }) {
               </div>
             </div>
           ) : (
-            <div>
-              <h1 className="font-semibold text-sm text-gray-500 mt-5">{t("Shipping Address")}</h1>
-              <h2 className="text-lg mt-2 font-semibold">{orderAddress}</h2>
+            <div className="mt-4 rounded-xl border border-[#e4e8f0] bg-[#fbfcfe] p-4">
+              <p className="text-xs font-semibold text-[#667085]">
+                {t("Shipping Address")}
+              </p>
+              <p className="mt-1.5 text-sm leading-6 text-[#344054]">
+                {orderAddress || "—"}
+              </p>
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </section>
+    </aside>
   );
 }

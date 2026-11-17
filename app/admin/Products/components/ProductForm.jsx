@@ -6,21 +6,25 @@ import {
   IoCloudUploadSharp,
 } from "react-icons/io5";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { FaCircle } from "react-icons/fa";
+import { GoStarFill } from "react-icons/go";
+import { toast } from "react-toastify";
+import Select from "react-select";
+
 import { useLanguage } from "../../../../context/LanguageContext.js";
 import { useFeature } from "../../../../context/AppConfigContext.jsx";
-import { FaCircle } from "react-icons/fa";
 import {
   getCategories,
   getProductDetails,
   getThumbnailUrl,
 } from "../../../../utils/functions.jsx";
-import { deleteRequest, postRequest, putRequest } from "../../../../utils/requestsUtils.js";
+import {
+  deleteRequest,
+  postRequest,
+  putRequest,
+} from "../../../../utils/requestsUtils.js";
 import { useRefresh } from "../../../../context/refreshContext.jsx";
 import { useIdContext } from "../../../../context/idContext.jsx";
-import { GoStarFill } from "react-icons/go";
-import { toast } from "react-toastify";
-import Select from "react-select";
-import { ImBlocked } from "react-icons/im";
 
 const toDimensionNumber = (value) => {
   if (value === "" || value === null || value === undefined) return null;
@@ -28,7 +32,84 @@ const toDimensionNumber = (value) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,setIsEditMode }) {
+const SELECT_STYLES = {
+  control: (provided) => ({
+    ...provided,
+    border: "1px solid #d3d9e5",
+    borderRadius: "10px",
+    minHeight: "40px",
+    boxShadow: "none",
+    backgroundColor: "#ffffff",
+    "&:hover": { borderColor: "#c3cbd9" },
+    "&:focus-within": {
+      borderColor: "#cf4356",
+      boxShadow: "0 0 0 3px rgba(207,67,86,0.12)",
+    },
+  }),
+  valueContainer: (base) => ({ ...base, paddingInline: "0.65rem" }),
+  menu: (base) => ({
+    ...base,
+    borderRadius: "12px",
+    overflow: "hidden",
+    boxShadow: "0 20px 50px -20px rgba(15,23,42,0.35)",
+    zIndex: 30,
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? "#cf4356"
+      : state.isFocused
+        ? "#fbeff2"
+        : "#ffffff",
+    color: state.isSelected ? "#ffffff" : "#344054",
+    cursor: "pointer",
+    fontSize: "13px",
+  }),
+  input: (base) => ({ ...base, color: "#344054" }),
+  placeholder: (base) => ({ ...base, color: "#98a2b3" }),
+  singleValue: (base) => ({ ...base, color: "#344054", fontWeight: "600" }),
+  indicatorSeparator: () => ({ display: "none" }),
+  menuPortal: (base) => ({ ...base, zIndex: 90 }),
+};
+
+function ToggleCard({ label, description, active, onClick, icon, activeClass }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center justify-between gap-3 rounded-xl border p-3 text-start transition-colors ${
+        active
+          ? "border-[#e4e8f0] bg-[#fbfcfe]"
+          : "border-[#e4e8f0] bg-white"
+      }`}
+    >
+      <span className="min-w-0">
+        <span className="block text-xs font-semibold text-[#344054]">
+          {label}
+        </span>
+        {description ? (
+          <span className="mt-0.5 block text-[10px] leading-4 text-[#98a2b3]">
+            {description}
+          </span>
+        ) : null}
+      </span>
+      <span
+        className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-base ${
+          active ? activeClass : "bg-[#f8fafc] text-[#98a2b3]"
+        }`}
+      >
+        {icon}
+      </span>
+    </button>
+  );
+}
+
+export default function FormProduct({
+  isFormOpen,
+  setIsFormOpen,
+  isEditMode,
+  setIsEditMode,
+}) {
   const [enabledActive, setEnabledActive] = useState(true);
   const [enabledFavorite, setEnabledFavorite] = useState(false);
   const [enabledAvailable, setEnabledAvailable] = useState(true);
@@ -40,14 +121,6 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
   const [showProductData, setShowProductData] = useState(true);
   const { t } = useLanguage();
   const itemDimensionsEnabled = useFeature("ITEM_DIMENSIONS_ENABLED");
-  const isBase64 = (src) => {
-    return typeof src === "string" && src.startsWith("data:");
-  };
-  // const images = [
-  //   { key: "mainImage", label: "mainImage", inputId: "fileInput-mainImage" },
-  //   { key: "img2", label: "img2", inputId: "fileInput-img2" },
-  //   { key: "img3", label: "img3", inputId: "fileInput-img3" },
-  // ];
 
   const [product, setProduct] = useState({
     nameEn: "",
@@ -56,7 +129,7 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
     oldPrice: null,
     descriptionEn: "",
     descriptionAr: "",
-    seoCode: '',
+    seoCode: "",
     category: {
       id: null,
       nameAr: "",
@@ -71,13 +144,6 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
     width: "",
     height: "",
     releaseYear: "",
-    // mainImagefile: "",
-    // img2: "",
-    // img2file: "",
-    // img2ID: null,
-    // img3: "",
-    // img3file: "",
-    // img3ID: null,
   });
   const [itemCategory, setItemCategory] = useState([]);
   const [itemImages, setItemImages] = useState([]);
@@ -99,7 +165,6 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
     objectUrlsRef.current = [];
   }, []);
 
-
   const handleItemImagesUpload = (e) => {
     const files = Array.from(e.target.files || []);
     e.target.value = "";
@@ -113,8 +178,6 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
     setItemImages((prev) => [...prev, ...newImages]);
   };
 
-
-
   const removeItemImage = (index) => {
     const target = itemImages[index];
     if (target?.preview) revokeObjectUrl(target.preview);
@@ -126,29 +189,8 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
     try {
       const resData = await getCategories();
       setItemCategory(resData.data.content || []);
-    } catch (error) { }
+    } catch (error) {}
   }, []);
-
-  // التحقق من صحة البيانات
-  // const validateForm = () => {
-  //   if (!product.nameEn || !product.nameAr) {
-  //     toast.error(t("product_name_required"));
-  //     return false;
-  //   }
-  //   if (!product.price) {
-  //     toast.error(t("price_required"));
-  //     return false;
-  //   }
-  //   if (!product.category.id) {
-  //     toast.error(t("category_required"));
-  //     return false;
-  //   }
-  //   if (!product.descriptionEn || !product.descriptionAr) {
-  //     toast.error(t("description_required"));
-  //     return false;
-  //   }
-  //   return true;
-  // };
 
   // إعادة تعيين حالة النموذج فقط
   const resetFormState = useCallback(() => {
@@ -169,7 +211,7 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
       length: "",
       width: "",
       height: "",
-      releaseYear:""
+      releaseYear: "",
     });
     revokeImageUrls();
     setItemImages([]);
@@ -200,17 +242,25 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
     length: toDimensionNumber(product.length),
     width: toDimensionNumber(product.width),
     height: toDimensionNumber(product.height),
-    releaseYear:product.releaseYear
+    releaseYear: product.releaseYear,
   };
 
   const validateItemDimensions = () => {
     if (!itemDimensionsEnabled) return true;
     const dimensions = [product.length, product.width, product.height];
-    if (dimensions.some((value) => value === "" || value === null || value === undefined)) {
+    if (
+      dimensions.some(
+        (value) => value === "" || value === null || value === undefined,
+      )
+    ) {
       toast.error(t("item_dimensions_required"));
       return false;
     }
-    if (dimensions.some((value) => !Number.isFinite(Number(value)) || Number(value) <= 0)) {
+    if (
+      dimensions.some(
+        (value) => !Number.isFinite(Number(value)) || Number(value) <= 0,
+      )
+    ) {
       toast.error(t("item_dimensions_invalid"));
       return false;
     }
@@ -222,10 +272,16 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
     if (!validateItemDimensions()) return;
     setLoading(true);
     try {
-      const respose = await postRequest("/api/admin/items", fields, t("message"));
+      const respose = await postRequest(
+        "/api/admin/items",
+        fields,
+        t("message"),
+      );
       if (!respose) return;
 
-      setSelectedProductId(respose.itemId || respose.data?.itemId || respose.id);
+      setSelectedProductId(
+        respose.itemId || respose.data?.itemId || respose.id,
+      );
       triggerRefresh();
       setShowImages(true);
       setIsEditMode(true);
@@ -240,39 +296,40 @@ export default function FormProduct({ isFormOpen, setIsFormOpen, isEditMode ,set
     try {
       const formData = new FormData();
       itemImages.forEach((img) => {
-        if (img.file) { 
+        if (img.file) {
           formData.append("itemImages", img.file);
         }
       });
-      await postRequest(`/api/admin/items/${selectedProductId}/images`,
-        formData,""
-      )
-            toast.success(t("images_saved_successfully"));
+      await postRequest(
+        `/api/admin/items/${selectedProductId}/images`,
+        formData,
+        "",
+      );
+      toast.success(t("images_saved_successfully"));
 
-            triggerRefresh();
-productData()
+      triggerRefresh();
+      productData();
+    } catch (err) {
+      console.log(err);
     }
-    catch (err) {
-      console.log(err)
-    }
-  }
-  const deleteProductImg = async(imageId ,index)=>{
-    try{
-      if(imageId) {
-      const res =  await deleteRequest(`/api/admin/items/${selectedProductId}/images/${imageId}` ,t("message"))
-     console.log(res)
-     if(res.success){
-       removeItemImage(index)
-     }
-     
-      }else{
-        removeItemImage(index)
+  };
+
+  const deleteProductImg = async (imageId, index) => {
+    try {
+      if (imageId) {
+        const res = await deleteRequest(
+          `/api/admin/items/${selectedProductId}/images/${imageId}`,
+          t("message"),
+        );
+        console.log(res);
+        if (res.success) {
+          removeItemImage(index);
+        }
+      } else {
+        removeItemImage(index);
       }
-      
-
-    }
-    catch(err){}
-  }
+    } catch (err) {}
+  };
 
   // جلب بيانات المنتج للتعديل
   const productData = useCallback(async () => {
@@ -283,7 +340,7 @@ productData()
         resetFormState();
         const res = await getProductDetails(selectedProductId);
         const resData = res.data;
-        console.log(resData)
+        console.log(resData);
         setProduct((prev) => ({
           ...prev,
           nameEn: resData.nameEn,
@@ -301,7 +358,7 @@ productData()
           width: resData.width ?? "",
           height: resData.height ?? "",
           descriptionEn: resData.descriptionEn,
-          releaseYear:resData.releaseYear,
+          releaseYear: resData.releaseYear,
           category: {
             ...prev.category,
             id: resData.itemCategory.itemCategoryId,
@@ -315,9 +372,8 @@ productData()
           preview: process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL + img.imageUrl,
           existingId: img.itemImageId,
         }));
-        console.log(existingImages)
+        console.log(existingImages);
         setItemImages(existingImages);
-
 
         setEnabledFavorite(resData.favorite);
         setEnabledActive(resData.active);
@@ -360,6 +416,7 @@ productData()
       setLoading(false);
     }
   };
+
   useEffect(() => {
     showCategories();
   }, [showCategories]);
@@ -374,621 +431,608 @@ productData()
     };
   }, [revokeImageUrls]);
 
+  useEffect(() => {
+    if (!isFormOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isFormOpen]);
+
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setSelectedProductId(null);
+    resetFormState();
+  };
+
+  const update = (key, value) =>
+    setProduct((prev) => ({ ...prev, [key]: value }));
+
   return (
-    <div
-      id="add-product-form"
-      className={` fixed inset-0 bg-black/40 flex items-center justify-end z-50 p-5  ${isFormOpen ? "flex" : "hidden"}`}
-    >
+    <div id="add-product-form">
       {loading && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <Image
-            src="/Images/logo.png"
-            alt=""
-            className="w-[100px] h-[100px]  border-t-transparent rounded-full animate-pulse"
-            width={100}
-            height={100}
-            priority
-          />
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+            <span className="admin-spinner !h-7 !w-7" />
+            <p className="text-sm font-semibold text-[#475467]">
+              {t("loading")}
+            </p>
+          </div>
         </div>
       )}
-      <form
-        className="bg-white shadow-md shadow-slate-400 rounded-lg w-full  px-7 pb-10 border overflow-hidden xs:overflow-y-scroll h-full"
-        onSubmit={(e) => e.preventDefault()}
+
+      <div
+        className={`admin-drawer-overlay ${isFormOpen ? "flex" : "hidden"}`}
       >
-        <div className="h-16 flex justify-between items-center">
-          <h1 id="nameFormProduct" className="text-xl font-semibold">
-            {isEditMode ? t("edit_product") : t("add_product")}
-          </h1>
-          <button
-            className="text-2xl text-gray-500 hover:text-red-800 transition-colors"
-            onClick={() => {
-              setIsFormOpen(false);
-              setSelectedProductId(null);
-              resetFormState()
-            }}
-            type="button"
-          >
-            <MdCancel />
-          </button>
-        </div>
-        <hr className="h-1"></hr>
-
-        {/* <hr className="my-5" /> */}
-        <div className="flex flex-col lg:flex-row w-full justify-between items-start gap-0 lg:gap-6">
-        {showProductData && (
-          <div className={showImages ? "w-full lg:flex-1" : "w-full"}>
-        <div className=" grid grid-cols-3 gap-3 mt-3">
-          {/* <div className=" w-full  md:flex-row  xs:flex-col gap-3"> */}
-          <div className="flex-1">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              {t("product_name")}* [En]
-            </label>
-            <input
-              type="text"
-              value={product.nameEn || ""}
-              onChange={(e) =>
-                setProduct((prev) => ({ ...prev, nameEn: e.target.value }))
-              }
-              required
-              className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              {t("product_name")}* [Ar]
-            </label>
-            <input
-              type="text"
-              value={product.nameAr || ""}
-              onChange={(e) =>
-                setProduct((prev) => ({ ...prev, nameAr: e.target.value }))
-              }
-              required
-              className="w-full  outline-none  text-base my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-            />
-          </div>
-          {/* </div> */}
-
-          {/* <div className="flex items-center md:flex-row  xs:flex-col  justify-between gap-3 mt-3"> */}
-          <div className="w-full">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              {t("product_code")}
-            </label>
-            <input
-              type="text"
-              value={product.code || ""}
-              onChange={(e) =>
-                setProduct((prev) => ({ ...prev, code: e.target.value }))
-              }
-              required
-              className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-            />
-          </div>
-          <div className="w-full">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              {t("Price")}</label>
-            <input
-              type="number"
-              value={product.price || ""}
-              onChange={(e) =>
-                setProduct((prev) => ({ ...prev, price: e.target.value }))
-              }
-              required
-              className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-            />
-          </div>
-          <div className="w-full">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              {t("old_price") + " " + "[" + t("option") + "]"} </label>
-            <input
-              type="number"
-              value={product.oldPrice || ""}
-              onChange={(e) =>
-                setProduct((prev) => ({ ...prev, oldPrice: e.target.value }))
-              }
-              className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-
-            />
-          </div>
-          <div className="w-full">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              {t("ram")}
-            </label>
-            <input
-              type="text"
-              value={product.ram || ""}
-              onChange={(e) =>
-                setProduct((prev) => ({ ...prev, ram: e.target.value }))
-              }
-              
-              className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-            />
-          </div>
-          <div className="w-full">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              {t("flash")}
-            </label>
-            <input
-              type="text"
-              value={product.flash || ""}
-              onChange={(e) =>
-                setProduct((prev) => ({ ...prev, flash: e.target.value }))
-              }
-              
-              className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-            />
-          </div>
-          <div className="w-full">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              {t("contents")}
-            </label>
-            <input
-              type="text"
-              value={product.contents || ""}
-              onChange={(e) =>
-                setProduct((prev) => ({ ...prev, contents: e.target.value }))
-              }
-              
-              className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-            />
-          </div>
-          {itemDimensionsEnabled && (
-            <>
-              <div className="w-full">
-                <label className="text-xs text-gray-600 font-semibold block mb-1">
-                  {t("length")}*
-                </label>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  inputMode="decimal"
-                  value={product.length}
-                  onChange={(e) =>
-                    setProduct((prev) => ({ ...prev, length: e.target.value }))
-                  }
-                  required={itemDimensionsEnabled}
-                  className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-                />
-              </div>
-              <div className="w-full">
-                <label className="text-xs text-gray-600 font-semibold block mb-1">
-                  {t("width")}*
-                </label>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  inputMode="decimal"
-                  value={product.width}
-                  onChange={(e) =>
-                    setProduct((prev) => ({ ...prev, width: e.target.value }))
-                  }
-                  required={itemDimensionsEnabled}
-                  className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-                />
-              </div>
-              <div className="w-full">
-                <label className="text-xs text-gray-600 font-semibold block mb-1">
-                  {t("height")}*
-                </label>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  inputMode="decimal"
-                  value={product.height}
-                  onChange={(e) =>
-                    setProduct((prev) => ({ ...prev, height: e.target.value }))
-                  }
-                  required={itemDimensionsEnabled}
-                  className="w-full  outline-none  text-base  my-1  p-2 border rounded-md focus:border-red-600 transition-colors"
-                />
-              </div>
-            </>
-          )}
-          <div className="w-full">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              {t("brand")}
-            </label>
-            <div className=" border rounded-md">
-              <Select
-                options={[
-                  { value: "Senator", label: t("Senator") },
-                  { value: "OMEGA", label: t("OMEGA") },
-                  { value: "PANORAMA", label: t("PANORAMA") },
-                  { value: "IBOX", label: t("IBOX") },
-                ]}
-                value={
-                  product.brand
-                    ? { value: product.brand, label: t(product.brand) }
-                    : null
-                }
-                onChange={(option) => {
-                  setProduct((prev) => ({
-                    ...prev,
-                    brand: option ? option.value : "",
-                  }));
-                }}
-                isSearchable={false}
-                placeholder={t("brand")}
-                className="placeholder:text-sm"
-                styles={{
-                  control: (provided) => ({
-                    ...provided,
-                    border: "none",
-                    boxShadow: "none",
-                    fontWeight: "600",
-                    height: "100%",
-                    width: "100%",
-                  }),
-                  input: (base) => ({
-                    ...base,
-                    color: "#374151",
-                  }),
-                  option: (base, state) => ({
-                    ...base,
-                    backgroundColor: state.isSelected
-                      ? "#dc2626"
-                      : state.isFocused
-                        ? "#fee2e2"
-                        : "#ffffff",
-                    color: state.isSelected ? "#ffffff" : "#374151",
-                    cursor: "pointer",
-                    padding: "10px",
-                    "&:hover": {
-                      backgroundColor: state.isSelected
-                        ? "#dc2626"
-                        : "#fee2e2",
-                    },
-                  }),
-                }}
-              />
+        <form
+          className="admin-drawer"
+          onSubmit={(e) => e.preventDefault()}
+        >
+          <div className="admin-drawer-header">
+            <div className="min-w-0">
+              <h1 id="nameFormProduct" className="admin-modal-title">
+                {isEditMode ? t("edit_product") : t("add_product")}
+              </h1>
+              <p className="admin-modal-description">
+                {t("products_description")}
+              </p>
             </div>
-          </div>
-          <div className="w-full my-1">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              {t("Category")}*
-            </label>
-            <div className=" border rounded-md">
-              <Select
-                options={itemCategory.map((category) => ({
-                  value: category.itemCategoryId,
-                  label:
-                    localStorage.getItem("lang") === "ar"
-                      ? category.nameAr
-                      : category.nameEn,
-                  data: category,
-                }))}
-                value={
-                  product.category.id
-                    ? {
-                      value: product.category.id,
-                      label:
-                        localStorage.getItem("lang") === "ar"
-                          ? product.category.nameAr
-                          : product.category.nameEn,
-                    }
-                    : null
-                }
-                onChange={(option) => {
-                  if (option) {
-                    setProduct((prev) => ({
-                      ...prev,
-                      category: {
-                        id: option.value,
-                        nameAr: option.data.nameAr,
-                        nameEn: option.data.nameEn,
-                      },
-                    }));
-                  } else {
-                    setProduct((prev) => ({
-                      ...prev,
-                      category: {
-                        id: null,
-                        nameAr: "",
-                        nameEn: "",
-                      },
-                    }));
-                  }
-                }}
-                isSearchable={false}
-                placeholder={t("select_category")}
-                noOptionsMessage={() => t("no_categories")}
-                className="placeholder:text-sm"
-                styles={{
-                  control: (provided) => ({
-                    ...provided,
-                    border: "none",
-                    boxShadow: "none",
-                    fontWeight: "600",
-                    height: "100%",
-                    width: "100%",
-                  }),
-                  option: (provided) => ({
-                    ...provided,
-                    // backgroundColor: '#b91c1c',
-                    color: "white",
-                    fontSize: "18px",
-                    fontWeight: "600",
-                  }),
-                  input: (base) => ({
-                    ...base,
-                    color: "#374151",
-                  }),
-                  option: (base, state) => ({
-                    ...base,
-                    backgroundColor: state.isSelected
-                      ? "#dc2626"
-                      : state.isFocused
-                        ? "#fee2e2"
-                        : "#ffffff",
-                    color: state.isSelected ? "#ffffff" : "#374151",
-                    cursor: "pointer",
-                    padding: "10px",
-                    "&:hover": {
-                      backgroundColor: state.isSelected
-                        ? "#dc2626"
-                        : "#fee2e2",
-                    },
-                  }),
-                }}
-              />
-            </div>
-          </div>
-          {/* </div> */}
-
-          {/* <div className="flex md:flex-row  xs:flex-col items-start  justify-between gap-3"> */}
-
-          {/* </div> */}
-
-          <div className="w-full">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-              SEO {t("code")}</label>
-            <input
-              value={product.seoCode || ""}
-              onChange={(e) => {
-                setProduct((prev) => ({
-                  ...prev,
-                  seoCode: e.target.value,
-                }));
-              }}
-              id="seoCode"
-              className="  w-full outline-none  text-base  my-1  p-2 border rounded-md"
-            />
-          </div>
-           <div className="w-full">
-            <label className="text-xs text-gray-600 font-semibold block mb-1">
-               {t("releaseYear")}</label>
-            <input
-              value={product.releaseYear || ""}
-              onChange={(e) => {
-                setProduct((prev) => ({
-                  ...prev,
-                  releaseYear: e.target.value,
-                }));
-              }}
-              id="releaseYear"
-              className="  w-full outline-none  text-base  my-1  p-2 border rounded-md"
-            />
-          </div>
-          <div className="w-full  col-span-3">
-            <label className="text-xs text-gray-600 font-semibold block mb-2">
-              {t("product_state")}
-            </label>
-            <div className="flex md:flex-row  xs:flex-col items-center  justify-between gap-3">
-              {/* متاح في المتجر */}
-              <div className=" flex items-center justify-between h-10 w-full    px-3 border rounded-md ">
-                <h1 className="text-xs text-gray-600">
-                  {t("visible_in_store")}
-                </h1>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEnabledActive(!enabledActive);
-                  }}
-                  className={`transition-colors duration-200 ${enabledActive ? "text-green-600" : "text-gray-300"
-                    }`}
-                >
-                  <FaCircle />
-                </button>
-              </div>
-              <div className=" flex items-center justify-between w-full  h-10   px-3  border rounded-md ">
-                <h1 className="text-xs text-gray-600">
-                  {t("featured-product")}
-                </h1>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEnabledFavorite(!enabledFavorite);
-                  }}
-                  className={`text-xl transition-colors duration-200 ${enabledFavorite ? "text-yellow-500" : "text-gray-400"
-                    }`}
-                >
-                  <GoStarFill />
-                </button>
-              </div>
-              <div className=" flex items-center justify-between h-10 w-full    px-3 border rounded-md ">
-                <h1 className="text-xs text-gray-600">
-                  {t("available_in_store")}
-                </h1>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEnabledAvailable(!enabledAvailable);
-                  }}
-                  className={`transition-colors duration-200`}
-                >
-                  {enabledAvailable ?
-                    <IoCheckmarkCircleOutline className="text-green-500 text-lg" /> :
-                    <MdBlock className="text-red-500" />
-                  }
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="col-span-2">
-            <label className="text-xs text-gray-700 font-semibold block mb-1">
-              {t("description")}* [En]
-            </label>
-            <textarea
-              required
-              value={product.descriptionEn || ""}
-              onChange={(e) =>
-                setProduct((prev) => ({
-                  ...prev,
-                  descriptionEn: e.target.value,
-                }))
-              }
-              rows={3}
-              className="w-full  outline-none text-base p-2 border rounded-md focus:border-red-600 transition-colors resize-none"
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="text-xs text-gray-700 font-semibold block mb-1 ">
-              {t("description")}* [Ar]
-            </label>
-
-            <textarea
-              required
-              value={product.descriptionAr || ""}
-              onChange={(e) =>
-                setProduct((prev) => ({
-                  ...prev,
-                  descriptionAr: e.target.value,
-                }))
-              }
-              rows={3}
-              className="w-full  outline-none text-base p-2 border rounded-md focus:border-red-600 transition-colors resize-none"
-            />
-          </div>
-        </div>
-        {/* <hr className="my-5"></hr> */}
-        <div className="flex  px-4  py-4  rounded-md justify-center items-center ">
-          <div className="flex justify-between w-full gap-3 items-center">
-            <div className="flex  items-center gap-2">
-              <button
-                type="submit"
-                id="btn-saveProduct"
-                className={`bg-red-600 text-sm w-[150px] px-3 py-2 text-white flex-1 hover:bg-red-800 rounded-lg transition-colors ${isEditMode ? "hidden" : ""}`}
-                onClick={addProductData}
-                disabled={loading}
-              >
-                {t("save_data")}
-              </button>
-
-              {isEditMode && (
-                <button
-                  type="submit"
-                  id="btn-editProduct"
-                  className={`bg-[#CD4354] text-sm  w-[150px] my-5 px-3 py-2 text-white flex-1  hover:bg-red-800 rounded-lg transition-colors ${isEditMode ? "" : "hidden"}`}
-                  onClick={updateProduct}
-                  disabled={loading}
-                >
-                  {t("save-changes")}
-                </button>
-              )}
-            </div>
-
-            {/* <button
+            <button
               type="button"
-              className="bg-white w-full  border h-8  px-3 text-gray-700   hover:bg-red-800 hover:text-white rounded-lg transition-colors"
-              onClick={() => {
-                setIsFormOpen(false);
-                setSelectedProductId(null);
-              }}
-              disabled={loading}
+              className="admin-modal-close"
+              onClick={closeForm}
+              aria-label={t("close")}
             >
-              {t("cancel")}
-            </button> */}
+              <MdCancel className="text-xl" />
+            </button>
           </div>
 
-        </div>
-        </div>
-          )}
-        {showImages && (
-          <div className={`${showProductData ? "lg:w-1/3 xs:w-full " : "lg:w-1/3 xs:w-full"} animate-fade-in-up p-4 sm:p-5`}>
-              <div className="mb-4 w-full flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-gray-700">
-                  {t("item_images")}
-                </h2>
-              </div>
-                <div className="grid grid-cols-3 gap-5">
-                  <div className="group relative h-[150px] w-full cursor-pointer rounded-2xl border-2 border-dashed border-red-300 bg-white transition-colors duration-300 hover:border-red-500 hover:bg-red-50 ">
-                    <label
-                      htmlFor="productImg_fileInput"
-                      className="absolute inset-0 flex flex-col items-center  justify-center gap-2 cursor-pointer"
-                    >
-                      <span
-                        id="label-uplod"
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-red-500 shadow-sm transition-transform duration-300 group-hover:scale-110"
-                      >
-                        <IoCloudUploadSharp className="text-xl" />
-                      </span>
-                      <span className="flex flex-col items-center gap-1">
-                        <h1 className="text-sm font-medium text-gray-700">
-                          {t("click_to_upload")}
-                        </h1>
-                        <h2 className="text-[10px] text-gray-500">
-                          PNG, JPG or GIF
+          <div className="admin-drawer-body">
+            <div
+              className={
+                showImages && showProductData
+                  ? "grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]"
+                  : "flex flex-col gap-4"
+              }
+            >
+              {showProductData ? (
+                <div className="flex min-w-0 flex-col gap-4">
+                  <section className="admin-form-section">
+                    <div className="admin-form-section-header">
+                      <div>
+                        <h2 className="admin-form-section-title">
+                          {t("section_basic_info")}
                         </h2>
-                      </span>
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleItemImagesUpload}
-                      className="hidden"
-                      id="productImg_fileInput"
-                    />
-                  </div>
-                  {itemImages.map((img, index) => (
-                        
-                      <div
-                      key={index}
-                      className="  h-[130px] w-full   bg-white"
-                    >
-                     <button
-                        type="button"
-                        className="  flex  items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-red-600 hover:text-white"
-                        onClick={() => {
-                          
-                           deleteProductImg(img.existingId , index)
-                            
-                        }}
-                      >
-                        <MdCancel className="text-lg" />
-                      </button>
-                      <Image
-                        src={img.existingId ? getThumbnailUrl(img.preview) : img.preview}
-                        alt=""
-                     height={100}
-                      width={100}
-                        className="h-full w-full  rounded-xl"
-                      />
-                     
+                        <p className="admin-form-section-description">
+                          {t("section_basic_info_description")}
+                        </p>
+                      </div>
                     </div>
-                    
-                  ))}
+                    <div className="admin-form-grid admin-form-grid-2">
+                      <div className="admin-field">
+                        <label className="admin-label" htmlFor="product-name-en">
+                          {t("product_name")} [EN]
+                          <span className="admin-label-required">*</span>
+                        </label>
+                        <input
+                          id="product-name-en"
+                          type="text"
+                          value={product.nameEn || ""}
+                          onChange={(e) => update("nameEn", e.target.value)}
+                          required
+                          className="admin-input"
+                        />
+                      </div>
+                      <div className="admin-field">
+                        <label className="admin-label" htmlFor="product-name-ar">
+                          {t("product_name")} [AR]
+                          <span className="admin-label-required">*</span>
+                        </label>
+                        <input
+                          id="product-name-ar"
+                          type="text"
+                          value={product.nameAr || ""}
+                          onChange={(e) => update("nameAr", e.target.value)}
+                          required
+                          className="admin-input"
+                          dir="rtl"
+                        />
+                      </div>
+                      <div className="admin-field">
+                        <label className="admin-label" htmlFor="product-code">
+                          {t("product_code")}
+                        </label>
+                        <input
+                          id="product-code"
+                          type="text"
+                          value={product.code || ""}
+                          onChange={(e) => update("code", e.target.value)}
+                          required
+                          className="admin-input"
+                          dir="ltr"
+                        />
+                      </div>
+                      <div className="admin-field">
+                        <label className="admin-label" htmlFor="product-category">
+                          {t("Category")}
+                          <span className="admin-label-required">*</span>
+                        </label>
+                        <Select
+                          inputId="product-category"
+                          options={itemCategory.map((category) => ({
+                            value: category.itemCategoryId,
+                            label:
+                              localStorage.getItem("lang") === "ar"
+                                ? category.nameAr
+                                : category.nameEn,
+                            data: category,
+                          }))}
+                          value={
+                            product.category.id
+                              ? {
+                                  value: product.category.id,
+                                  label:
+                                    localStorage.getItem("lang") === "ar"
+                                      ? product.category.nameAr
+                                      : product.category.nameEn,
+                                }
+                              : null
+                          }
+                          onChange={(option) => {
+                            if (option) {
+                              setProduct((prev) => ({
+                                ...prev,
+                                category: {
+                                  id: option.value,
+                                  nameAr: option.data.nameAr,
+                                  nameEn: option.data.nameEn,
+                                },
+                              }));
+                            } else {
+                              setProduct((prev) => ({
+                                ...prev,
+                                category: {
+                                  id: null,
+                                  nameAr: "",
+                                  nameEn: "",
+                                },
+                              }));
+                            }
+                          }}
+                          isSearchable={false}
+                          placeholder={t("select_category")}
+                          noOptionsMessage={() => t("no_categories")}
+                          styles={SELECT_STYLES}
+                          menuPortalTarget={
+                            typeof document !== "undefined" ? document.body : undefined
+                          }
+                          menuPosition="fixed"
+                        />
+                      </div>
+                      <div className="admin-field">
+                        <label className="admin-label" htmlFor="product-brand">
+                          {t("brand")}
+                        </label>
+                        <Select
+                          inputId="product-brand"
+                          options={[
+                            { value: "Senator", label: t("Senator") },
+                            { value: "OMEGA", label: t("OMEGA") },
+                            { value: "PANORAMA", label: t("PANORAMA") },
+                            { value: "IBOX", label: t("IBOX") },
+                          ]}
+                          value={
+                            product.brand
+                              ? {
+                                  value: product.brand,
+                                  label: t(product.brand),
+                                }
+                              : null
+                          }
+                          onChange={(option) => {
+                            update("brand", option ? option.value : "");
+                          }}
+                          isSearchable={false}
+                          placeholder={t("brand")}
+                          styles={SELECT_STYLES}
+                          menuPortalTarget={
+                            typeof document !== "undefined" ? document.body : undefined
+                          }
+                          menuPosition="fixed"
+                        />
+                      </div>
+                      <div className="admin-field">
+                        <label className="admin-label" htmlFor="product-seo">
+                          SEO {t("code")}
+                        </label>
+                        <input
+                          id="product-seo"
+                          value={product.seoCode || ""}
+                          onChange={(e) => update("seoCode", e.target.value)}
+                          className="admin-input"
+                          dir="ltr"
+                        />
+                      </div>
+                      <div className="admin-field">
+                        <label
+                          className="admin-label"
+                          htmlFor="product-release-year"
+                        >
+                          {t("releaseYear")}
+                        </label>
+                        <input
+                          id="product-release-year"
+                          value={product.releaseYear || ""}
+                          onChange={(e) =>
+                            update("releaseYear", e.target.value)
+                          }
+                          className="admin-input"
+                          inputMode="numeric"
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="admin-form-section">
+                    <div className="admin-form-section-header">
+                      <div>
+                        <h2 className="admin-form-section-title">
+                          {t("section_pricing")}
+                        </h2>
+                        <p className="admin-form-section-description">
+                          {t("section_pricing_description")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="admin-form-grid admin-form-grid-2">
+                      <div className="admin-field">
+                        <label className="admin-label" htmlFor="product-price">
+                          {t("Price")}
+                          <span className="admin-label-required">*</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            id="product-price"
+                            type="number"
+                            value={product.price || ""}
+                            onChange={(e) => update("price", e.target.value)}
+                            required
+                            className="admin-input pe-16"
+                            min="0"
+                            step="0.01"
+                          />
+                          <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[#667085]">
+                            {t("currency")}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="admin-field">
+                        <label
+                          className="admin-label"
+                          htmlFor="product-old-price"
+                        >
+                          {t("old_price")}{" "}
+                          <span className="text-xs font-medium text-[#98a2b3]">
+                            ({t("option")})
+                          </span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            id="product-old-price"
+                            type="number"
+                            value={product.oldPrice || ""}
+                            onChange={(e) => update("oldPrice", e.target.value)}
+                            className="admin-input pe-16"
+                            min="0"
+                            step="0.01"
+                          />
+                          <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[#667085]">
+                            {t("currency")}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="admin-form-section">
+                    <div className="admin-form-section-header">
+                      <div>
+                        <h2 className="admin-form-section-title">
+                          {t("section_inventory")}
+                        </h2>
+                        <p className="admin-form-section-description">
+                          {t("section_inventory_description")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="admin-form-grid admin-form-grid-2">
+                      <div className="admin-field">
+                        <label className="admin-label" htmlFor="product-ram">
+                          {t("ram")}
+                        </label>
+                        <input
+                          id="product-ram"
+                          type="text"
+                          value={product.ram || ""}
+                          onChange={(e) => update("ram", e.target.value)}
+                          className="admin-input"
+                          dir="ltr"
+                        />
+                      </div>
+                      <div className="admin-field">
+                        <label className="admin-label" htmlFor="product-flash">
+                          {t("flash")}
+                        </label>
+                        <input
+                          id="product-flash"
+                          type="text"
+                          value={product.flash || ""}
+                          onChange={(e) => update("flash", e.target.value)}
+                          className="admin-input"
+                          dir="ltr"
+                        />
+                      </div>
+                      <div className="admin-field md:col-span-2">
+                        <label
+                          className="admin-label"
+                          htmlFor="product-contents"
+                        >
+                          {t("contents")}
+                        </label>
+                        <input
+                          id="product-contents"
+                          type="text"
+                          value={product.contents || ""}
+                          onChange={(e) => update("contents", e.target.value)}
+                          className="admin-input"
+                        />
+                      </div>
+                      {itemDimensionsEnabled ? (
+                        <>
+                          <div className="admin-form-grid admin-form-grid-3 md:col-span-2">
+                            {[
+                              ["length", t("length")],
+                              ["width", t("width")],
+                              ["height", t("height")],
+                            ].map(([key, label]) => (
+                              <div className="admin-field" key={key}>
+                                <label
+                                  className="admin-label"
+                                  htmlFor={`product-${key}`}
+                                >
+                                  {label}
+                                  <span className="admin-label-required">
+                                    *
+                                  </span>
+                                </label>
+                                <input
+                                  id={`product-${key}`}
+                                  type="number"
+                                  min="0.01"
+                                  step="0.01"
+                                  inputMode="decimal"
+                                  value={product[key]}
+                                  onChange={(e) =>
+                                    update(key, e.target.value)
+                                  }
+                                  required={itemDimensionsEnabled}
+                                  className="admin-input"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+                  </section>
+
+                  <section className="admin-form-section">
+                    <div className="admin-form-section-header">
+                      <div>
+                        <h2 className="admin-form-section-title">
+                          {t("section_visibility")}
+                        </h2>
+                        <p className="admin-form-section-description">
+                          {t("section_visibility_description")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <ToggleCard
+                        label={t("visible_in_store")}
+                        active={enabledActive}
+                        onClick={() => setEnabledActive(!enabledActive)}
+                        icon={<FaCircle />}
+                        activeClass="bg-[#e7f7f0] text-[#0e8a5f]"
+                      />
+                      <ToggleCard
+                        label={t("featured-product")}
+                        active={enabledFavorite}
+                        onClick={() => setEnabledFavorite(!enabledFavorite)}
+                        icon={<GoStarFill />}
+                        activeClass="bg-[#fdf6e7] text-[#d97706]"
+                      />
+                      <ToggleCard
+                        label={t("available_in_store")}
+                        active={enabledAvailable}
+                        onClick={() => setEnabledAvailable(!enabledAvailable)}
+                        icon={
+                          enabledAvailable ? (
+                            <IoCheckmarkCircleOutline />
+                          ) : (
+                            <MdBlock />
+                          )
+                        }
+                        activeClass="bg-[#e7f7f0] text-[#0e8a5f]"
+                      />
+                    </div>
+                  </section>
+
+                  <section className="admin-form-section">
+                    <div className="admin-form-section-header">
+                      <div>
+                        <h2 className="admin-form-section-title">
+                          {t("section_descriptions")}
+                        </h2>
+                        <p className="admin-form-section-description">
+                          {t("section_descriptions_description")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <div className="admin-field">
+                        <label
+                          className="admin-label"
+                          htmlFor="product-description-en"
+                        >
+                          {t("description")} [EN]
+                          <span className="admin-label-required">*</span>
+                        </label>
+                        <textarea
+                          id="product-description-en"
+                          required
+                          value={product.descriptionEn || ""}
+                          onChange={(e) =>
+                            update("descriptionEn", e.target.value)
+                          }
+                          rows={5}
+                          className="admin-textarea"
+                        />
+                      </div>
+                      <div className="admin-field">
+                        <label
+                          className="admin-label"
+                          htmlFor="product-description-ar"
+                        >
+                          {t("description")} [AR]
+                          <span className="admin-label-required">*</span>
+                        </label>
+                        <textarea
+                          id="product-description-ar"
+                          required
+                          value={product.descriptionAr || ""}
+                          onChange={(e) =>
+                            update("descriptionAr", e.target.value)
+                          }
+                          rows={5}
+                          className="admin-textarea"
+                          dir="rtl"
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  <div className="admin-form-footer">
+                    {!isEditMode ? (
+                      <button
+                        type="submit"
+                        id="btn-saveProduct"
+                        className="admin-btn admin-btn-primary"
+                        onClick={addProductData}
+                        disabled={loading}
+                      >
+                        {t("save_data")}
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        id="btn-editProduct"
+                        className="admin-btn admin-btn-primary"
+                        onClick={updateProduct}
+                        disabled={loading}
+                      >
+                        {t("save-changes")}
+                      </button>
+                    )}
+                  </div>
                 </div>
+              ) : null}
 
-              <div className="mt-5 flex justify-start">
-                <button
-                  type="submit"
-                  id="btn-saveProduct"
-                  className={`bg-[#CD4354] text-sm w-[150px] my-5 px-3 py-2 text-white  hover:bg-red-800 rounded-lg transition-colors `}
-                  onClick={addProductImges}
-                  disabled={loading}
-                >
-                  {t("save_images")}
-                </button>
-              </div>
+              {showImages ? (
+                <aside className="min-w-0">
+                  <div className="admin-form-section">
+                    <div className="admin-form-section-header">
+                      <div>
+                        <h2 className="admin-form-section-title">
+                          {t("section_images")}
+                        </h2>
+                        <p className="admin-form-section-description">
+                          {t("section_images_description")}
+                        </p>
+                      </div>
+                      <span className="admin-badge admin-badge-gray">
+                        {itemImages.length}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <label
+                        htmlFor="productImg_fileInput"
+                        className="group flex h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#d3d9e5] bg-[#f8fafc] p-3 text-center transition-colors hover:border-[#cf4356] hover:bg-[#fdf7f8]"
+                      >
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-base text-[#cf4356] shadow-sm transition-transform group-hover:scale-105">
+                          <IoCloudUploadSharp />
+                        </span>
+                        <span className="text-[11px] font-semibold text-[#344054]">
+                          {t("click_to_upload")}
+                        </span>
+                        <span className="text-[9px] text-[#98a2b3]">
+                          PNG, JPG or GIF
+                        </span>
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleItemImagesUpload}
+                        className="hidden"
+                        id="productImg_fileInput"
+                      />
+                      {itemImages.map((img, index) => (
+                        <div
+                          key={index}
+                          className="group relative h-28 overflow-hidden rounded-xl border border-[#e4e8f0] bg-white"
+                        >
+                          <Image
+                            src={
+                              img.existingId
+                                ? getThumbnailUrl(img.preview)
+                                : img.preview
+                            }
+                            alt=""
+                            height={112}
+                            width={140}
+                            className="h-full w-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            className="absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-[#475467] shadow-sm transition-colors hover:bg-[#b4233a] hover:text-white"
+                            onClick={() => deleteProductImg(img.existingId, index)}
+                            aria-label={t("delete")}
+                          >
+                            <MdCancel className="text-sm" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="submit"
+                      id="btn-saveProductImages"
+                      className="admin-btn admin-btn-primary mt-4 w-full"
+                      onClick={addProductImges}
+                      disabled={loading}
+                    >
+                      {t("save_images")}
+                    </button>
+                  </div>
+                </aside>
+              ) : null}
             </div>
-          )}
-        </div>
-
-      </form>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

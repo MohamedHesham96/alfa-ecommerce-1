@@ -1,6 +1,5 @@
 import Image from "next/image";
 import type { ColumnDef } from "@tanstack/react-table";
-import { FaCircle } from "react-icons/fa";
 import { GoStarFill } from "react-icons/go";
 import { IoCheckmarkCircleOutline } from "react-icons/io5";
 import { MdBlock, MdDelete } from "react-icons/md";
@@ -59,55 +58,71 @@ export function createProductsColumns({
   return [
     {
       id: "status",
-      header: "",
+      header: t("status"),
       meta: {
         backendField: "active",
         dataType: "BOOLEAN",
         filterable: true,
         sortable: false,
-        headerClassName: "",
+        headerClassName: "w-[170px]",
         cellClassName: "",
       },
       cell: ({ row }) => {
         const product = row.original;
         return (
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
-              className={`flex items-center justify-center gap-3 text-sm ${
-                product.active ? "text-green-600" : "text-gray-600"
-              }`}
+              title={product.active ? t("deactivate") : t("activate")}
+              aria-label={product.active ? t("deactivate") : t("activate")}
               onClick={(event) => {
                 event.stopPropagation();
                 onToggleActive(product.itemId, !product.active);
               }}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                product.active
+                  ? "border-[#bfe8d7] bg-[#e7f7f0] text-[#087443]"
+                  : "border-[#e4e8f0] bg-[#f8fafc] text-[#667085]"
+              }`}
             >
-              <FaCircle />
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  product.active ? "bg-[#0e8a5f]" : "bg-[#98a2b3]"
+                }`}
+                aria-hidden="true"
+              />
+              {product.active ? t("active") : t("inactive")}
             </button>
             <button
               type="button"
-              className={`flex items-center justify-center ${
-                product.favorite ? "text-yellow-500" : "text-gray-500"
-              }`}
+              title={t("featured-product")}
+              aria-label={t("featured-product")}
               onClick={(event) => {
                 event.stopPropagation();
                 onToggleFavorite(product.itemId, !product.favorite);
               }}
+              className={`admin-action-icon ${
+                product.favorite
+                  ? "!text-[#d97706] hover:!bg-[#fdf6e7]"
+                  : "!text-[#98a2b3]"
+              }`}
             >
               <GoStarFill />
             </button>
             <button
               type="button"
-              className="flex items-center justify-center"
+              title={product.available ? t("available_in_store") : t("Currently_unavailable")}
+              aria-label={product.available ? t("available_in_store") : t("Currently_unavailable")}
               onClick={(event) => {
                 event.stopPropagation();
                 onToggleAvailable(product.itemId, !product.available);
               }}
+              className="admin-action-icon"
             >
               {product.available ? (
-                <IoCheckmarkCircleOutline className="text-lg text-green-500" />
+                <IoCheckmarkCircleOutline className="text-lg text-[#0e8a5f]" />
               ) : (
-                <MdBlock className="text-red-500" />
+                <MdBlock className="text-[#c2415a]" />
               )}
             </button>
           </div>
@@ -125,14 +140,14 @@ export function createProductsColumns({
         sortable: true,
         filterable: true,
         headerClassName: "",
-        cellClassName: "flex items-center gap-4",
+        cellClassName: "",
       },
       cell: ({ row }) => {
         const product = row.original;
         const imageUrl = product.images?.[0]?.imageUrl;
         return (
           <div
-            className="flex items-center gap-4"
+            className="flex min-w-0 cursor-pointer items-center gap-3"
             onClick={() => onOpen(product.itemId)}
           >
             {imageUrl ? (
@@ -143,18 +158,20 @@ export function createProductsColumns({
                 )}`}
                 width={50}
                 height={50}
-                className="my-1 h-10 w-10 rounded-xl border p-1 md:h-14 md:w-14"
+                className="h-10 w-10 rounded-xl border border-[#e4e8f0] bg-white object-cover p-0.5"
               />
             ) : (
-              <div className="my-1 flex h-10 w-10 items-center justify-center rounded-xl border bg-gray-100 text-[10px] text-gray-400 md:h-14 md:w-14">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#e4e8f0] bg-[#f8fafc] text-[9px] text-[#98a2b3]">
                 {t("no_image")}
               </div>
             )}
-            <div>
-              <h1 className="text-sm font-semibold">{productName(product)}</h1>
-              <h1 className="text-xs text-gray-500">
-                {t("code")} : {product.code}
-              </h1>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-[#101828]">
+                {productName(product)}
+              </p>
+              <p className="truncate text-xs text-[#667085]">
+                {t("code")}: {product.code}
+              </p>
             </div>
           </div>
         );
@@ -173,12 +190,12 @@ export function createProductsColumns({
         cellClassName: "",
       },
       cell: ({ row }) => (
-        <div
-          className="mx-1 text-sm font-semibold text-gray-500"
+        <span
+          className="inline-flex cursor-pointer items-center rounded-lg border border-[#e4e8f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#475467]"
           onClick={() => onOpen(row.original.itemId)}
         >
-          <h1>{categoryName(row.original)}</h1>
-        </div>
+          {categoryName(row.original) || "--"}
+        </span>
       ),
     },
     {
@@ -194,8 +211,14 @@ export function createProductsColumns({
         cellClassName: "text-sm font-bold",
       },
       cell: ({ row }) => (
-        <div onClick={() => onOpen(row.original.itemId)}>
-          {Number(row.original.price).toLocaleString("en-US")}
+        <div
+          className="whitespace-nowrap text-[#101828]"
+          onClick={() => onOpen(row.original.itemId)}
+        >
+          {Number(row.original.price).toLocaleString("en-US")}{" "}
+          <span className="text-xs font-medium text-[#667085]">
+            {t("currency")}
+          </span>
         </div>
       ),
     },
@@ -203,20 +226,21 @@ export function createProductsColumns({
       id: "actions",
       header: "",
       meta: {
-        headerClassName: "w-[10%]",
+        headerClassName: "w-[70px]",
         cellClassName: "",
       },
       cell: ({ row }) => (
         <button
           type="button"
-          className="flex items-center gap-1 rounded-md bg-red-300 px-2 py-1 text-sm font-semibold text-red-800 hover:bg-red-400"
+          className="admin-action-icon !text-[#b4233a] hover:!bg-[#fbeff2]"
+          title={t("delete")}
+          aria-label={t("delete")}
           onClick={(event) => {
             event.stopPropagation();
             onDelete(row.original);
           }}
         >
-          <MdDelete />
-          {t("delete")}
+          <MdDelete className="text-base" />
         </button>
       ),
     },

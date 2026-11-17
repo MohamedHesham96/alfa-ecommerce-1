@@ -173,41 +173,40 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
   return (
     <div
       id="add-product-ad-form"
-      className={`fixed inset-0 bg-black/40 flex items-center justify-center z-50 ${isFormOpen ? "flex" : "hidden"}`}
+      className={`admin-modal-overlay ${isFormOpen ? "flex" : "hidden"}`}
     >
       {loading && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <Image
-            src="/Images/logo.png"
-            alt=""
-            className="w-[100px] h-[100px] border-t-transparent rounded-full animate-pulse"
-            width={100}
-            height={100}
-            priority
-          />
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+            <span className="admin-spinner !h-7 !w-7" />
+            <p className="text-sm font-semibold text-[#475467]">
+              {t("loading")}
+            </p>
+          </div>
         </div>
       )}
-      <div className="bg-white p-5 w-full max-w-[500px] flex flex-col rounded-3xl">
-        <div className="m-4 flex justify-between items-center">
-          <h1 id="nameFormProductAd" className="text-lg font-semibold">
+      <div className="admin-modal max-w-[520px]">
+        <div className="admin-modal-header">
+          <h1 id="nameFormProductAd" className="admin-modal-title">
             {isEditMode ? t("edit_product_ad") : t("add_product_ad")}
           </h1>
           <button
-            className="text-3xl text-red-950 hover:text-red-800"
+            type="button"
+            className="admin-modal-close"
             onClick={() => {
               setIsFormOpen(false);
               clearNewImage();
               setSelectedProduct(null);
               setSearch("");
             }}
+            aria-label={t("close")}
           >
-            <MdCancel />
+            <MdCancel className="text-xl" />
           </button>
         </div>
-        <hr className="h-1 mb-3"></hr>
-        <div className="flex justify-center items-center">
+        <div className="admin-modal-body">
           <form
-            className="md:w-[60%] xs:w-[80%]"
+            className="w-full"
             onSubmit={(e) => {
               e.preventDefault();
             }}
@@ -215,24 +214,27 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
             {/* advert featured image upload */}
             <div className="flex flex-col items-center mt-2">
               {displayAdImage() ? (
-                <div className="w-full h-[150px] relative border-2 border-dashed border-red-300 rounded-lg">
-                  <div className="w-full h-full relative">
-                    <Image
-                      alt=""
-                      src={displayAdImage()}
-                      fill
-                      sizes="(max-width: 768px) 80vw, 300px"
-                      className="w-full h-full object-contain rounded-lg"
-                    />
-                  </div>
+                <div className="relative h-[170px] w-full overflow-hidden rounded-xl border border-[#e4e8f0] bg-[#f8fafc]">
+                  <Image
+                    alt=""
+                    src={displayAdImage()}
+                    fill
+                    sizes="(max-width: 768px) 80vw, 400px"
+                    className="object-contain p-2"
+                  />
                 </div>
               ) : (
-                <label htmlFor="ProductAdFileInput" className="cursor-pointer w-full">
-                  <div className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-red-300 rounded-lg hover:bg-gray-50">
-                    <span className="text-4xl text-red-600">
+                <label htmlFor="ProductAdFileInput" className="w-full cursor-pointer">
+                  <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#d3d9e5] bg-[#f8fafc] p-6 text-center transition-colors hover:border-[#cf4356] hover:bg-[#fdf7f8]">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg text-[#cf4356] shadow-sm">
                       <IoCloudUploadSharp />
                     </span>
-                    <span className="text-sm text-center">{t("upload_ad_image")}</span>
+                    <span className="text-sm font-semibold text-[#344054]">
+                      {t("upload_ad_image")}
+                    </span>
+                    <span className="text-[10px] text-[#98a2b3]">
+                      PNG, JPG or GIF
+                    </span>
                   </div>
                 </label>
               )}
@@ -271,8 +273,8 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
                 placeholder={t("title_placeholder")}
                 className="w-full outline-none text-gray-900 text-lg p-1 border rounded-md placeholder:text-sm"
               /> */}
-              <label className="text-md">{t("choose_product")}</label>
-              <div className="border rounded-lg border-red-300 px-1">
+              <label className="admin-label">{t("choose_product")}</label>
+              <div className="rounded-xl border border-[#d3d9e5] px-1 focus-within:border-[#cf4356]">
                 <Select
                   options={options}
                   value={selectedProduct}
@@ -298,6 +300,10 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
                     setSearch("");
                   }}
                   noOptionsMessage={() => t("no_products") || "لا توجد منتجات"}
+                  menuPortalTarget={
+                    typeof document !== "undefined" ? document.body : undefined
+                  }
+                  menuPosition="fixed"
                   styles={{
                     control: (provided) => ({
                       ...provided,
@@ -311,6 +317,7 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
                       ...base,
                       color: "#374151",
                     }),
+                    menuPortal: (base) => ({ ...base, zIndex: 90 }),
                     option: (base, state) => ({
                       ...base,
                       backgroundColor: state.isSelected
@@ -330,11 +337,23 @@ export default function ProductAdsForm({ isFormOpen, setIsFormOpen, editOffer, n
               </div>
             </div>
 
-            <div className="flex justify-center items-center">
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                className="admin-btn admin-btn-secondary"
+                onClick={() => {
+                  setIsFormOpen(false);
+                  clearNewImage();
+                  setSelectedProduct(null);
+                  setSearch("");
+                }}
+              >
+                {t("cancel")}
+              </button>
               <button
                 type="submit"
                 id="btn-saveProductAd"
-                className="bg-red-600 py-2 px-3 text-white mt-7 hover:bg-red-800 rounded-lg"
+                className="admin-btn admin-btn-primary"
                 onClick={handleSubmit}
               >
                 {isEditMode ? t("save-changes") : t("save")}

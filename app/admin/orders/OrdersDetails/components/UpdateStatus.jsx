@@ -1,31 +1,40 @@
 "use client";
 import { FaBox, FaCheck, FaShoppingBag, FaTruck } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import { postRequest } from "../../../../../utils/requestsUtils";
-import { useOrderDetailsContext } from "../../../../../context/orderDetailsContext";
-import { useLanguage } from "../../../../../context/LanguageContext";
 import { TfiTimer } from "react-icons/tfi";
 import { GiMoneyStack } from "react-icons/gi";
 
-export default function UpdateStatus({ orderId , orderType  }) {
+import { postRequest } from "../../../../../utils/requestsUtils";
+import { useOrderDetailsContext } from "../../../../../context/orderDetailsContext";
+import { useLanguage } from "../../../../../context/LanguageContext";
+
+export default function UpdateStatus({ orderId, orderType }) {
   const [activeStep, setActiveStep] = useState();
   const { t } = useLanguage();
   const { selectedOrderState, setSelectedOrderState } =
     useOrderDetailsContext();
-  // const [state, setState] = useState('');
   const [orderStepPath, setOrderStepPath] = useState(5);
 
   useEffect(() => {
     if (selectedOrderState === "PENDING") {
       setActiveStep(1);
       setOrderStepPath(8);
-    } else if (selectedOrderState === "PROCESSING" || selectedOrderState === "APPROVED") {
+    } else if (
+      selectedOrderState === "PROCESSING" ||
+      selectedOrderState === "APPROVED"
+    ) {
       setActiveStep(2);
-      setOrderStepPath(orderType === "orders"? 19 : 27);
-    } else if (selectedOrderState === "SHIPPED" || selectedOrderState === "REJECTED") {
+      setOrderStepPath(orderType === "orders" ? 19 : 27);
+    } else if (
+      selectedOrderState === "SHIPPED" ||
+      selectedOrderState === "REJECTED"
+    ) {
       setActiveStep(3);
       setOrderStepPath(23);
-    } else if (selectedOrderState === "DELIVERED" || selectedOrderState === "REFUNDED") {
+    } else if (
+      selectedOrderState === "DELIVERED" ||
+      selectedOrderState === "REFUNDED"
+    ) {
       setActiveStep(4);
       setOrderStepPath(30);
     } else {
@@ -34,134 +43,111 @@ export default function UpdateStatus({ orderId , orderType  }) {
     }
   }, [selectedOrderState, orderType]);
 
-  const lang =
-    typeof window !== "undefined" ? localStorage.getItem("lang") : null;
   const returnOrderSteps = [
     {
-      icon: <TfiTimer size={20} />,
+      icon: <TfiTimer size={18} />,
       label: t("PENDING"),
       value: "PENDING",
     },
-    { icon: <FaCheck size={20} />, label: t("APPROVED"), value: "APPROVED" },
-    // { icon: <FaTruck size={20} />, label: t("REJECTED"), value: "REJECTED" },
-    { icon: <GiMoneyStack size={20} />, label: t("REFUNDED"), value: "REFUNDED" },
+    { icon: <FaCheck size={18} />, label: t("APPROVED"), value: "APPROVED" },
+    { icon: <GiMoneyStack size={18} />, label: t("REFUNDED"), value: "REFUNDED" },
   ];
   const orderSteps = [
     {
-      icon: <TfiTimer size={20} />,
+      icon: <TfiTimer size={18} />,
       label: t("PENDING"),
       value: "PENDING",
     },
-    { icon: <FaBox size={20} />, label: orderType === "orders"? t("PROCESSING"):t("APPROVED"), value: orderType === "orders"? "PROCESSING":"APPROVED" },
-    { icon: <FaTruck size={20} />, label: orderType === "orders"? t("SHIPPED") :t("REFUNDED") , value: orderType === "orders"? "SHIPPED" :"REFUNDED" },
-{ icon: <FaCheck size={20} />, label: t("DELIVERED"), value: "DELIVERED" }, ];
+    {
+      icon: <FaBox size={18} />,
+      label: orderType === "orders" ? t("PROCESSING") : t("APPROVED"),
+      value: orderType === "orders" ? "PROCESSING" : "APPROVED",
+    },
+    {
+      icon: <FaTruck size={18} />,
+      label: orderType === "orders" ? t("SHIPPED") : t("REFUNDED"),
+      value: orderType === "orders" ? "SHIPPED" : "REFUNDED",
+    },
+    { icon: <FaCheck size={18} />, label: t("DELIVERED"), value: "DELIVERED" },
+  ];
+
   const changeState = async (state) => {
     try {
-      if(state === "CANCELED"){
-""
-      }else{
+      if (state === "CANCELED") {
+        "";
+      } else {
         const res = await postRequest(
-        `/api/admin/${orderType}/${orderId}/changeState/${state}`,
-        "",
-        t("message")
-      );
-      if (res.success === true) {
-        setSelectedOrderState(state);
+          `/api/admin/${orderType}/${orderId}/changeState/${state}`,
+          "",
+          t("message"),
+        );
+        if (res.success === true) {
+          setSelectedOrderState(state);
+        }
       }
-      }
-      
-    } catch (error) {
-    }
+    } catch (error) {}
   };
+
+  const steps = orderType !== "orders" ? returnOrderSteps : orderSteps;
+
   return (
-    <div className="relative flex items-center h-16 px-4 my-5">
-      <div
-        className="absolute top-1/2 left-0 right-0 h-0.5"
-        style={{
-          background: `linear-gradient(${
-            lang === "en" ? "to right" : "to left"
-          }, #E76E7D ${activeStep * orderStepPath}%, #e0e0e0 ${
-            activeStep * orderStepPath
-          }%)`,
-        }}
-      ></div>
-      <div className="flex justify-between w-full relative z-10">
-        {orderType !== 'orders'?returnOrderSteps.map((step, index) => (
-          <div
-            key={index}
-            className="flex flex-col items-center cursor-pointer"
-            onClick={() => {
-              // console.log(step.l);
-              changeState(step.value);
-            }}
-          >
-            {/* الدائرة المحيطة بالأيقونة */}
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                index + 1 <= activeStep
-                  ? "bg-red-100 border-2 border-red-300"
-                  : "bg-gray-100 border-2 border-gray-300"
-              }`}
-            >
-              {/* الأيقونة (ملونة حسب المرحلة النشطة) */}
-              <div
-                className={
-                  index + 1 <= activeStep ? "text-[#E76E7D]" : "text-gray-400"
-                }
-              >
-                {step.icon}
-              </div>
-            </div>
-            {/* العنوان تحت الأيقونة */}
-            <span
-              className={`text-xs mt-1 font-medium transition-opacity ${
-                index + 1 <= activeStep
-                  ? "text-red-600 opacity-100"
-                  : "text-gray-500 opacity-70"
-              }`}
-            >
-              {step.label}
-            </span>
-          </div>
-        )):orderSteps.map((step, index) => (
-          <div
-            key={index}
-            className="flex flex-col items-center cursor-pointer"
-            onClick={() => {
-              // console.log(step.l);
-              changeState(step.value);
-            }}
-          >
-            {/* الدائرة المحيطة بالأيقونة */}
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                index + 1 <= activeStep
-                  ? "bg-red-100 border-2 border-red-300"
-                  : "bg-gray-100 border-2 border-gray-300"
-              }`}
-            >
-              {/* الأيقونة (ملونة حسب المرحلة النشطة) */}
-              <div
-                className={
-                  index + 1 <= activeStep ? "text-[#E76E7D]" : "text-gray-400"
-                }
-              >
-                {step.icon}
-              </div>
-            </div>
-            {/* العنوان تحت الأيقونة */}
-            <span
-              className={`text-xs mt-1 font-medium transition-opacity ${
-                index + 1 <= activeStep
-                  ? "text-red-600 opacity-100"
-                  : "text-gray-500 opacity-70"
-              }`}
-            >
-              {step.label}
-            </span>
-          </div>
-        ))}
+    <section className="admin-card mt-4 p-4 sm:p-5">
+      <div className="admin-section-heading !mb-4">
+        <div>
+          <h2 className="admin-card-title">{t("fulfillment_progress")}</h2>
+          <p className="admin-card-description">
+            {t("status")}: {t(selectedOrderState)}
+          </p>
+        </div>
+        <span className="admin-badge admin-badge-gray">
+          <FaShoppingBag className="text-[10px]" />
+          {t(orderType === "orders" ? "orders" : "returns")}
+        </span>
       </div>
-    </div>
+
+      <div className="relative flex h-20 items-center px-2">
+        <div
+          className="absolute start-6 end-6 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[#e4e8f0]"
+          aria-hidden="true"
+        >
+          <div
+            className="h-full rounded-full bg-[#cf4356] transition-all duration-300"
+            style={{
+              width: `${Math.min(100, activeStep * orderStepPath)}%`,
+            }}
+          />
+        </div>
+        <div className="relative z-10 flex w-full items-start justify-between">
+          {steps.map((step, index) => {
+            const completed = index + 1 <= activeStep;
+            return (
+              <button
+                key={step.value ?? index}
+                type="button"
+                className="group flex max-w-[110px] flex-col items-center gap-2 text-center"
+                onClick={() => changeState(step.value)}
+              >
+                <span
+                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                    completed
+                      ? "border-[#cf4356] bg-[#fbeff2] text-[#cf4356] shadow-[0_0_0_4px_rgba(207,67,86,0.08)]"
+                      : "border-[#e4e8f0] bg-white text-[#98a2b3] group-hover:border-[#d3d9e5]"
+                  }`}
+                >
+                  {step.icon}
+                </span>
+                <span
+                  className={`text-[11px] font-semibold leading-4 ${
+                    completed ? "text-[#b4233a]" : "text-[#98a2b3]"
+                  }`}
+                >
+                  {step.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
   );
 }

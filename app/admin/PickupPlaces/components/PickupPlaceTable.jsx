@@ -8,6 +8,7 @@ import { useLanguage } from "../../../../context/LanguageContext";
 import { useRefresh } from "../../../../context/refreshContext";
 import { postRequest } from "../../../../utils/requestsUtils";
 import { DataTable, DataTableToolbar } from "../../components/data-table";
+import StatusBadge from "../../components/ui/StatusBadge";
 import { useServerDataTable } from "../../hooks/useServerDataTable";
 import { createPickupPlaceColumns } from "../../config/pickupPlacesTable.config";
 
@@ -54,67 +55,59 @@ export default function PickupPlaceTable({ onCreate, onEdit }) {
   const renderMobileCard = (place) => (
     <div
       key={place.pickupPlaceId}
-      className={`mx-2 my-3 rounded-xl border bg-white p-3 ${
-        place.active ? "" : "opacity-80"
-      }`}
+      className={`admin-mobile-card ${place.active ? "" : "opacity-80"}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="truncate text-sm font-semibold text-gray-900">
+          <p className="truncate text-sm font-semibold text-[#101828]">
             {place.name}
-          </h1>
-          <p className="mt-1 text-xs leading-5 text-gray-500">
+          </p>
+          <p className="mt-1 text-xs leading-5 text-[#667085]">
             {place.description}
           </p>
         </div>
-        <span
-          className={`shrink-0 rounded-full border px-2 py-1 text-[10px] font-semibold ${
-            place.active
-              ? "border-green-200 bg-green-50 text-green-700"
-              : "border-gray-300 bg-gray-100 text-gray-600"
-          }`}
-        >
+        <StatusBadge tone={place.active ? "success" : "neutral"}>
           {place.active
             ? t("active_pickup_place")
             : t("inactive_pickup_place")}
-        </span>
+        </StatusBadge>
       </div>
 
-      <div className="mt-3 space-y-2 border-t pt-3 text-xs text-gray-600">
-        <p>
-          <span className="font-semibold text-gray-700">{t("address")}:</span>{" "}
-          {place.address}
+      <div className="mt-3 space-y-2 border-t border-[#eef1f6] pt-3 text-xs text-[#667085]">
+        <p className="flex gap-1.5">
+          <span className="font-semibold text-[#344054]">{t("address")}:</span>
+          <span className="min-w-0 break-words">{place.address}</span>
         </p>
-        <p>
-          <span className="font-semibold text-gray-700">
+        <p className="flex gap-1.5">
+          <span className="font-semibold text-[#344054]">
             {t("phoneNumber")}:
-          </span>{" "}
+          </span>
           <span dir="ltr">{place.phone}</span>
         </p>
-        <p>
-          <span className="font-semibold text-gray-700">
+        <p className="flex gap-1.5">
+          <span className="font-semibold text-[#344054]">
             {t("working_hours")}:
-          </span>{" "}
-          {place.workingHours}
+          </span>
+          <span className="min-w-0 break-words">{place.workingHours}</span>
         </p>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#eef1f6] pt-3">
         <button
           type="button"
-          className="flex items-center gap-1 rounded-md bg-blue-300 px-3 py-1 text-sm font-semibold text-blue-800 hover:bg-blue-400"
+          className="admin-action-edit"
           onClick={() => onEdit(place)}
         >
-          <MdEdit />
+          <MdEdit className="text-sm" />
           {t("edit")}
         </button>
         <button
           type="button"
-          className={`rounded-md px-3 py-1 text-sm font-semibold ${
+          className={
             place.active
-              ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
-              : "bg-green-100 text-green-800 hover:bg-green-200"
-          }`}
+              ? "inline-flex h-8 items-center justify-center rounded-lg border border-[#f1dfb3] bg-[#fdf6e7] px-2.5 text-xs font-semibold text-[#946200]"
+              : "inline-flex h-8 items-center justify-center rounded-lg border border-[#bfe8d7] bg-[#e7f7f0] px-2.5 text-xs font-semibold text-[#087443]"
+          }
           onClick={() => toggleActive(place)}
         >
           {place.active ? t("deactivate") : t("activate")}
@@ -128,14 +121,13 @@ export default function PickupPlaceTable({ onCreate, onEdit }) {
       table={tableState.table}
       searchValue={tableState.globalFilter}
       onSearchChange={tableState.setGlobalFilter}
-      className="!p-3"
       actions={
         <button
           type="button"
-          className="flex items-center justify-center gap-2 rounded-md bg-[#CD4354] p-2 text-center text-white xs:text-xs md:text-sm"
+          className="admin-btn admin-btn-primary"
           onClick={onCreate}
         >
-          <FaPlus />
+          <FaPlus className="text-xs" />
           <span>{t("add_pickup_place")}</span>
         </button>
       }
@@ -153,11 +145,9 @@ export default function PickupPlaceTable({ onCreate, onEdit }) {
       onRetry={tableState.reload}
       toolbar={toolbar}
       mobileCard={renderMobileCard}
-      mobileWrapperClassName="lg:hidden mt-3 h-auto rounded-xl border overflow-y-auto"
-      desktopWrapperClassName="hidden lg:block mt-3 max-h-[600px] w-full overflow-x-auto overflow-y-auto"
-      tableClassName="w-full min-w-[860px] border"
-      headerClassName="bg-[#f0eff0] text-xs text-justify sticky top-0 z-10"
-      rowClassName="border w-full hover:bg-gray-50"
+      mobileWrapperClassName="lg:hidden mt-3"
+      desktopWrapperClassName="admin-table-shell hidden lg:block mt-3 max-h-[600px] w-full overflow-x-auto overflow-y-auto"
+      tableClassName="admin-table min-w-[860px]"
       emptyMessage={t("no_pickup_places")}
     />
   );

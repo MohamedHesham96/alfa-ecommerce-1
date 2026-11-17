@@ -43,27 +43,32 @@ export default function Table({
   });
 
   const renderMobileCard = (rate) => (
-    <div
-      key={rate.shippingRateId}
-      className="mb-3 rounded-xl border bg-white p-3 hover:bg-gray-50"
-    >
+    <div key={rate.shippingRateId} className="admin-mobile-card">
       <div className="flex items-start justify-between gap-3">
-        <h1 className="min-w-0 break-words text-sm font-semibold">
-          {locale === "ar"
-            ? rate.governorate?.nameAr
-            : rate.governorate?.nameEn}
-        </h1>
+        <div className="min-w-0">
+          <p className="text-xs text-[#667085]">{t("governorate")}</p>
+          <p className="mt-0.5 break-words text-sm font-semibold text-[#101828]">
+            {locale === "ar"
+              ? rate.governorate?.nameAr
+              : rate.governorate?.nameEn}
+          </p>
+        </div>
         <button
           type="button"
-          className="shrink-0 rounded-full p-2 text-red-600 hover:bg-red-200"
+          className="admin-action-icon shrink-0 !text-[#1d4ed8] hover:!bg-[#eef4ff]"
           onClick={() => editRate(rate)}
+          aria-label={t("edit")}
         >
-          <BiEdit />
+          <BiEdit className="text-lg" />
         </button>
       </div>
-      <div className="mt-3 flex items-center justify-between border-t pt-3">
-        <span className="text-base font-bold">
-          {t("shippingCost")} : {rate.shippingCost}
+      <div className="mt-3 flex items-center justify-between border-t border-[#eef1f6] pt-3">
+        <span className="text-xs text-[#667085]">{t("shippingCost")}</span>
+        <span className="text-base font-bold text-[#101828]">
+          {Number(rate.shippingCost ?? 0).toLocaleString("en-US")}{" "}
+          <span className="text-xs font-medium text-[#667085]">
+            {t("currency")}
+          </span>
         </span>
       </div>
     </div>
@@ -74,12 +79,11 @@ export default function Table({
       table={tableState.table}
       searchValue={tableState.globalFilter}
       onSearchChange={tableState.setGlobalFilter}
-      className="!p-3"
     />
   );
 
   return (
-    <div className="h-full w-full px-0 pt-3 xs:px-0 md:px-16">
+    <div className="h-full w-full">
       <DataTable
         table={tableState.table}
         loading={tableState.loading}
@@ -90,11 +94,9 @@ export default function Table({
         onRetry={tableState.reload}
         toolbar={toolbar}
         mobileCard={renderMobileCard}
-        mobileWrapperClassName="lg:hidden p-3"
-        desktopWrapperClassName="hidden lg:block max-h-[570px] min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
-        tableClassName="w-full min-w-[560px] border"
-        headerClassName="bg-[#f0eff0] text-xs text-justify sticky top-0 z-10"
-        rowClassName="border w-full h-14 hover:bg-gray-50"
+        mobileWrapperClassName="lg:hidden mt-3 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc] p-3"
+        desktopWrapperClassName="admin-table-shell hidden lg:block max-h-[600px] min-w-0 mt-3 w-full overflow-x-auto overflow-y-auto"
+        tableClassName="admin-table min-w-[560px]"
         emptyMessage={t("no_data")}
       />
     </div>

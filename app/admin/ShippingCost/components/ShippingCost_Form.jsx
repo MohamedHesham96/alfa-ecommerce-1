@@ -1,68 +1,96 @@
 "use client";
-import { MdCancel } from "react-icons/md";
+import { useState } from "react";
+
 import { useLanguage } from "../../../../context/LanguageContext";
 import { putRequest } from "../../../../utils/requestsUtils";
-import { useState } from "react";
 import { useRefresh } from "../../../../context/refreshContext";
+import AdminModal from "../../components/ui/AdminModal";
+import FormField from "../../components/ui/FormField";
 
-export default function ShippingCostForm({ govName, govId, govPrice, setShowForm }) {
+export default function ShippingCostForm({
+  govName,
+  govId,
+  govPrice,
+  setShowForm,
+}) {
   const [shippingCost, setShippingCost] = useState(0);
   const { triggerRefresh } = useRefresh();
+  const { t } = useLanguage();
 
   const saveShippingCost = async () => {
-    // console.log(govId , govName , Number(shippingCost))
     try {
-      await putRequest(`/api/admin/shipping-rates/${govId}`, {
-        shippingCost: Number(shippingCost),
-      } , t("message"));
+      await putRequest(
+        `/api/admin/shipping-rates/${govId}`,
+        {
+          shippingCost: Number(shippingCost),
+        },
+        t("message"),
+      );
       triggerRefresh();
       setShowForm(false);
     } catch (err) {
     }
   };
-  const { t } = useLanguage();
+
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="w-[90%] max-w-[400px] min-h-[350px] h-auto bg-white rounded-md flex flex-col justify-start items-start p-5 gap-5 max-h-[90vh] overflow-y-auto ">
-        <div className="w-full flex justify-between items-center">
-          <h1 className="text-xl font-semibold">{t("EditShippingCost")} </h1>
+    <AdminModal
+      open
+      onClose={() => setShowForm(false)}
+      title={t("EditShippingCost")}
+      description={t("shipping_description")}
+      size="sm"
+      closeLabel={t("close")}
+      footer={
+        <>
           <button
-            className="text-2xl hover:text-red-500"
+            type="button"
+            className="admin-btn admin-btn-secondary"
             onClick={() => setShowForm(false)}
           >
-            {" "}
-            <MdCancel />{" "}
+            {t("cancel")}
           </button>
+          <button
+            type="button"
+            className="admin-btn admin-btn-primary"
+            onClick={saveShippingCost}
+          >
+            {t("save")}
+          </button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-5">
+        <div className="rounded-xl border border-[#e4e8f0] bg-[#f8fafc] p-4 text-center">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#667085]">
+            {t("governorate")}
+          </p>
+          <p className="mt-1 text-lg font-bold text-[#101828]">{govName}</p>
+          <p className="mt-1 text-sm text-[#667085]">
+            {Number(govPrice ?? 0).toLocaleString("en-US")} {t("currency")}
+          </p>
         </div>
-
-        <div className="w-full flex flex-col h-full justify-center gap-10 p-10 items-center ">
-          <div className="w-full flex justify-center items-baseline">
-            {/* <label htmlFor="governorate" className="text-sm font-semibold ">{t("governorate")}</label> */}
-            <h1 className="text-3xl font-bold"> {govName} - {govPrice} {t("currency")}</h1>
-          </div>
-          <div className="w-full flex justify-between items-center">
-            <label htmlFor="shippingCost" className="font-semibold mr-2 text-">
-              {t("changeShippingCost")}:
-            </label>
+        <FormField
+          label={t("changeShippingCost")}
+          htmlFor="shippingCost"
+          required
+        >
+          <div className="relative">
             <input
               id="shippingCost"
               name="shippingCost"
-              className="border rounded-md p-2 w-32"
+              type="number"
+              className="admin-input pe-16"
+              value={shippingCost}
               onChange={(e) => setShippingCost(e.target.value)}
+              min="0"
+              step="0.01"
             />
+            <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[#667085]">
+              {t("currency")}
+            </span>
           </div>
-        </div>
-        <div className="w-full flex justify-center items-center ">
-          <button
-            className="bg-red-600 w-full rounded-md h-8 text-white"
-            onClick={() => {
-              saveShippingCost();
-            }}
-          >
-            Save
-          </button>
-        </div>
+        </FormField>
       </div>
-    </div>
+    </AdminModal>
   );
 }

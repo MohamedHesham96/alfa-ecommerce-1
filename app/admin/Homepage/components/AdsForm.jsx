@@ -293,39 +293,38 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
     return (
         <div
             id="add-slider-form"
-            className={`fixed inset-0 bg-black/40 flex items-center justify-center z-50 ${isFormOpen ? "flex" : "hidden"}`}
+            className={`admin-modal-overlay ${isFormOpen ? "flex" : "hidden"}`}
         >
             {loading && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <Image
-                        src="/Images/logo.png"
-                        alt=""
-                        className="w-[100px] h-[100px]  border-t-transparent rounded-full animate-pulse"
-                        width={100}
-                        height={100}
-                        priority
-                    />
+                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+                        <span className="admin-spinner !h-7 !w-7" />
+                        <p className="text-sm font-semibold text-[#475467]">
+                            {t("loading")}
+                        </p>
+                    </div>
                 </div>
             )}
-            <div className="bg-white w-[95%] max-w-[550px] flex flex-col rounded-3xl shadow-2xl">
-                <div className="m-4 flex justify-between items-center">
-                    <h1 id="nameFormCategory" className="text-xl font-bold text-gray-800">
+            <div className="admin-modal max-w-[560px]">
+                <div className="admin-modal-header">
+                    <h1 id="nameFormCategory" className="admin-modal-title">
                         {isUpdateMode ? t("edit_advert") : t("add_advert") + " " + "[" + adNumber + "]"}
                     </h1>
                     <button
-                        className="text-3xl text-red-950  hover:text-red-800 transition-transform hover:scale-110"
+                        type="button"
+                        className="admin-modal-close"
                         onClick={() => {
                             setIsFormOpen(false);
                             clearNewImage();
                             setSelectedProduct(null)
                             setSearchText("")
                         }}
+                        aria-label={t("close")}
                     >
-                        <MdCancel />
+                        <MdCancel className="text-xl" />
                     </button>
                 </div>
-                <hr className="h-1 mb-3"></hr>
-                <div className="flex justify-center items-center px-4">
+                <div className="admin-modal-body">
                     <form
                         className="w-full"
                         onSubmit={(e) => {
@@ -338,14 +337,14 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                                 onClick={clearNewImage}
                                 className="absolute top-2 right-2 z-10 bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm hover:bg-red-800"
                             >X</button>
-                            <div className="flex items-center relative h-[170px] justify-center border-2 border-dashed border-red-300 rounded-xl hover:bg-gray-50">
-                                <div className="w-full h-full relative">
+                            <div className="relative flex h-[170px] items-center justify-center overflow-hidden rounded-xl border border-[#e4e8f0] bg-[#f8fafc]">
+                                <div className="relative h-full w-full">
                                     <Image
                                         alt=""
                                         src={photo.AdImage}
                                         fill
                                         sizes="(max-width: 768px) 80vw, 500px"
-                                        className="w-full h-full object-contain rounded-xl"
+                                        className="object-contain p-2"
                                     />
                                 </div>
 
@@ -358,29 +357,32 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                                     onClick={deleteImage}
                                     className="absolute top-2 right-2 z-10 bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm hover:bg-red-800"
                                 >X</button>
-                                <div className="flex items-center relative h-[170px] justify-center border-2 border-dashed border-red-300 rounded-xl hover:bg-gray-50">
-                                    <div className="w-full h-full relative">
+                                <div className="relative flex h-[170px] items-center justify-center overflow-hidden rounded-xl border border-[#e4e8f0] bg-[#f8fafc]">
+                                    <div className="relative h-full w-full">
                                         <Image
                                             alt=""
                                             src={process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL + adData.imageUrl}
                                             fill
                                             sizes="(max-width: 768px) 80vw, 500px"
-                                            className="w-full h-full object-contain rounded-xl"
+                                            className="object-contain p-2"
                                         />
                                     </div>
 
                                 </div>
                             </div>
 
-                                : <label htmlFor="AdFileInput" className="cursor-pointer ">
-                                    <div className="flex flex-col items-center relative  justify-center p-5 border-2 border-dashed border-red-300 rounded-xl hover:bg-red-50 transition-colors">
+                                : <label htmlFor="AdFileInput" className="cursor-pointer">
+                                    <div className="relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#d3d9e5] bg-[#f8fafc] p-6 text-center transition-colors hover:border-[#cf4356] hover:bg-[#fdf7f8]">
                                         {!photo.AdImage ? (
-                                            <div className="flex flex-col justify-center items-center">
-                                                <span className="text-4xl text-red-600">
+                                            <div className="flex flex-col items-center justify-center gap-2">
+                                                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg text-[#cf4356] shadow-sm">
                                                     <IoCloudUploadSharp />
                                                 </span>
-                                                <span className="text-sm text-gray-500 mt-2">
+                                                <span className="text-sm font-semibold text-[#344054]">
                                                     {t("add-photo")}
+                                                </span>
+                                                <span className="text-[10px] text-[#98a2b3]">
+                                                    PNG, JPG or GIF
                                                 </span>
                                             </div>
                                         ) : (
@@ -409,7 +411,7 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                             <div className="flex flex-col gap-4 ">
                                 <div className="flex flex-col gap-1.5">
                                     {adNumber === 3 || adNumber === 4  || adNumber === 5 ? (
-                                      <> <label className="text-md font-semibold text-gray-600">
+                                      <> <label className="admin-label">
                                             {t("title_ar")}
                                         </label>  <input
                                         type="text"
@@ -419,17 +421,17 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                                             titleAr: e.target.value
                                         }))}
 
-                                        className="w-full outline-none text-gray-900 text-sm p-2.5 border border-gray-300 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition-all"
-                                    /></> 
+                                        className="admin-input"
+                                    /></>
                                     ) : null}
-                                  
+
                                 </div>
                                 <div className="flex flex-col gap-1.5">
                                     {adNumber === 3 || adNumber === 4  || adNumber === 5 ? (
                                         <>
-                                        <label className="text-md font-semibold text-gray-600">
+                                        <label className="admin-label">
                                             {t("title_en")}
-                                        </label> 
+                                        </label>
                                         <input
                                         type="text"
                                         value={adData.title}
@@ -439,16 +441,16 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                                         }))}
 
                                         dir="ltr"
-                                        className="w-full outline-none text-gray-900 text-sm p-2.5 border border-gray-300 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-100 transition-all"
+                                        className="admin-input"
                                     /></>
                                     ) : null}
-                                   
+
                                 </div>
                                 <div className="flex flex-col gap-1.5 rounded-xl">
-                                    <label className="text-md font-semibold text-gray-600">
+                                    <label className="admin-label">
                                         {t("choose_product")}
                                     </label>
-                                    <div className="border rounded-xl border-red-300 px-1 focus-within:border-red-500">
+                                    <div className="rounded-xl border border-[#d3d9e5] px-1 focus-within:border-[#cf4356]">
 
                                         <Select
                   options={options}
@@ -480,6 +482,10 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                     setSearchText("");
                   }}
                   noOptionsMessage={() => t("no_products") || "لا توجد منتجات"}
+                  menuPortalTarget={
+                    typeof document !== "undefined" ? document.body : undefined
+                  }
+                  menuPosition="fixed"
                   styles={{
                     control: (provided) => ({
                       ...provided,
@@ -493,6 +499,7 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
                       ...base,
                       color: "#374151",
                     }),
+                    menuPortal: (base) => ({ ...base, zIndex: 90 }),
                     option: (base, state) => ({
                       ...base,
                       backgroundColor: state.isSelected
@@ -517,11 +524,23 @@ export default function AdsForm({ isFormOpen, setIsFormOpen, productsOptions, ad
 
 
 
-                        <div className="flex justify-center items-center pb-4">
+                        <div className="mt-5 flex justify-end gap-2">
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn-secondary"
+                                onClick={() => {
+                                    setIsFormOpen(false);
+                                    clearNewImage();
+                                    setSelectedProduct(null);
+                                    setSearchText("");
+                                }}
+                            >
+                                {t("cancel")}
+                            </button>
                             <button
                                 type="submit"
                                 id="btn-saveCategory"
-                                className={`bg-red-600 py-2.5 px-10 text-white mt-7  hover:bg-red-800 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg `}
+                                className="admin-btn admin-btn-primary"
                                 onClick={handleSubmit}
                             >
                                 {isUpdateMode ? t("save-changes") : t("save")}

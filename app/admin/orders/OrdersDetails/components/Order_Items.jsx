@@ -82,63 +82,63 @@ export default function OrdersItems({ orderId, orderType }) {
   const renderMobileCard = (item) => {
     if (orderType === "orders") {
       return (
-        <div className="mx-2 my-3 rounded-xl border bg-white p-3">
+        <div className="admin-mobile-card">
           <div className="flex items-start gap-3">
             <ItemImage imageUrl={item.item?.images?.[0]?.imageUrl} />
             <div className="min-w-0">
-              <h1 className="truncate text-sm font-semibold">
+              <p className="truncate text-sm font-semibold text-[#101828]">
                 {locale === "ar" ? item.item?.nameAr : item.item?.nameEn}
-              </h1>
-              <h1 className="truncate text-xs text-gray-500">
+              </p>
+              <p className="truncate text-xs text-[#667085]">
                 {item.item?.code}
-              </h1>
+              </p>
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
+          <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#eef1f6] pt-3">
             <div>
-              <div className="text-sm font-semibold">
+              <div className="text-sm font-semibold text-[#101828]">
                 {Number(item.unitPrice ?? 0).toLocaleString("en-US")}{" "}
                 {t("currency")}
               </div>
-              <div className="text-xs line-through">
+              <div className="text-xs line-through text-[#98a2b3]">
                 {Number(item.oldUnitPrice ?? 0).toLocaleString("en-US")}{" "}
                 {t("currency")}
               </div>
             </div>
-            <div className="shrink-0 text-sm text-gray-500">
-              {t("quantity")} : {item.quantity}
+            <div className="shrink-0 text-xs text-[#667085]">
+              {t("quantity")}: {item.quantity}
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between border-t pt-3">
-            <div className="text-base font-bold">
-              {t("total")} :{" "}
+          <div className="mt-3 flex items-center justify-between border-t border-[#eef1f6] pt-3">
+            <span className="text-xs text-[#667085]">{t("total")}</span>
+            <span className="text-base font-bold text-[#101828]">
               {Number(item.totalPrice ?? 0).toLocaleString("en-US")}{" "}
               {t("currency")}
-            </div>
+            </span>
           </div>
         </div>
       );
     }
 
     return (
-      <div className="mx-2 my-3 rounded-xl border bg-white p-3">
+      <div className="admin-mobile-card">
         <div className="flex items-start gap-3">
           <ItemImage imageUrl={item.item?.images?.[0]?.imageUrl} />
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold">
+            <p className="truncate text-sm font-semibold text-[#101828]">
               {locale === "ar" ? item.item?.nameAr : item.item?.nameEn}
-            </h1>
-            <h1 className="truncate text-xs text-gray-500">
+            </p>
+            <p className="truncate text-xs text-[#667085]">
               {item.item?.code}
-            </h1>
+            </p>
           </div>
         </div>
-        <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
-          <div className="text-sm font-semibold">
+        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#eef1f6] pt-3">
+          <div className="text-sm font-semibold text-[#101828]">
             {Number(itemPrice ?? 0).toLocaleString("en-US")} {t("currency")}
           </div>
-          <div className="shrink-0 text-sm text-gray-500">
-            {t("quantity")} : {itemQuantity}
+          <div className="shrink-0 text-xs text-[#667085]">
+            {t("quantity")}: {itemQuantity}
           </div>
         </div>
       </div>
@@ -146,50 +146,45 @@ export default function OrdersItems({ orderId, orderType }) {
   };
 
   return (
-    <div className="w-full">
-      <div className="flex h-16 items-center justify-between rounded-t-lg border-l border-r border-t bg-white px-6 xs:text-sm md:text-base">
-        <h1
-          className={`xs:text-sm md:text-base ${
-            orderType === "orders" ? "hidden" : "block"
-          }`}
-        >
-          {t("reasonMessage")}: {reasonMessage}
-        </h1>
-        <div className={orderType === "orders" ? "block" : "hidden"}>
-          {t("shippingCost")}:{" "}
-          <span className="font-semibold xs:text-base md:text-lg">
-            {Number(shippingCost ?? 0).toLocaleString("en-US")}{" "}
-            {t("currency")}
-          </span>{" "}
-        </div>
+    <section className="admin-card min-w-0 w-full overflow-hidden">
+      <div className="admin-card-header">
         <div>
-          {t("total")}:{" "}
-          <span className="font-semibold text-[#CD4354] xs:text-base md:text-lg">
+          <h2 className="admin-card-title">{t("items_in_order")}</h2>
+          <p className="admin-card-description">
+            {t("order_summary")}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {orderType !== "orders" ? (
+            <span className="admin-badge admin-badge-amber">
+              {t("reasonMessage")}: {reasonMessage}
+            </span>
+          ) : (
+            <span className="admin-badge admin-badge-gray">
+              {t("shippingCost")}:{" "}
+              {Number(shippingCost ?? 0).toLocaleString("en-US")}{" "}
+              {t("currency")}
+            </span>
+          )}
+          <span className="admin-badge admin-badge-red !px-3 !py-1 text-xs">
+            {t("total")}:{" "}
             {Number(orderTotalPrice ?? 0).toLocaleString("en-US")}{" "}
             {t("currency")}
           </span>
         </div>
       </div>
-      <div
-        className={`w-full border ${
-          orderType === "orders"
-            ? "h-[435px] overflow-hidden overflow-x-scroll overflow-y-scroll"
-            : ""
-        }`}
-      >
+      <div className="p-3 sm:p-4">
         <DataTable
           table={table}
           loading={loading}
           mobileCard={renderMobileCard}
           mobileWrapperClassName="lg:hidden"
-          desktopWrapperClassName="hidden lg:block w-full"
-          tableClassName="w-full h-auto rounded-lg"
-          headerClassName="text-xs bg-[#f0eff0] text-justify"
-          rowClassName="border-b w-full"
+          desktopWrapperClassName="hidden lg:block max-h-[435px] w-full overflow-x-auto overflow-y-auto rounded-xl border border-[#e4e8f0]"
+          tableClassName="admin-table min-w-[640px]"
           showInfiniteFooter={false}
           emptyMessage={t("no_data")}
         />
       </div>
-    </div>
+    </section>
   );
 }

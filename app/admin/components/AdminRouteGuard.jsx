@@ -38,19 +38,26 @@ export default function AdminRouteGuard({ children }) {
   if (!ready || !hasSession) {
     return (
       <div
-        className="flex flex-col gap-10 justify-center items-center h-screen bg-color1"
+        className="flex h-screen flex-col items-center justify-center gap-6 bg-[#f3f5f9]"
         aria-busy="true"
         data-testid="admin-route-loading"
       >
-        <Image
-          src="/Images/logo.png"
-          alt=""
-          priority
-          width={200}
-          height={200}
-          className="w-[100px] h-[100px] border-t-transparent rounded-full animate-pulse"
-        />
-        <h1 className="md:text-5xl xs:text-4xl font-serif font-semibold animate-pulse bg-gradient-to-r from-[#d62828] via-color3 to-color2 bg-clip-text text-transparent" />
+        <span className="flex h-20 w-20 items-center justify-center rounded-2xl border border-[#e4e8f0] bg-white shadow-sm">
+          <Image
+            src="/Images/logo.png"
+            alt=""
+            priority
+            width={200}
+            height={200}
+            className="h-12 w-12 animate-pulse object-contain"
+          />
+        </span>
+        <div className="flex flex-col items-center gap-2">
+          <span className="admin-spinner !h-6 !w-6" />
+          <p className="text-sm font-semibold text-[#667085]">
+            {locale === "ar" ? "جارٍ التحقق من الجلسة..." : "Checking your session..."}
+          </p>
+        </div>
       </div>
     );
   }
@@ -60,21 +67,21 @@ export default function AdminRouteGuard({ children }) {
 
     return (
       <div
-        className="w-full h-full flex justify-center items-center text-center"
+        className="flex h-screen w-full items-center justify-center bg-[#f3f5f9] p-5 text-center"
         role="alert"
         data-testid="admin-route-forbidden"
       >
-        <div>
-          <div className="flex justify-center items-center mb-20">
+        <div className="admin-card w-full max-w-lg p-8">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#e4e8f0] bg-[#f8fafc]">
             <Image
               src="/Images/logo.png"
               width={200}
               height={200}
               alt="logo"
-              className="flex justify-center items-center"
+              className="h-10 w-10 object-contain"
             />
           </div>
-          <h1 className="text-2xl font-semibold">
+          <h1 className="text-2xl font-bold tracking-tight text-[#101828]">
             {isArabic
               ? "غير مصرح لك بالوصول إلى هذه الصفحة"
               : "You are not authorized to view this page"}

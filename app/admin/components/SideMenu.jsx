@@ -1,368 +1,365 @@
 "use client";
-import { MdDashboard } from "react-icons/md";
-import { IoFileTray } from "react-icons/io5";
-import { MdOutlineShoppingCart } from "react-icons/md";
-import { ImUsers } from "react-icons/im";
-import { MdContactSupport } from "react-icons/md";
-import { MdAdminPanelSettings } from "react-icons/md";
-import { RiMoneyDollarCircleLine, RiPagesFill } from "react-icons/ri";
-import { MdElectricBolt } from "react-icons/md";
-import { MdCategory } from "react-icons/md";
-import { MdSettings } from "react-icons/md";
-import { MdStorefront } from "react-icons/md";
-import Link from "next/link";
-import React, { useState, useEffect, useCallback, useContext } from "react";
-import { useLanguage } from "../../../context/LanguageContext.js";
-import Image from "next/image.js";
-import { PiSignOutBold } from "react-icons/pi";
 
+import Image from "next/image";
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation.js";
+import {
+  MdAdminPanelSettings,
+  MdCategory,
+  MdChevronLeft,
+  MdChevronRight,
+  MdClose,
+  MdContactSupport,
+  MdDashboard,
+  MdOutlineShoppingCart,
+  MdSettings,
+  MdStorefront,
+} from "react-icons/md";
+import { IoFileTray } from "react-icons/io5";
+import { ImUsers } from "react-icons/im";
+import { RiMoneyDollarCircleLine, RiPagesFill } from "react-icons/ri";
+import { PiSignOutBold } from "react-icons/pi";
+import { TbTruckReturn } from "react-icons/tb";
+
+import { useLanguage } from "../../../context/LanguageContext.js";
 import { useNamePageInAdminContext } from "../../../context/namePageInAdmin.jsx";
 import { useAppConfig } from "../../../context/AppConfigContext.jsx";
 import { useSystemSettingsAccess } from "../context/SystemSettingsAccessContext.jsx";
-import { useRouter } from "next/navigation.js";
 import { logoutRequest } from "../../../utils/requestsUtils";
-import { TbTruckReturn } from "react-icons/tb";
-export default function SideMenu() {
-  const navigate = useRouter();
 
-  const [username, setUsername] = useState();
+const SECTIONS = [
+  {
+    id: "overview",
+    labelKey: "nav_overview",
+    items: [
+      {
+        href: "/admin/Dashboard",
+        labelKey: "dashboard",
+        icon: <MdDashboard />,
+        activeKey: "dashboard_overview",
+        displayName: "Dashboard Overview",
+        id: "dashboardTab",
+      },
+      {
+        href: "/admin/Homepage",
+        labelKey: "homepage",
+        icon: <RiPagesFill />,
+        activeKey: "homepage_management",
+        displayName: "Homepage Management",
+      },
+    ],
+  },
+  {
+    id: "catalog",
+    labelKey: "nav_catalog",
+    items: [
+      {
+        href: "/admin/Categories",
+        labelKey: "categories",
+        icon: <MdCategory />,
+        activeKey: "categories_management",
+        displayName: "Categories Management",
+      },
+      {
+        href: "/admin/Products",
+        labelKey: "products",
+        icon: <IoFileTray />,
+        activeKey: "products_management",
+        displayName: "Products Management",
+      },
+    ],
+  },
+  {
+    id: "sales",
+    labelKey: "nav_sales",
+    items: [
+      {
+        href: "/admin/orders",
+        labelKey: "orders",
+        icon: <MdOutlineShoppingCart />,
+        activeKey: "orders_management",
+        displayName: "Orders Management",
+      },
+      {
+        href: "/admin/Returns",
+        labelKey: "returns",
+        icon: <TbTruckReturn />,
+        activeKey: "returns_management",
+        displayName: "Returns Management",
+      },
+      {
+        href: "/admin/ShippingCost",
+        labelKey: "shippingcost",
+        icon: <RiMoneyDollarCircleLine />,
+        activeKey: "ShippingCost_management",
+        displayName: "ShippingCost Management",
+      },
+    ],
+  },
+  {
+    id: "customers",
+    labelKey: "nav_customers",
+    items: [
+      {
+        href: "/admin/UsersPage/Users",
+        labelKey: "users",
+        icon: <ImUsers />,
+        activeKey: "users_management",
+        displayName: "Users Management",
+      },
+    ],
+  },
+  {
+    id: "administration",
+    labelKey: "nav_administration",
+    items: [
+      {
+        href: "/admin/Admins",
+        labelKey: "admins",
+        icon: <MdAdminPanelSettings />,
+        activeKey: "admins_management",
+        displayName: "Admins Management",
+        id: "adminsTab",
+      },
+      {
+        href: "/admin/Contact",
+        labelKey: "contact",
+        icon: <MdContactSupport />,
+        activeKey: "contact_management",
+        displayName: "Contact Management",
+      },
+    ],
+  },
+];
+
+function initialsOf(name) {
+  const parts = String(name || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "A";
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
+export default function SideMenu({
+  mobileOpen = false,
+  onMobileClose,
+  collapsed = false,
+  onToggleCollapse,
+}) {
+  const navigate = useRouter();
+  const { t } = useLanguage();
   const { canAccess: systemSettingsAccess } = useSystemSettingsAccess();
   const { selectedNamePage, setSelectedNamePage } = useNamePageInAdminContext();
   const pickupEnabled = useAppConfig("pickup.enabled", false);
+  const [username, setUsername] = useState("");
+  const [role, setRole] = useState("");
+
   useEffect(() => {
-    // جلب اسم المستخدم من localStorage
-    const savedUsername =
-      typeof window !== "undefined"
-        ? localStorage.getItem("firstName")
-        : null + " " + typeof window !== "undefined"
-        ? localStorage.getItem("lastName")
-        : null;
-    setUsername(savedUsername);
+    if (typeof window === "undefined") return;
+    const first = localStorage.getItem("firstName") || "";
+    const last = localStorage.getItem("lastName") || "";
+    const displayName =
+      `${first} ${last}`.trim() ||
+      localStorage.getItem("username") ||
+      localStorage.getItem("email") ||
+      "";
+    setUsername(displayName);
+    setRole(localStorage.getItem("role") || "");
+
     const lastPort = window.location.pathname.split("/").filter(Boolean).pop();
     setSelectedNamePage(
       lastPort === "Dashboard"
-        ? lastPort + " " + "Overview"
+        ? `${lastPort} Overview`
         : window.location.pathname.includes("User")
-        ? "Users Management"
-        : window.location.pathname.includes("orders")
-        ? "Orders Management"
-        : window.location.pathname.includes("returnorderdetails")
-        ? "Returns Management"
-        : window.location.pathname.includes("SystemSettings")
-        ? "System Settings"
-        : window.location.pathname.includes("PickupPlaces")
-        ? "Pickup Places Management"
-        : lastPort + " " + "Management"
+          ? "Users Management"
+          : window.location.pathname.includes("orders")
+            ? "Orders Management"
+            : window.location.pathname.includes("returnorderdetails")
+              ? "Returns Management"
+              : window.location.pathname.includes("SystemSettings")
+                ? "System Settings"
+                : window.location.pathname.includes("PickupPlaces")
+                  ? "Pickup Places Management"
+                  : `${lastPort} Management`,
     );
   }, [setSelectedNamePage]);
 
-  // const username =
-  //  typeof window !== 'undefined'? localStorage.getItem("firstName") + " " + localStorage.getItem("lastName"):null;
-  // const adminId = localStorage.getItem("id");
+  const sections = SECTIONS.map((section) => ({
+    ...section,
+    items: [...section.items],
+  }));
 
-  const { t } = useLanguage();
-  // const checkAdmin = useCallback(() => {
-  //   const dashboardTab = document.querySelector("#dashboardTabTab");
-  //   const adminsTab = document.querySelector("#adminsTab");
-  //   if (adminId != "1") {
-  //     dashboardTab.classList.add("hidden");
-  //     adminsTab.classList.add("hidden");
-  //   }
-  // },[adminId])
-  // useEffect(()=>{
-  //   checkAdmin()
-  // },[checkAdmin])
+  const administration = sections.find(
+    (section) => section.id === "administration",
+  );
+  if (systemSettingsAccess) {
+    administration.items.push({
+      href: "/admin/SystemSettings",
+      labelKey: "system_settings",
+      icon: <MdSettings />,
+      activeKey: "system_settings",
+      displayName: "System Settings",
+    });
+  }
+  if (pickupEnabled) {
+    administration.items.push({
+      href: "/admin/PickupPlaces",
+      labelKey: "pickup_places",
+      icon: <MdStorefront />,
+      activeKey: "pickup_places_management",
+      displayName: "Pickup Places Management",
+    });
+  }
+
+  const handleNavigate = (displayName) => {
+    setSelectedNamePage(displayName);
+    onMobileClose?.();
+  };
+
+  const handleLogout = async () => {
+    await logoutRequest();
+    localStorage.setItem("id", "");
+    localStorage.setItem("accessToken", "");
+    localStorage.setItem("refreshToken", "");
+    localStorage.setItem("address", "");
+    localStorage.setItem("email", "");
+    localStorage.setItem("firstName", "");
+    localStorage.setItem("lastName", "");
+    localStorage.setItem("phone", "");
+    localStorage.setItem("role", "");
+    localStorage.setItem("systemSettingsAccess", "false");
+    localStorage.setItem("username", "");
+    navigate.push("/");
+  };
+
   return (
-    <div className="xs:w-[60px] xl:w-[300px] min-h-screen bg-[#204272] text-white  ">
-      <div className=" h-full  ">
-        <div className="flex  items-center xs:justify-center xl:justify-start xl:mx-5 xs:mx-0 gap-1 mt-2">
-          <span className="p-2 rounded-md  ">
+    <>
+      {mobileOpen ? (
+        <button
+          type="button"
+          className="admin-sidebar-overlay"
+          aria-label={t("close")}
+          onClick={onMobileClose}
+        />
+      ) : null}
+
+      <aside
+        className={`admin-sidebar ${mobileOpen ? "admin-sidebar--mobile-open" : ""} ${
+          collapsed ? "admin-sidebar--collapsed" : ""
+        }`}
+        aria-label={t("platform_mang")}
+      >
+        <div className="admin-sidebar-brand">
+          <span className="admin-sidebar-logo">
             <Image
               src="/Images/logo.png"
-              alt="logo"
-              width={35}
-              height={35}
+              alt="Alfa"
+              width={34}
+              height={34}
               priority
+              className="h-[30px] w-[30px] object-contain"
             />
           </span>
-          <div className="cursor-default xl:block xs:hidden">
-            <h1 className="text-md   font-semibold font-sans">
-              <span className="text-sm  font-bold">
-                {username === "" ? "" : username}
-              </span>
-            </h1>
-            <h1 className="text-xs ">{t("super_admin")}</h1>
+          <div className="admin-sidebar-brand-text">
+            <p className="admin-sidebar-brand-title">Alfa Admin</p>
+            <p className="admin-sidebar-brand-subtitle">
+              {t("platform_mang")}
+            </p>
           </div>
+          <button
+            type="button"
+            className="admin-sidebar-collapse"
+            onClick={onToggleCollapse}
+            aria-label={collapsed ? t("expand_sidebar") : t("collapse_sidebar")}
+            title={collapsed ? t("expand_sidebar") : t("collapse_sidebar")}
+          >
+            {collapsed ? <MdChevronRight /> : <MdChevronLeft />}
+          </button>
+          <button
+            type="button"
+            className="admin-sidebar-mobile-close ml-1"
+            onClick={onMobileClose}
+            aria-label={t("close")}
+          >
+            <MdClose />
+          </button>
         </div>
-        <div className="mt-5 flex flex-col gap-1 ">
-          <Link
-            href="/admin/Dashboard"
-            onClick={() => setSelectedNamePage("Dashboard Overview")}
-          >
-            <div
-              id="dashboardTab"
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start  items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "dashboard_overview"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
-            >
-              <span className="text-2xl ">
-                <MdDashboard />
-              </span>
-              <h1 className="text-md xs:hidden xl:block ">{t("dashboard")}</h1>
+
+        <nav className="admin-nav" aria-label={t("platform_mang")}>
+          {sections.map((section) => (
+            <React.Fragment key={section.id}>
+              <p className="admin-nav-section">{t(section.labelKey)}</p>
+              {section.items.map((item) => {
+                const active = selectedNamePage === item.activeKey;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => handleNavigate(item.displayName)}
+                    title={t(item.labelKey)}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    <div
+                      id={item.id}
+                      className={`admin-nav-link ${active ? "admin-nav-link--active" : ""}`}
+                    >
+                      <span className="admin-nav-icon" aria-hidden="true">
+                        {item.icon}
+                      </span>
+                      <span className="admin-nav-label">{t(item.labelKey)}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </nav>
+
+        <div className="admin-sidebar-footer">
+          <div className="admin-sidebar-user">
+            <span className="admin-sidebar-user-avatar" aria-hidden="true">
+              {initialsOf(username)}
+            </span>
+            <div className="min-w-0">
+              <p className="admin-sidebar-user-name">
+                {username || t("admin")}
+              </p>
+              <p className="admin-sidebar-user-role">
+                {role ? t(role === "ADMIN" ? "super_admin" : role) : t("admin")}
+              </p>
             </div>
-          </Link>
+          </div>
 
           <Link
-            href="/admin/Homepage"
-            onClick={() => setSelectedNamePage("Homepage Management")}
+            href="/"
+            className="admin-sidebar-footer-link"
+            title={t("view_storefront")}
           >
-            <div
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start  items-center p-3 rounded-md  cursor-pointer hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "homepage_management"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
-            >
-              <span className="text-2xl ">
-                <RiPagesFill />
-              </span>
-              <h1 className="text-md xs:hidden xl:block ">{t("homepage")}</h1>
-            </div>
+            <span className="text-lg" aria-hidden="true">
+              <MdStorefront />
+            </span>
+            <span className="admin-sidebar-footer-label">{t("view_storefront")}</span>
           </Link>
 
-          <Link
-            href="/admin/Categories"
-            onClick={() => setSelectedNamePage("Categories Management")}
+          <button
+            type="button"
+            className="admin-sidebar-footer-link admin-sidebar-footer-link--danger w-full"
+            onClick={handleLogout}
+            title={t("logout")}
           >
-            <div
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start  items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "categories_management"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
-            >
-              <span className="text-2xl ">
-                <MdCategory />
-              </span>
-              <h1 className="text-md xs:hidden xl:block">{t("categories")}</h1>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/Products"
-            onClick={() => setSelectedNamePage("Products Management")}
-          >
-            <div
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start items-center p-3 rounded-md cursor-pointer  hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "products_management"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
-            >
-              <span className="text-2xl ">
-                <IoFileTray />
-              </span>
-              <h1 className="text-md xs:hidden xl:block">{t("products")}</h1>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/orders"
-            onClick={() => setSelectedNamePage("Orders Management")}
-          >
-            <div
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start items-center p-3 rounded-md  cursor-pointer hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "orders_management"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
-            >
-              <span className="text-2xl ">
-                <MdOutlineShoppingCart />
-              </span>
-              <h1 className="text-md xs:hidden xl:block">{t("orders")}</h1>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/Returns"
-            onClick={() => setSelectedNamePage("Returns Management")}
-          >
-            <div
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start items-center p-3 rounded-md  cursor-pointer hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "returns_management"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
-            >
-              <span className="text-2xl ">
-                <TbTruckReturn  />
-              </span>
-              <h1 className="text-md xs:hidden xl:block">{t("returns")}</h1>
-            </div>
-          </Link>
- <Link
-            href="/admin/ShippingCost"
-            onClick={() => setSelectedNamePage("ShippingCost Management")}
-          >
-            <div
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "ShippingCost_management"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
-            >
-              <span className="text-2xl">
-                <RiMoneyDollarCircleLine  />
-              </span>
-              <h1 className="text-md xs:hidden xl:block">{t("shippingcost")}</h1>
-            </div>
-          </Link>
-          {systemSettingsAccess ? (
-            <Link
-              href="/admin/SystemSettings"
-              onClick={() => setSelectedNamePage("System Settings")}
-            >
-              <div
-                className={`flex gap-4 mx-3 xs:justify-center xl:justify-start items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
-                   ${
-                     selectedNamePage === "system_settings"
-                       ? "bg-red-100 text-red-500"
-                       : ""
-                   }`}
-              >
-                <span className="text-2xl">
-                  <MdSettings />
-                </span>
-                <h1 className="text-md xs:hidden xl:block">{t("system_settings")}</h1>
-              </div>
-            </Link>
-          ) : null}
-
-          {pickupEnabled ? (
-            <Link
-              href="/admin/PickupPlaces"
-              onClick={() => setSelectedNamePage("Pickup Places Management")}
-            >
-              <div
-                className={`flex gap-4 mx-3 xs:justify-center xl:justify-start items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
-                   ${
-                     selectedNamePage === "pickup_places_management"
-                       ? "bg-red-100 text-red-500"
-                       : ""
-                   }`}
-              >
-                <span className="text-2xl">
-                  <MdStorefront />
-                </span>
-                <h1 className="text-md xs:hidden xl:block">{t("pickup_places")}</h1>
-              </div>
-            </Link>
-          ) : null}
-
-          <Link
-            href="/admin/UsersPage/Users"
-            onClick={() => setSelectedNamePage("Users Management")}
-          >
-            <div
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start  items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "users_management"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
-            >
-              <span className="text-2xl ">
-                <ImUsers />
-              </span>
-              <h1 className="text-md xs:hidden xl:block">{t("users")}</h1>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/Admins"
-            onClick={() => setSelectedNamePage("Admins Management")}
-          >
-            <div
-              id="adminsTab"
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start  items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "admins_management"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
-            >
-              <span className="text-2xl">
-                <MdAdminPanelSettings />
-              </span>
-              <h1 className="text-md xs:hidden xl:block">{t("admins")}</h1>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/Contact"
-            onClick={() => setSelectedNamePage("Contact Management")}
-          >
-            <div
-              className={`flex gap-4 mx-3 xs:justify-center xl:justify-start items-center p-3 rounded-md cursor-pointer hover:bg-red-100 hover:text-red-500
-                 ${
-                   selectedNamePage === "contact_management"
-                     ? "bg-red-100 text-red-500"
-                     : ""
-                 }`}
-            >
-              <span className="text-2xl">
-                <MdContactSupport />
-              </span>
-              <h1 className="text-md xs:hidden xl:block">{t("contact")}</h1>
-            </div>
-          </Link>
-
-          
-          <hr className="my-6"></hr>
-          <Link href="/" className="block">
-            <div className="flex gap-4 mx-3 mb-2 xs:justify-center xl:justify-start items-center rounded-md cursor-pointer text-green-300 hover:bg-red-100 hover:text-red-500">
-              <span className="text-2xl">
-                <MdStorefront />
-              </span>
-              <h1 className="text-md xs:hidden xl:block">{t("view_storefront")}</h1>
-            </div>
-          </Link>
-          <div
-            className={`flex gap-4 mx-3 mb-5  xs:justify-center xl:justify-start items-center rounded-md cursor-pointer text-red-500 `}
-            onClick={async () => {
-              await logoutRequest();
-              localStorage.setItem("id", "");
-              localStorage.setItem("accessToken", "");
-              localStorage.setItem("refreshToken", "");
-              localStorage.setItem("address", "");
-              localStorage.setItem("email", "");
-              localStorage.setItem("firstName", "");
-              localStorage.setItem("lastName", "");
-              localStorage.setItem("phone", "");
-              localStorage.setItem("role", "");
-              localStorage.setItem("systemSettingsAccess", "false");
-              localStorage.setItem("username", "");
-              navigate.push("/");
-            }}
-          >
-            <span className="text-2xl">
+            <span className="text-lg" aria-hidden="true">
               <PiSignOutBold />
             </span>
-            <h1 className="text-md xs:hidden xl:block"> {t("logout")}</h1>
-          </div>
+            <span className="admin-sidebar-footer-label">{t("logout")}</span>
+          </button>
         </div>
-     
-      </div>
-    </div>
+      </aside>
+    </>
   );
 }

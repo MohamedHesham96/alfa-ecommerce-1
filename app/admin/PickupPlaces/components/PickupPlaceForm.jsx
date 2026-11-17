@@ -97,28 +97,28 @@ export default function PickupPlaceForm({ place, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-6">
-      <div className="max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b px-5 py-4">
+    <div className="admin-modal-overlay">
+      <div className="admin-modal max-w-[720px]">
+        <div className="admin-modal-header">
           <div>
-            <h1 className="text-lg font-bold text-gray-900">
+            <h1 className="admin-modal-title">
               {isEdit ? t("edit_pickup_place") : t("add_pickup_place")}
             </h1>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="admin-modal-description">
               {t("pickup_places_description")}
             </p>
           </div>
           <button
             type="button"
-            className="text-3xl text-red-950 hover:text-red-700"
+            className="admin-modal-close"
             onClick={onClose}
             aria-label={isArabic ? "إغلاق" : "Close"}
           >
-            <MdCancel />
+            <MdCancel className="text-xl" />
           </button>
         </div>
 
-        <form className="space-y-4 p-5" onSubmit={submit} noValidate>
+        <form className="admin-modal-body space-y-4" onSubmit={submit} noValidate>
           <div>
             <label className="mb-1 block text-sm font-semibold text-gray-700">
               {t("pickup_place_name")} *
@@ -128,9 +128,7 @@ export default function PickupPlaceForm({ place, onClose }) {
               value={form.name}
               maxLength={255}
               onChange={(event) => setField("name", event.target.value)}
-              className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#204272]/20 ${
-                errors.name ? "border-red-400" : "border-gray-300"
-              }`}
+              className={`admin-input ${errors.name ? "admin-input-error" : ""}`}
             />
             {errors.name ? (
               <p className="mt-1 text-xs font-semibold text-red-600">
@@ -148,9 +146,7 @@ export default function PickupPlaceForm({ place, onClose }) {
               maxLength={2000}
               rows={3}
               onChange={(event) => setField("description", event.target.value)}
-              className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#204272]/20 ${
-                errors.description ? "border-red-400" : "border-gray-300"
-              }`}
+              className={`admin-textarea ${errors.description ? "admin-input-error" : ""}`}
             />
             {errors.description ? (
               <p className="mt-1 text-xs font-semibold text-red-600">
@@ -168,9 +164,7 @@ export default function PickupPlaceForm({ place, onClose }) {
               maxLength={1000}
               rows={2}
               onChange={(event) => setField("address", event.target.value)}
-              className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#204272]/20 ${
-                errors.address ? "border-red-400" : "border-gray-300"
-              }`}
+              className={`admin-textarea ${errors.address ? "admin-input-error" : ""}`}
             />
             {errors.address ? (
               <p className="mt-1 text-xs font-semibold text-red-600">
@@ -190,9 +184,7 @@ export default function PickupPlaceForm({ place, onClose }) {
                 maxLength={50}
                 dir="ltr"
                 onChange={(event) => setField("phone", event.target.value)}
-                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#204272]/20 ${
-                  errors.phone ? "border-red-400" : "border-gray-300"
-                }`}
+                className={`admin-input ${errors.phone ? "admin-input-error" : ""}`}
               />
               {errors.phone ? (
                 <p className="mt-1 text-xs font-semibold text-red-600">
@@ -215,9 +207,7 @@ export default function PickupPlaceForm({ place, onClose }) {
                 onChange={(event) =>
                   setField("workingHours", event.target.value)
                 }
-                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#204272]/20 ${
-                  errors.workingHours ? "border-red-400" : "border-gray-300"
-                }`}
+                className={`admin-input ${errors.workingHours ? "admin-input-error" : ""}`}
               />
               {errors.workingHours ? (
                 <p className="mt-1 text-xs font-semibold text-red-600">
@@ -239,19 +229,19 @@ export default function PickupPlaceForm({ place, onClose }) {
             </span>
           </label>
 
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-4">
+          <div className="admin-form-footer border-t border-[#eef1f6] pt-4">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="admin-btn admin-btn-secondary"
             >
               {t("cancel")}
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-[#204272] px-5 py-2 text-sm font-semibold text-white hover:bg-[#19345a] disabled:opacity-50"
+              className="admin-btn admin-btn-primary"
             >
               {saving ? t("Submitting") : t("save")}
             </button>

@@ -1,66 +1,54 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
-import Image from "next/image";
 import { TbLivePhotoFilled } from "react-icons/tb";
 import { LuEye } from "react-icons/lu";
+
 import { useLanguage } from "../../../../context/LanguageContext";
 
 export default function ProductPreview({ sliderImages }) {
   const { t } = useLanguage();
-   const lang = typeof window !== 'undefined' 
-    ? localStorage.getItem('lang') || 'ar' 
-    : 'ar';
-  return (
-    <div className="border w-full max-w-[800px] flex justify-center items-center rounded-xl ">
-      <div className="bg-white min-h-[350px] h-auto rounded-xl  w-full p-3">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <span className="text-red-600">
-              <LuEye />
-            </span>
-            <h1 className="font-semibold md:text-sm xs:text-xs text-gray-600">
-              {t("live_previwe")}{" "}
-            </h1>
-          </div>
-          <span className="flex items-center md:text-sm xs:text-xs gap-2 bg-green-50 p-1 rounded-md text-green-500 font-semibold">
-            <TbLivePhotoFilled />
-            <h1> {t("live")} </h1>
-          </span>
-        </div>
+  const lang =
+    typeof window !== "undefined" ? localStorage.getItem("lang") || "ar" : "ar";
 
-        <div className="flex justify-start items-center py-3 ">
-          <Swiper
-          key={lang}
-            pagination={{
-              clickable: true,
-            }}
-    //  rtl={lang === 'ar'}
-      dir={lang === 'ar' ? 'rtl' : 'ltr'}
-            spaceBetween={20}
-            modules={[Pagination]}
-            className=" flex justify-center items-center "
-          >
-            {sliderImages.map((img, index) => {
-              return (
-                <SwiperSlide key={index}>
-                  <Image
-                    src={`${
-                      process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL +
-                        img.imageUrl || ""
-                    }`}
-                    alt=" "
-                    width={200}
-                    height={200}
-                    className="h-[290px]  border w-full rounded-lg"
-                  />
-                </SwiperSlide>
-              );
-            })}
-          </Swiper>
+  return (
+    <div className="admin-card w-full max-w-[840px] overflow-hidden">
+      <div className="admin-card-header">
+        <div className="flex items-center gap-2">
+          <span className="admin-section-title-icon !h-8 !w-8 text-sm">
+            <LuEye />
+          </span>
+          <h2 className="admin-card-title text-sm">{t("live_previwe")}</h2>
         </div>
+        <span className="admin-badge admin-badge-green">
+          <TbLivePhotoFilled />
+          {t("live")}
+        </span>
+      </div>
+
+      <div className="bg-[#f8fafc] p-4">
+        <Swiper
+          key={lang}
+          pagination={{ clickable: true }}
+          dir={lang === "ar" ? "rtl" : "ltr"}
+          spaceBetween={16}
+          modules={[Pagination]}
+          className="w-full"
+        >
+          {sliderImages.map((img, index) => (
+            <SwiperSlide key={index}>
+              <Image
+                src={`${process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL + (img.imageUrl || "")}`}
+                alt=""
+                width={840}
+                height={360}
+                className="h-[290px] w-full rounded-xl border border-[#e4e8f0] bg-white object-contain"
+              />
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
     </div>
   );

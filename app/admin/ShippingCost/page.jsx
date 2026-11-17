@@ -1,24 +1,39 @@
 "use client";
+import { useState } from "react";
+
+import { useLanguage } from "../../../context/LanguageContext.js";
+import AdminPageHeader from "../components/ui/AdminPageHeader";
 import Table from "./components/Table";
 import ShippingCostForm from "./components/ShippingCost_Form";
-import { useState } from "react";
+
 export default function ShippingCost() {
-    const [governorate , setGovernorate] = useState();
-    const [governorateId , setGovernorateId] = useState();
-    const [governoratePrice , setGovernoratePrice] = useState();
-    const [showForm , setShowForm] = useState(false);
- 
+  const { t } = useLanguage();
+  const [governorate, setGovernorate] = useState();
+  const [governorateId, setGovernorateId] = useState();
+  const [governoratePrice, setGovernoratePrice] = useState();
+  const [showForm, setShowForm] = useState(false);
+
   return (
-<div className=" ">
-         
-<div className=" w-full ">
- <div className=" pt-5 mx-5 relative ">    
+    <div className="admin-page">
       {showForm && (
-          <ShippingCostForm govName={governorate} govId={governorateId} govPrice={governoratePrice} setShowForm={setShowForm} />
-        )}
-      <Table setGovernorate={setGovernorate} setGovernorateId={setGovernorateId} setGovernoratePrice={setGovernoratePrice} setShowForm={setShowForm} />
-    </div>
-    </div>
+        <ShippingCostForm
+          govName={governorate}
+          govId={governorateId}
+          govPrice={governoratePrice}
+          setShowForm={setShowForm}
+        />
+      )}
+      <AdminPageHeader
+        eyebrow={t("nav_sales")}
+        title={t("page_shipping_title")}
+        description={t("shipping_description")}
+      />
+      <Table
+        setGovernorate={setGovernorate}
+        setGovernorateId={setGovernorateId}
+        setGovernoratePrice={setGovernoratePrice}
+        setShowForm={setShowForm}
+      />
     </div>
   );
 }

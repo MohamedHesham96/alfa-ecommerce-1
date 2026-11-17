@@ -17,6 +17,8 @@ import {
   validateSystemConfiguration,
 } from "../services/systemConfigurationService";
 import SettingControl from "./components/SettingControl";
+import AdminLoading from "../components/AdminLoading";
+import AdminPageHeader from "../components/ui/AdminPageHeader";
 import {
   AuditDialog,
   ConfirmDialog,
@@ -453,26 +455,14 @@ export default function SystemSettingsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="p-5" aria-busy="true">
-        <div className="h-10 w-64 animate-pulse rounded-lg bg-gray-200" />
-        <div className="mt-5 grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
-          <div className="h-72 animate-pulse rounded-2xl bg-gray-200" />
-          <div className="space-y-4">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="h-40 animate-pulse rounded-2xl bg-gray-200" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <AdminLoading rows={5} />;
   }
 
   if (error) {
     return (
-      <div className="p-5">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-          <p className="text-sm font-semibold text-red-700">
+      <div className="admin-page">
+        <div className="admin-card p-6 text-center">
+          <p className="text-sm font-semibold text-[#b4233a]">
             {isArabic
               ? "تعذر تحميل إعدادات النظام. تحقق من الاتصال وحاول مرة أخرى."
               : "System settings could not be loaded. Check your connection and try again."}
@@ -480,7 +470,7 @@ export default function SystemSettingsPage() {
           <button
             type="button"
             onClick={load}
-            className="mt-4 rounded-lg bg-[#204272] px-4 py-2 text-sm font-semibold text-white hover:bg-[#19345a]"
+            className="admin-btn admin-btn-primary mt-4"
           >
             {isArabic ? "إعادة المحاولة" : "Retry"}
           </button>
@@ -490,91 +480,90 @@ export default function SystemSettingsPage() {
   }
 
   return (
-    <div className="p-4 sm:p-5">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {isArabic ? "إعدادات النظام" : "System Settings"}
-          </h1>
-          <p className="mt-1 max-w-3xl text-sm leading-6 text-gray-600">
-            {isArabic
-              ? "تحكم في سلوك التطبيق والميزات وواجهة المتجر لهذا التنصيب. القيم الافتراضية معرفة في الكود، والتجاوزات فقط هي التي تُحفظ."
-              : "Control this installation's application behavior, features, and storefront UI. Defaults are defined in code; only explicit overrides are stored."}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={load}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-          >
-            {isArabic ? "تحديث" : "Refresh"}
-          </button>
-          {!readOnly ? (
-            <>
-              <button
-                type="button"
-                onClick={handleValidate}
-                disabled={validating || !hasUnsaved}
-                className="rounded-lg border border-[#204272] px-3 py-2 text-xs font-semibold text-[#204272] hover:bg-[#204272]/5 disabled:opacity-50"
-              >
-                {validating
-                  ? isArabic
-                    ? "جارٍ التحقق..."
-                    : "Validating..."
-                  : isArabic
-                    ? "تحقق"
-                    : "Validate"}
-              </button>
-              <button
-                type="button"
-                onClick={handlePreview}
-                disabled={!hasUnsaved}
-                className="rounded-lg border border-[#204272] px-3 py-2 text-xs font-semibold text-[#204272] hover:bg-[#204272]/5 disabled:opacity-50"
-              >
-                {isArabic ? "معاينة" : "Preview"}
-              </button>
-              <button
-                type="button"
-                onClick={handleBulkSave}
-                disabled={bulkSaving || !hasUnsaved}
-                className="rounded-lg bg-[#204272] px-4 py-2 text-xs font-semibold text-white hover:bg-[#19345a] disabled:opacity-50"
-              >
-                {bulkSaving
-                  ? isArabic
-                    ? "جارٍ الحفظ..."
-                    : "Saving..."
-                  : isArabic
-                    ? `حفظ التغييرات (${dirtySettings.length})`
-                    : `Save changes (${dirtySettings.length})`}
-              </button>
-            </>
-          ) : null}
-          {isInternalAdmin ? (
-            <>
-              <button
-                type="button"
-                onClick={openAudit}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-              >
-                {isArabic ? "سجل التغييرات" : "Audit history"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmResetAll(true)}
-                className="rounded-lg border border-red-300 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50"
-              >
-                {isArabic ? "إعادة تعيين الكل" : "Reset all"}
-              </button>
-            </>
-          ) : null}
-        </div>
-      </header>
+    <div className="admin-page">
+      <AdminPageHeader
+        eyebrow={isArabic ? "الإدارة" : "Administration"}
+        title={isArabic ? "إعدادات النظام" : "System Settings"}
+        description={
+          isArabic
+            ? "تحكم في سلوك التطبيق والميزات وواجهة المتجر لهذا التنصيب. القيم الافتراضية معرفة في الكود، والتجاوزات فقط هي التي تُحفظ."
+            : "Control this installation's application behavior, features, and storefront UI. Defaults are defined in code; only explicit overrides are stored."
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={load}
+              className="admin-btn admin-btn-secondary admin-btn-sm"
+            >
+              {isArabic ? "تحديث" : "Refresh"}
+            </button>
+            {!readOnly ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleValidate}
+                  disabled={validating || !hasUnsaved}
+                  className="admin-btn admin-btn-secondary admin-btn-sm"
+                >
+                  {validating
+                    ? isArabic
+                      ? "جارٍ التحقق..."
+                      : "Validating..."
+                    : isArabic
+                      ? "تحقق"
+                      : "Validate"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePreview}
+                  disabled={!hasUnsaved}
+                  className="admin-btn admin-btn-secondary admin-btn-sm"
+                >
+                  {isArabic ? "معاينة" : "Preview"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkSave}
+                  disabled={bulkSaving || !hasUnsaved}
+                  className="admin-btn admin-btn-primary admin-btn-sm"
+                >
+                  {bulkSaving
+                    ? isArabic
+                      ? "جارٍ الحفظ..."
+                      : "Saving..."
+                    : isArabic
+                      ? `حفظ التغييرات (${dirtySettings.length})`
+                      : `Save changes (${dirtySettings.length})`}
+                </button>
+              </>
+            ) : null}
+            {isInternalAdmin ? (
+              <>
+                <button
+                  type="button"
+                  onClick={openAudit}
+                  className="admin-btn admin-btn-secondary admin-btn-sm"
+                >
+                  {isArabic ? "سجل التغييرات" : "Audit history"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmResetAll(true)}
+                  className="admin-btn admin-btn-danger admin-btn-sm"
+                >
+                  {isArabic ? "إعادة تعيين الكل" : "Reset all"}
+                </button>
+              </>
+            ) : null}
+          </>
+        }
+      />
 
       {readOnly ? (
         <div
           role="status"
-          className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900"
+          className="admin-alert admin-alert-info"
         >
           <span className="font-semibold">
             {isArabic ? "وضع القراءة فقط" : "Read-only mode"}
@@ -588,7 +577,7 @@ export default function SystemSettingsPage() {
       ) : null}
 
       {hasUnsaved ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="admin-alert admin-alert-warning justify-between">
           <span>
             {isArabic
               ? `لديك ${dirtySettings.length} تغييرًا غير محفوظ.`
@@ -597,27 +586,27 @@ export default function SystemSettingsPage() {
           <button
             type="button"
             onClick={discardChanges}
-            className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-semibold hover:bg-amber-100"
+            className="admin-btn admin-btn-secondary admin-btn-xs"
           >
             {isArabic ? "تجاهل التغييرات" : "Discard changes"}
           </button>
         </div>
       ) : null}
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <div className="grid gap-4 lg:grid-cols-[250px_minmax(0,1fr)]">
         <aside className="min-w-0">
-          <div className="rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
-            <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+          <div className="admin-card p-2">
+            <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-[#667085]">
               {isArabic ? "الفئات" : "Categories"}
             </p>
             <nav className="max-h-[70vh] overflow-y-auto">
               <button
                 type="button"
                 onClick={() => setCategory("all")}
-                className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-start text-sm ${
+                className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-start text-sm transition-colors ${
                   category === "all"
-                    ? "bg-[#204272] text-white"
-                    : "text-gray-700 hover:bg-gray-100"
+                    ? "bg-[#cf4356] font-semibold text-white"
+                    : "text-[#475467] hover:bg-[#f3f5f9]"
                 }`}
               >
                 <span>{isArabic ? "كل الفئات" : "All categories"}</span>
@@ -628,10 +617,10 @@ export default function SystemSettingsPage() {
                   key={item.code}
                   type="button"
                   onClick={() => setCategory(item.code)}
-                  className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-start text-sm ${
+                  className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-start text-sm transition-colors ${
                     category === item.code
-                      ? "bg-[#204272] text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-[#cf4356] font-semibold text-white"
+                      : "text-[#475467] hover:bg-[#f3f5f9]"
                   }`}
                 >
                   <span className="truncate">
@@ -645,22 +634,28 @@ export default function SystemSettingsPage() {
         </aside>
 
         <main className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder={
-                isArabic
-                  ? "ابحث بالاسم أو المفتاح أو الوصف..."
-                  : "Search by name, key, or description..."
-              }
-              className="min-w-[220px] flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20"
-            />
+          <div className="admin-toolbar !flex-row !flex-wrap !items-center">
+            <label className="admin-search !flex-1">
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                aria-label={
+                  isArabic
+                    ? "ابحث بالاسم أو المفتاح أو الوصف"
+                    : "Search by name, key, or description"
+                }
+                placeholder={
+                  isArabic
+                    ? "ابحث بالاسم أو المفتاح أو الوصف..."
+                    : "Search by name, key, or description..."
+                }
+              />
+            </label>
             <select
               value={typeFilter}
               onChange={(event) => setTypeFilter(event.target.value)}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20"
+              className="admin-select !w-auto min-w-[150px]"
               aria-label={isArabic ? "تصفية حسب النوع" : "Filter by type"}
             >
               <option value="all">{isArabic ? "كل الأنواع" : "All types"}</option>
@@ -672,15 +667,15 @@ export default function SystemSettingsPage() {
             </select>
           </div>
 
-          <p className="mt-3 text-xs text-gray-500">
+          <p className="mt-3 text-xs text-[#667085]">
             {isArabic
               ? `عرض ${filteredSettings.length} من ${settings.length} إعدادًا`
               : `Showing ${filteredSettings.length} of ${settings.length} settings`}
           </p>
 
           {filteredSettings.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
-              <p className="text-sm font-semibold text-gray-700">
+            <div className="admin-card mt-4 p-10 text-center">
+              <p className="text-sm font-semibold text-[#344054]">
                 {isArabic ? "لا توجد إعدادات مطابقة." : "No matching settings."}
               </p>
               <button
@@ -690,7 +685,7 @@ export default function SystemSettingsPage() {
                   setCategory("all");
                   setTypeFilter("all");
                 }}
-                className="mt-3 text-xs font-semibold text-[#204272] underline"
+                className="mt-3 text-xs font-semibold text-[#b4233a] underline"
               >
                 {isArabic ? "مسح الفلاتر" : "Clear filters"}
               </button>
@@ -711,18 +706,18 @@ export default function SystemSettingsPage() {
                 return (
                   <article
                     key={key}
-                    className={`rounded-2xl border bg-white p-4 shadow-sm ${
-                      dirty ? "border-amber-300" : "border-gray-200"
+                    className={`admin-card p-4 ${
+                      dirty ? "!border-[#f1dfb3] !bg-[#fffdf7]" : ""
                     }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h2 className="text-base font-semibold text-gray-900">
+                        <h2 className="text-base font-semibold text-[#101828]">
                           {isArabic
                             ? definition.displayNameAr || definition.displayName
                             : definition.displayName}
                         </h2>
-                        <code className="mt-0.5 block break-all text-xs text-gray-500">
+                        <code className="mt-0.5 block break-all text-xs text-[#667085]">
                           {key}
                         </code>
                       </div>
@@ -767,13 +762,13 @@ export default function SystemSettingsPage() {
                       </div>
                     </div>
 
-                    <p className="mt-2 text-sm leading-6 text-gray-600">
+                    <p className="mt-2 text-sm leading-6 text-[#667085]">
                       {isArabic
                         ? definition.descriptionAr || definition.description
                         : definition.description}
                     </p>
 
-                    <dl className="mt-3 grid gap-3 rounded-xl bg-gray-50 p-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                    <dl className="mt-3 grid gap-3 rounded-xl border border-[#eef1f6] bg-[#f8fafc] p-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
                       <Info
                         label={isArabic ? "القيمة الفعالة" : "Effective value"}
                         value={formatValue(setting.value, definition.sensitive)}
@@ -793,13 +788,13 @@ export default function SystemSettingsPage() {
                     </dl>
 
                     {constraintsSummary(definition, isArabic) ? (
-                      <p className="mt-2 text-xs text-gray-500">
+                      <p className="mt-2 text-xs text-[#98a2b3]">
                         {constraintsSummary(definition, isArabic)}
                       </p>
                     ) : null}
 
                     {isInternalAdmin ? (
-                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e4e8f0] bg-[#f8fafc] px-3 py-2">
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-gray-700">
                             {isArabic
@@ -863,7 +858,7 @@ export default function SystemSettingsPage() {
                             type="button"
                             onClick={() => handleSave(setting)}
                             disabled={!dirty || isSaving || disabled}
-                            className="rounded-lg bg-[#204272] px-3 py-2 text-xs font-semibold text-white hover:bg-[#19345a] disabled:opacity-40"
+                            className="admin-btn admin-btn-primary admin-btn-xs"
                           >
                             {isSaving
                               ? isArabic
@@ -878,14 +873,14 @@ export default function SystemSettingsPage() {
                               type="button"
                               onClick={() => setPendingReset(setting)}
                               disabled={disabled}
-                              className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+                              className="admin-btn admin-btn-secondary admin-btn-xs"
                             >
                               {isArabic ? "إعادة التعيين إلى الافتراضي" : "Reset to default"}
                             </button>
                           ) : null}
                         </>
                       ) : (
-                        <span className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-800">
+                        <span className="admin-badge admin-badge-blue">
                           {isArabic ? "للقراءة فقط" : "Read only"}
                         </span>
                       )}
@@ -962,27 +957,23 @@ export default function SystemSettingsPage() {
 function Info({ label, value }) {
   return (
     <div className="min-w-0">
-      <dt className="font-semibold text-gray-500">{label}</dt>
-      <dd className="mt-0.5 break-words text-gray-800">{value}</dd>
+      <dt className="font-semibold text-[#667085]">{label}</dt>
+      <dd className="mt-0.5 break-words text-[#101828]">{value}</dd>
     </div>
   );
 }
 
 function Badge({ tone = "gray", children }) {
   const tones = {
-    blue: "bg-blue-50 text-blue-700 border-blue-200",
-    purple: "bg-purple-50 text-purple-700 border-purple-200",
-    amber: "bg-amber-50 text-amber-800 border-amber-200",
-    red: "bg-red-50 text-red-700 border-red-200",
-    green: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    gray: "bg-gray-50 text-gray-600 border-gray-200",
+    blue: "admin-badge-blue",
+    purple: "admin-badge-purple",
+    amber: "admin-badge-amber",
+    red: "admin-badge-red",
+    green: "admin-badge-green",
+    gray: "admin-badge-gray",
   };
   return (
-    <span
-      className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-        tones[tone] || tones.gray
-      }`}
-    >
+    <span className={`admin-badge ${tones[tone] || tones.gray}`}>
       {children}
     </span>
   );

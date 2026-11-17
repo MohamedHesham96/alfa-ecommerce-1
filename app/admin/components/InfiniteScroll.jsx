@@ -517,21 +517,28 @@ export function useClientInfiniteScroll(allItems = [], pageSize = 15) {
   };
 }
 
-const Spinner = () => (
-  <span className="inline-block w-5 h-5 rounded-full border-2 border-gray-200 border-t-red-500 animate-spin" />
-);
+const Spinner = () => <span className="admin-spinner" aria-hidden="true" />;
 
 const FooterContent = ({ loadingMore, hasMore, hasItems, error, onRetry, t }) => (
   <div className="flex flex-col items-center justify-center gap-2 py-3">
-    {loadingMore ? <Spinner /> : null}
+    {loadingMore ? (
+      <span className="inline-flex items-center gap-2 text-xs font-medium text-[#667085]">
+        <Spinner />
+        {t("loading_more")}
+      </span>
+    ) : null}
     {!loadingMore && !hasMore && hasItems ? (
-      <span className="text-xs text-gray-400">{t("no_more_records")}</span>
+      <span className="inline-flex items-center gap-2 text-xs text-[#98a2b3]">
+        <span className="h-px w-6 bg-[#e4e8f0]" aria-hidden="true" />
+        {t("no_more_records")}
+        <span className="h-px w-6 bg-[#e4e8f0]" aria-hidden="true" />
+      </span>
     ) : null}
     {error && hasMore && !loadingMore ? (
       <button
         type="button"
         onClick={onRetry}
-        className="text-xs font-semibold text-red-600 hover:underline"
+        className="admin-btn admin-btn-secondary admin-btn-xs"
       >
         {t("retry")}
       </button>

@@ -1,6 +1,41 @@
 @tailwind base;
-/* @tailwind components_admin; */
+@tailwind components;
 @tailwind utilities;
+
+/* ==========================================================================
+   Alfa Admin design system
+   Scoped to the admin shell so the storefront keeps its existing visual
+   language. These tokens are presentation-only.
+   ========================================================================== */
+:root {
+  --admin-canvas: #f3f5f9;
+  --admin-surface: #ffffff;
+  --admin-sidebar: #0e2239;
+  --admin-sidebar-deep: #0a192c;
+  --admin-primary: #163b5f;
+  --admin-accent: #cf4356;
+  --admin-accent-hover: #b63548;
+  --admin-accent-soft: #fceef1;
+  --admin-ink: #101828;
+  --admin-muted: #667085;
+  --admin-muted-soft: #98a2b3;
+  --admin-border: #e4e8f0;
+  --admin-border-strong: #d3d9e5;
+  --admin-success: #0e8a5f;
+  --admin-success-soft: #e7f7f0;
+  --admin-warning: #b7791f;
+  --admin-warning-soft: #fdf6e7;
+  --admin-danger: #c2415a;
+  --admin-danger-soft: #fbeff2;
+  --admin-info: #2563eb;
+  --admin-info-soft: #eef4ff;
+  --admin-purple: #7c3aed;
+  --admin-purple-soft: #f4efff;
+  --admin-radius: 16px;
+  --admin-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --admin-shadow: 0 1px 3px rgba(16, 24, 40, 0.06),
+    0 18px 40px -24px rgba(15, 23, 42, 0.28);
+}
 
 /* :root {
   --background: #ffffff;

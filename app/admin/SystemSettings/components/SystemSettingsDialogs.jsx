@@ -3,26 +3,26 @@
 export function PreviewDialog({ changes, onClose, locale }) {
   const isArabic = locale === "ar";
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+    <div className="admin-modal-overlay z-[70]">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="configuration-preview-title"
-        className="max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="admin-modal max-w-3xl"
       >
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-          <h2 id="configuration-preview-title" className="text-lg font-semibold text-gray-900">
+        <div className="admin-modal-header">
+          <h2 id="configuration-preview-title" className="admin-modal-title">
             {isArabic ? "معاينة التغييرات" : "Preview changes"}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-3 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-100"
+            className="admin-btn admin-btn-secondary admin-btn-xs"
           >
             {isArabic ? "إغلاق" : "Close"}
           </button>
         </div>
-        <div className="max-h-[65vh] overflow-y-auto p-5">
+        <div className="admin-modal-body max-h-[65vh]">
           {changes.length === 0 ? (
             <p className="text-sm text-gray-500">
               {isArabic ? "لا توجد تغييرات للمعاينة." : "There are no changes to preview."}
@@ -30,7 +30,7 @@ export function PreviewDialog({ changes, onClose, locale }) {
           ) : (
             <div className="space-y-3">
               {changes.map((change) => (
-                <div key={change.key} className="rounded-xl border border-gray-200 p-3">
+                <div key={change.key} className="rounded-xl border border-[#e4e8f0] bg-[#fbfcfe] p-3">
                   <p className="break-all font-mono text-xs font-semibold text-gray-800">
                     {change.key}
                   </p>
@@ -70,26 +70,26 @@ export function PreviewDialog({ changes, onClose, locale }) {
 export function AuditDialog({ records, loading, error, onClose, locale }) {
   const isArabic = locale === "ar";
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+    <div className="admin-modal-overlay z-[70]">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="configuration-audit-title"
-        className="max-h-[85vh] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="admin-modal max-w-4xl"
       >
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-          <h2 id="configuration-audit-title" className="text-lg font-semibold text-gray-900">
+        <div className="admin-modal-header">
+          <h2 id="configuration-audit-title" className="admin-modal-title">
             {isArabic ? "سجل تغييرات الإعدادات" : "Configuration audit history"}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-3 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-100"
+            className="admin-btn admin-btn-secondary admin-btn-xs"
           >
             {isArabic ? "إغلاق" : "Close"}
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-auto p-5">
+        <div className="admin-modal-body max-h-[70vh]">
           {loading ? (
             <p className="text-sm text-gray-500">
               {isArabic ? "جارٍ تحميل السجل..." : "Loading history..."}
@@ -103,7 +103,7 @@ export function AuditDialog({ records, loading, error, onClose, locale }) {
           ) : (
             <div className="space-y-3">
               {records.map((record) => (
-                <div key={record.auditId} className="rounded-xl border border-gray-200 p-3 text-xs">
+                <div key={record.auditId} className="rounded-xl border border-[#e4e8f0] bg-[#fbfcfe] p-3 text-xs">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <code className="break-all font-semibold text-gray-800">{record.key}</code>
                     <span className="rounded-full bg-gray-100 px-2 py-0.5 font-semibold text-gray-600">
@@ -148,23 +148,25 @@ export function ConfirmDialog({
   onCancel,
 }) {
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+    <div className="admin-modal-overlay z-[70]">
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="configuration-confirm-title"
-        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl"
+        className="admin-modal max-w-md"
       >
-        <h2 id="configuration-confirm-title" className="text-lg font-semibold text-gray-900">
-          {title}
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-gray-600">{message}</p>
-        <div className="mt-5 flex justify-end gap-2">
+        <div className="admin-modal-body">
+          <h2 id="configuration-confirm-title" className="admin-modal-title">
+            {title}
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-[#667085]">{message}</p>
+        </div>
+        <div className="admin-modal-footer">
           <button
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="admin-btn admin-btn-secondary"
           >
             {cancelLabel}
           </button>
@@ -172,7 +174,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={busy}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 disabled:opacity-50"
+            className="admin-btn admin-btn-danger-solid"
           >
             {busy ? "..." : confirmLabel}
           </button>

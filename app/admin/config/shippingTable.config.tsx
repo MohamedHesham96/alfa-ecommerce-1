@@ -27,13 +27,16 @@ export function createShippingColumns({
         searchable: true,
         sortable: true,
         filterable: true,
-        headerClassName: "p-5",
-        cellClassName: "font-semibold px-5",
+        headerClassName: "",
+        cellClassName: "",
       },
-      cell: ({ row }) =>
-        locale === "ar"
-          ? row.original.governorate?.nameAr
-          : row.original.governorate?.nameEn,
+      cell: ({ row }) => (
+        <span className="text-sm font-semibold text-[#101828]">
+          {locale === "ar"
+            ? row.original.governorate?.nameAr
+            : row.original.governorate?.nameEn}
+        </span>
+      ),
     },
     {
       id: "shippingCost",
@@ -45,24 +48,33 @@ export function createShippingColumns({
         sortable: true,
         filterable: true,
         headerClassName: "",
-        cellClassName: "font-semibold px-5",
+        cellClassName: "",
       },
-      cell: ({ row }) => row.original.shippingCost,
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-sm font-bold text-[#101828]">
+          {Number(row.original.shippingCost ?? 0).toLocaleString("en-US")}{" "}
+          <span className="text-xs font-medium text-[#667085]">
+            {t("currency")}
+          </span>
+        </span>
+      ),
     },
     {
       id: "actions",
       header: "",
       meta: {
-        headerClassName: "",
-        cellClassName: "text-2xl",
+        headerClassName: "w-[80px]",
+        cellClassName: "",
       },
       cell: ({ row }) => (
         <button
           type="button"
-          className="rounded-full p-2 text-red-600 hover:bg-red-200"
+          className="admin-action-icon !text-[#1d4ed8] hover:!bg-[#eef4ff]"
           onClick={() => onEdit(row.original)}
+          title={t("edit")}
+          aria-label={t("edit")}
         >
-          <BiEdit />
+          <BiEdit className="text-lg" />
         </button>
       ),
     },

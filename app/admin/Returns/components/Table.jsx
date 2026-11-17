@@ -5,6 +5,7 @@ import { FaUserLarge } from "react-icons/fa6";
 
 import { useLanguage } from "../../../../context/LanguageContext";
 import { DataTable, DataTableToolbar } from "../../components/data-table";
+import StatusBadge from "../../components/ui/StatusBadge";
 import { useServerDataTable } from "../../hooks/useServerDataTable";
 import {
   createReturnColumns,
@@ -53,53 +54,55 @@ export default function ReturnTable() {
     return (
       <div
         key={order.returnOrderId}
-        className="mb-3 cursor-pointer rounded-xl border bg-white p-3 hover:bg-gray-50"
+        className="admin-mobile-card cursor-pointer"
         onClick={() =>
           router.push(`/admin/returnorderdetails/${order.returnOrderId}`)
         }
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <span className="text-sm font-bold text-red-600">{order.code}</span>
-            <div className="mt-1 text-xs text-gray-500">{dateOnly}</div>
+            <span className="text-sm font-bold text-[#b4233a]">{order.code}</span>
+            <div className="mt-1 text-xs text-[#667085]">{dateOnly}</div>
           </div>
-          <span
-            className={`shrink-0 text-xs font-semibold ${
-              order.state === "PROCESSING"
-                ? "text-blue-500"
-                : order.state === "SHIPPED"
-                  ? "text-yellow-500"
-                  : order.state === "PENDING"
-                    ? "text-orange-700"
-                    : order.state === "CANCELLED" || order.state === "REJECTED"
-                      ? "text-red-500"
-                      : "text-green-500"
-            }`}
+          <StatusBadge
+            tone={
+              order.state === "PENDING"
+                ? "pending"
+                : order.state === "APPROVED"
+                  ? "approved"
+                  : order.state === "REJECTED"
+                    ? "rejected"
+                    : order.state === "REFUNDED"
+                      ? "refunded"
+                      : "cancelled"
+            }
           >
             {t(order.state)}
-          </span>
+          </StatusBadge>
         </div>
-        <div className="mt-3 flex items-center gap-3 border-t pt-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-gray-50 p-2 text-gray-600">
+        <div className="mt-3 flex items-center gap-3 border-t border-[#eef1f6] pt-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-[10px] font-bold text-[#667085]">
             <FaUserLarge />
           </span>
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold">
+            <p className="truncate text-sm font-semibold text-[#101828]">
               {(order.user?.firstName ?? "") +
                 " " +
                 (order.user?.lastName ?? "")}
-            </h1>
-            <h1 className="truncate text-xs text-gray-500">
+            </p>
+            <p className="truncate text-xs text-[#667085]">
               {order.user?.email}
-            </h1>
+            </p>
           </div>
         </div>
-        <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
-          <span className="break-words text-base font-bold">
+        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#eef1f6] pt-3">
+          <span className="break-words text-base font-bold text-[#101828]">
             {Number(order.unitPrice ?? 0).toLocaleString("en-US")}{" "}
-            {t("currency")}
+            <span className="text-xs font-medium text-[#667085]">
+              {t("currency")}
+            </span>
           </span>
-          <span className="text-right text-xs font-semibold text-gray-600">
+          <span className="max-w-[45%] truncate text-end text-xs font-semibold text-[#667085]">
             {t(order.reason).length <= 30
               ? t(order.reason)
               : `${t(order.reason).slice(0, 30)} ...`}
@@ -114,7 +117,6 @@ export default function ReturnTable() {
       table={tableState.table}
       searchValue={tableState.globalFilter}
       onSearchChange={tableState.setGlobalFilter}
-      className="!p-4"
       leading={
         <ReturnStateFilter
           value={stateValue}
@@ -136,11 +138,10 @@ export default function ReturnTable() {
       onRetry={tableState.reload}
       toolbar={toolbar}
       mobileCard={renderMobileCard}
-      mobileWrapperClassName="lg:hidden mt-5"
-      desktopWrapperClassName="hidden lg:block max-h-[520px] border-t mt-3 w-full min-w-0 overflow-x-auto overflow-y-auto"
-      tableClassName="w-full h-auto min-w-[800px]"
-      headerClassName="bg-[#f0eff0] text-xs text-justify sticky top-0 z-10"
-      rowClassName="w-full transition-colors hover:bg-gray-50 cursor-pointer"
+      mobileWrapperClassName="lg:hidden mt-3 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc] p-3"
+      desktopWrapperClassName="admin-table-shell hidden lg:block max-h-[600px] mt-3 w-full min-w-0 overflow-x-auto overflow-y-auto"
+      tableClassName="admin-table min-w-[800px]"
+      rowClassName="cursor-pointer"
       emptyMessage={t("no_data")}
     />
   );

@@ -1,8 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import Select from "react-select";
-import { FaUserLarge } from "react-icons/fa6";
 
 import type { OrderRow } from "../types/api.types";
+import StatusBadge from "../components/ui/StatusBadge";
 
 interface OrderColumnActions {
   mode: "admin" | "user";
@@ -21,11 +21,19 @@ const NEXT_STATES: Record<string, string[]> = {
 };
 
 const STATE_COLORS: Record<string, string> = {
-  PROCESSING: "#3b82f6",
-  SHIPPED: "#eab308",
-  PENDING: "#c2410c",
-  CANCELLED: "#f21818",
-  DELIVERED: "#22c55e",
+  PROCESSING: "#2563eb",
+  SHIPPED: "#b7791f",
+  PENDING: "#946200",
+  CANCELLED: "#c2415a",
+  DELIVERED: "#0e8a5f",
+};
+
+const STATE_TONES: Record<string, string> = {
+  PROCESSING: "processing",
+  SHIPPED: "shipped",
+  PENDING: "pending",
+  CANCELLED: "cancelled",
+  DELIVERED: "delivered",
 };
 
 export function formatOrderDate(value?: string | null) {
@@ -53,7 +61,7 @@ export function OrderStateFilter({
     { value: "CANCELLED", label: t("CANCELLED") },
   ];
   return (
-    <div className="flex h-9 items-center justify-center rounded-md border bg-gray-100 px-3">
+    <div className="min-w-[170px]">
       <Select
         value={value ? { value, label: t(value) } : null}
         onChange={(option) => onChange(option?.value ?? "")}
@@ -61,48 +69,53 @@ export function OrderStateFilter({
         placeholder={t("all_statuses")}
         isClearable
         isSearchable={false}
-        className="w-[200px] text-sm font-semibold"
+        className="text-sm font-semibold"
         styles={{
           control: (base) => ({
             ...base,
-            backgroundColor: "#f3f4f6",
-            border: "none",
-            borderRadius: "0.375rem",
-            minHeight: "36px",
+            backgroundColor: "#ffffff",
+            border: "1px solid #d3d9e5",
+            borderRadius: "10px",
+            minHeight: "40px",
             cursor: "pointer",
             boxShadow: "none",
+            "&:hover": { borderColor: "#c3cbd9" },
           }),
+          valueContainer: (base) => ({ ...base, paddingInline: "0.65rem" }),
           option: (base, state) => ({
             ...base,
             backgroundColor: state.isSelected
-              ? "#dc2626"
+              ? "#cf4356"
               : state.isFocused
-                ? "#fee2e2"
+                ? "#fbeff2"
                 : "#ffffff",
-            color: state.isSelected ? "#ffffff" : "#374151",
+            color: state.isSelected ? "#ffffff" : "#344054",
             cursor: "pointer",
-            fontSize: "14px",
+            fontSize: "13px",
           }),
           menu: (base) => ({
             ...base,
             backgroundColor: "#ffffff",
-            borderRadius: "0.375rem",
-            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+            borderRadius: "12px",
+            boxShadow: "0 20px 50px -20px rgba(15,23,42,0.35)",
             zIndex: 9999,
+            overflow: "hidden",
           }),
           placeholder: (base) => ({
             ...base,
-            color: "#374151",
-            fontSize: "14px",
+            color: "#667085",
+            fontSize: "13px",
             fontWeight: "600",
           }),
           singleValue: (base) => ({
             ...base,
-            color: "#374151",
-            fontSize: "14px",
+            color: "#344054",
+            fontSize: "13px",
             fontWeight: "600",
           }),
-          input: (base) => ({ ...base, color: "#374151" }),
+          input: (base) => ({ ...base, color: "#344054" }),
+          clearIndicator: (base) => ({ ...base, color: "#98a2b3" }),
+          dropdownIndicator: (base) => ({ ...base, color: "#98a2b3" }),
         }}
       />
     </div>
@@ -113,7 +126,7 @@ function statusSelect(
   order: OrderRow,
   t: (key: string) => string,
   onChange: (state: string) => void,
-  className = "w-[200px] text-sm font-semibold",
+  className = "w-[190px] text-sm font-semibold",
 ) {
   return (
     <Select
@@ -130,49 +143,53 @@ function statusSelect(
       styles={{
         control: (base) => ({
           ...base,
-          backgroundColor: "#f3f4f6",
-          border: "none",
-          borderRadius: "0.375rem",
+          backgroundColor: "#f8fafc",
+          border: "1px solid #e4e8f0",
+          borderRadius: "9px",
           minHeight: "36px",
           cursor: "pointer",
           boxShadow: "none",
-          "&:hover": { borderColor: "#dc2626" },
+          "&:hover": { borderColor: "#d3d9e5" },
           "&:focus": {
-            borderColor: "#b91c1c",
-            boxShadow: "0 0 0 3px rgba(185, 28, 28, 0.2)",
+            borderColor: "#cf4356",
+            boxShadow: "0 0 0 3px rgba(207, 67, 86, 0.12)",
           },
         }),
+        valueContainer: (base) => ({ ...base, paddingInline: "0.6rem" }),
         option: (base, state) => ({
           ...base,
           backgroundColor: state.isSelected
-            ? "#dc2626"
+            ? "#cf4356"
             : state.isFocused
-              ? "#fee2e2"
+              ? "#fbeff2"
               : "#ffffff",
-          color: state.isSelected ? "#ffffff" : "#374151",
+          color: state.isSelected ? "#ffffff" : "#344054",
           cursor: "pointer",
-          fontSize: "14px",
+          fontSize: "13px",
         }),
         menu: (base) => ({
           ...base,
           backgroundColor: "#ffffff",
-          borderRadius: "0.375rem",
-          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+          borderRadius: "12px",
+          boxShadow: "0 20px 50px -20px rgba(15,23,42,0.35)",
           zIndex: 9999,
+          overflow: "hidden",
         }),
         placeholder: (base) => ({
           ...base,
-          color: "#374151",
-          fontSize: "14px",
+          color: "#667085",
+          fontSize: "13px",
           fontWeight: "600",
         }),
         singleValue: (base) => ({
           ...base,
-          color: STATE_COLORS[order.state] ?? "#22c55e",
-          fontSize: "14px",
-          fontWeight: "600",
+          color: STATE_COLORS[order.state] ?? "#0e8a5f",
+          fontSize: "13px",
+          fontWeight: "700",
         }),
-        input: (base) => ({ ...base, color: "#374151" }),
+        input: (base) => ({ ...base, color: "#344054" }),
+        dropdownIndicator: (base) => ({ ...base, color: "#98a2b3" }),
+        indicatorSeparator: () => ({ display: "none" }),
       }}
     />
   );
@@ -210,13 +227,17 @@ export function createOrderColumns({
         searchable: true,
         sortable: true,
         filterable: true,
-        headerClassName: "px-5",
-        cellClassName: "font-semibold text-red-500",
+        headerClassName: "",
+        cellClassName: "",
       },
       cell: ({ row }) => (
-        <span onClick={() => onOpen(row.original.orderId)}>
+        <button
+          type="button"
+          className="text-sm font-bold text-[#b4233a] hover:underline"
+          onClick={() => onOpen(row.original.orderId)}
+        >
           {row.original.code}
-        </span>
+        </button>
       ),
     },
     {
@@ -229,7 +250,7 @@ export function createOrderColumns({
         sortable: true,
         filterable: true,
         headerClassName: "",
-        cellClassName: "text-sm",
+        cellClassName: "text-sm text-[#667085]",
       },
       cell: ({ row }) => formatOrderDate(row.original.createdDate),
     },
@@ -248,22 +269,25 @@ export function createOrderColumns({
       cell: ({ row }) => {
         const order = row.original;
         return (
-          <div
-            className="flex items-center gap-3"
+          <button
+            type="button"
+            className="flex min-w-0 items-center gap-3 text-start"
             onClick={() => onOpen(order.orderId)}
           >
-            <span className="my-2 flex h-[40px] w-[40px] items-center justify-center rounded-full border bg-gray-50 p-2 text-gray-600">
-              <FaUserLarge />
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-[10px] font-bold text-[#667085]">
+              {(order.user?.firstName?.[0] ?? "U").toUpperCase()}
             </span>
-            <div>
-              <h1 className="text-sm font-semibold">
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-[#101828]">
                 {(order.user?.firstName ?? "") +
                   " " +
                   (order.user?.lastName ?? "")}
-              </h1>
-              <h1 className="text-xs text-gray-500">{order.user?.email}</h1>
-            </div>
-          </div>
+              </span>
+              <span className="block truncate text-xs text-[#667085]">
+                {order.user?.email}
+              </span>
+            </span>
+          </button>
         );
       },
     },
@@ -271,16 +295,17 @@ export function createOrderColumns({
       id: "items",
       header: t("items"),
       meta: {
-        headerClassName: "",
-        cellClassName: "text-sm",
+        headerClassName: "w-[90px]",
+        cellClassName: "",
       },
       cell: ({ row }) => (
-        <span
-          className="cursor-pointer rounded-full bg-red-100 px-5 py-2 font-semibold text-red-600"
+        <button
+          type="button"
+          className="inline-flex min-w-[44px] items-center justify-center rounded-full border border-[#f3c6cd] bg-[#fbeff2] px-2.5 py-1 text-xs font-bold text-[#b4233a]"
           onClick={() => onOpen(row.original.orderId)}
         >
           {row.original.orderItemLines?.length ?? 0}
-        </span>
+        </button>
       ),
     },
     {
@@ -293,12 +318,19 @@ export function createOrderColumns({
         sortable: true,
         filterable: true,
         headerClassName: "",
-        cellClassName: "text-sm font-bold",
+        cellClassName: "",
       },
       cell: ({ row }) => {
         const value =
           mode === "admin" ? row.original.netTotal : row.original.total;
-        return `${Number(value ?? 0).toLocaleString("en-US")} ${t("currency")}`;
+        return (
+          <span className="whitespace-nowrap text-sm font-bold text-[#101828]">
+            {Number(value ?? 0).toLocaleString("en-US")}{" "}
+            <span className="text-xs font-medium text-[#667085]">
+              {t("currency")}
+            </span>
+          </span>
+        );
       },
     },
     {
@@ -324,21 +356,9 @@ export function createOrderColumns({
         const order = row.original;
         if (mode === "user") {
           return (
-            <span
-              className={`text-xs font-semibold ${
-                order.state === "PROCESSING"
-                  ? "text-blue-500"
-                  : order.state === "SHIPPED"
-                    ? "text-yellow-500"
-                    : order.state === "PENDING"
-                      ? "text-orange-500"
-                      : order.state === "DELIVERED"
-                        ? "text-green-500"
-                        : "text-red-500"
-              }`}
-            >
+            <StatusBadge tone={STATE_TONES[order.state] ?? "neutral"}>
               {t(order.state)}
-            </span>
+            </StatusBadge>
           );
         }
         return statusSelect(order, t, (state) =>
@@ -351,9 +371,9 @@ export function createOrderColumns({
   if (mode === "admin") {
     columns.push({
       id: "actions",
-      header: t("order_cancel"),
+      header: "",
       meta: {
-        headerClassName: "",
+        headerClassName: "w-[120px]",
         cellClassName: "",
       },
       cell: ({ row }) => {
@@ -364,7 +384,7 @@ export function createOrderColumns({
         return (
           <button
             type="button"
-            className="flex items-center justify-center rounded-3xl border border-red-700 bg-red-100 px-4 py-1 text-center font-semibold text-red-700 hover:bg-red-200 xs:text-xs md:text-sm"
+            className="admin-action-delete"
             onClick={() => onCancel(order.orderId)}
           >
             {t("order_cancel")}

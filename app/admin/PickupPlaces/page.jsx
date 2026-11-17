@@ -8,6 +8,7 @@ import { useLanguage } from "../../../context/LanguageContext";
 import { useSystemSettingsAccess } from "../context/SystemSettingsAccessContext";
 import PickupPlaceForm from "./components/PickupPlaceForm";
 import PickupPlaceTable from "./components/PickupPlaceTable";
+import AdminPageHeader from "../components/ui/AdminPageHeader";
 
 export default function PickupPlacesPage() {
   const { t } = useLanguage();
@@ -33,18 +34,21 @@ export default function PickupPlacesPage() {
 
   if (!pickupEnabled) {
     return (
-      <div className="p-4 sm:p-6">
-        <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center">
-          <h1 className="text-xl font-bold text-amber-900">
+      <div className="admin-page">
+        <AdminPageHeader
+          eyebrow={t("nav_administration")}
+          title={t("pickup_places")}
+          description={t("pickup_places_description")}
+        />
+        <div className="admin-alert admin-alert-warning mx-auto mt-4 max-w-xl flex-col items-start gap-3 p-8 text-center">
+          <h2 className="text-xl font-bold">
             {t("pickup_places_disabled_title")}
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-amber-800">
-            {t("pickup_places_disabled")}
-          </p>
+          </h2>
+          <p className="text-sm leading-6">{t("pickup_places_disabled")}</p>
           {systemSettingsAccess ? (
             <Link
               href="/admin/SystemSettings"
-              className="mt-6 inline-flex rounded-lg bg-[#204272] px-4 py-2 text-sm font-semibold text-white hover:bg-[#19345a]"
+              className="admin-btn admin-btn-primary mt-3"
             >
               {t("system_settings")}
             </Link>
@@ -55,17 +59,12 @@ export default function PickupPlacesPage() {
   }
 
   return (
-    <div className="p-4 sm:p-5">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t("pickup_places")}
-          </h1>
-          <p className="mt-1 max-w-3xl text-sm leading-6 text-gray-600">
-            {t("pickup_places_description")}
-          </p>
-        </div>
-      </header>
+    <div className="admin-page">
+      <AdminPageHeader
+        eyebrow={t("nav_administration")}
+        title={t("pickup_places")}
+        description={t("pickup_places_description")}
+      />
 
       <PickupPlaceTable onCreate={openCreate} onEdit={openEdit} />
 

@@ -116,32 +116,32 @@ export function DataTableFilters<T>({ table }: { table: Table<T> }) {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-semibold ${
-          activeCount > 0
-            ? "border-red-300 bg-red-50 text-red-600"
-            : "bg-gray-100 text-gray-600"
+        className={`admin-filter-button ${
+          activeCount > 0 ? "admin-filter-button--active" : ""
         }`}
+        aria-expanded={open}
       >
-        <MdFilterList className="text-lg" />
+        <MdFilterList className="text-base" aria-hidden="true" />
         <span>{t("filters")}</span>
         {activeCount > 0 ? (
-          <span className="rounded-full bg-red-500 px-2 text-[10px] text-white">
-            {activeCount}
-          </span>
+          <span className="admin-filter-count">{activeCount}</span>
         ) : null}
       </button>
 
       {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-[340px] rounded-lg border bg-white p-3 shadow-xl">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-700">
-              {t("filters")}
-            </h3>
+        <div className="admin-filter-panel">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-[#101828]">{t("filters")}</h3>
+              <p className="mt-0.5 text-xs text-[#667085]">
+                {t("active_filters")}
+              </p>
+            </div>
             <div className="flex items-center gap-3">
               {activeCount > 0 ? (
                 <button
                   type="button"
-                  className="text-xs font-semibold text-red-600 hover:underline"
+                  className="text-xs font-semibold text-[#b4233a] hover:underline"
                   onClick={() => {
                     columns.forEach((column) => column.setFilterValue(undefined));
                   }}
@@ -151,7 +151,7 @@ export function DataTableFilters<T>({ table }: { table: Table<T> }) {
               ) : null}
               <button
                 type="button"
-                className="text-gray-500 hover:text-gray-700"
+                className="admin-modal-close"
                 onClick={() => setOpen(false)}
                 aria-label={t("close")}
               >
@@ -160,7 +160,7 @@ export function DataTableFilters<T>({ table }: { table: Table<T> }) {
             </div>
           </div>
 
-          <div className="max-h-[60vh] space-y-3 overflow-y-auto pr-1">
+          <div className="max-h-[60vh] space-y-2.5 overflow-y-auto pe-1">
             {columns.map((column) => (
               <FilterField key={column.id} column={column} t={t} />
             ))}
@@ -228,9 +228,9 @@ function FilterField<T>({
   };
 
   return (
-    <div className="rounded-md border border-gray-100 bg-gray-50 p-2">
+    <div className="admin-filter-field">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold text-gray-700">
+        <span className="text-xs font-bold text-[#344054]">
           {typeof column.columnDef.header === "string"
             ? column.columnDef.header
             : column.id}
@@ -238,7 +238,7 @@ function FilterField<T>({
         {rawValue ? (
           <button
             type="button"
-            className="text-[10px] font-semibold text-red-600"
+            className="text-[10px] font-bold text-[#b4233a]"
             onClick={() => column.setFilterValue(undefined)}
           >
             {t("clear")}
@@ -248,12 +248,13 @@ function FilterField<T>({
 
       <div className="flex items-center gap-2">
         <select
-          className="h-8 min-w-0 flex-1 rounded border bg-white px-1 text-[11px]"
+          className="admin-select h-8 min-w-0 flex-1 !py-0 text-[11px]"
           value={operator}
           onChange={(event) => {
             const next = event.target.value as FilterOperator;
             changeOperator(next);
           }}
+          aria-label={t("filters")}
         >
           {operators.map((item) => (
             <option key={item} value={item}>
@@ -302,7 +303,7 @@ function ValueInput({
   if (dataType === "BOOLEAN") {
     return (
       <select
-        className="h-8 w-full rounded border bg-white px-2 text-xs"
+        className="admin-select h-8 !py-0 text-xs"
         value={stringValue}
         onChange={(event) =>
           onChange(event.target.value === "" ? "" : event.target.value === "true")
@@ -318,7 +319,7 @@ function ValueInput({
   if (dataType === "ENUM") {
     return (
       <select
-        className="h-8 w-full rounded border bg-white px-2 text-xs"
+        className="admin-select h-8 !py-0 text-xs"
         value={stringValue}
         onChange={(event) => onChange(event.target.value)}
       >
@@ -343,7 +344,7 @@ function ValueInput({
               ? "datetime-local"
               : "text"
       }
-      className="h-8 w-full rounded border bg-white px-2 text-xs"
+      className="admin-input h-8 !py-0 text-xs"
       value={stringValue}
       onChange={(event) => {
         const next = event.target.value;
@@ -391,17 +392,17 @@ function RangeInputs({
     <div className="flex items-center gap-2">
       <input
         type={inputType}
-        className="h-8 min-w-0 w-1/2 rounded border bg-white px-2 text-xs"
+        className="admin-input h-8 min-w-0 w-1/2 !py-0 text-xs"
         value={from}
         onChange={(event) => {
           setFrom(event.target.value);
           commit(event.target.value, to);
         }}
       />
-      <span className="text-xs text-gray-400">-</span>
+      <span className="text-xs text-[#98a2b3]">-</span>
       <input
         type={inputType}
-        className="h-8 min-w-0 w-1/2 rounded border bg-white px-2 text-xs"
+        className="admin-input h-8 min-w-0 w-1/2 !py-0 text-xs"
         value={to}
         onChange={(event) => {
           setTo(event.target.value);

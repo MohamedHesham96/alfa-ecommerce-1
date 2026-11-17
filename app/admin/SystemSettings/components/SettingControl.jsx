@@ -65,7 +65,7 @@ function JsonEditor({ value, onChange, disabled, arrayOnly, locale }) {
         disabled={disabled}
         spellCheck={false}
         rows={arrayOnly ? 5 : 6}
-        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-xs text-gray-800 outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+        className="admin-textarea font-mono text-xs"
       />
       {error ? <p className="text-xs text-red-600">{error}</p> : null}
     </div>
@@ -121,7 +121,7 @@ function DurationEditor({ value, onChange, disabled, locale }) {
           setAmount(event.target.value);
           emit(event.target.value, unit);
         }}
-        className="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+        className="admin-input w-32"
         aria-label={locale === "ar" ? "قيمة المدة" : "Duration amount"}
       />
       <select
@@ -131,7 +131,7 @@ function DurationEditor({ value, onChange, disabled, locale }) {
           setUnit(event.target.value);
           emit(amount, event.target.value);
         }}
-        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+        className="admin-select"
       >
         <option value="S">{locale === "ar" ? "ثانية" : "Seconds"}</option>
         <option value="M">{locale === "ar" ? "دقيقة" : "Minutes"}</option>
@@ -178,7 +178,7 @@ function ListEditor({ definition, value, onChange, disabled, locale }) {
             onChange={(event) =>
               update(index, isNumeric ? toNumber(event.target.value) : event.target.value)
             }
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+            className="admin-input"
           />
           <button
             type="button"
@@ -194,7 +194,7 @@ function ListEditor({ definition, value, onChange, disabled, locale }) {
         type="button"
         disabled={disabled}
         onClick={add}
-        className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        className="admin-btn admin-btn-secondary admin-btn-xs"
       >
         {locale === "ar" ? "إضافة عنصر" : "Add item"}
       </button>
@@ -232,7 +232,7 @@ export default function SettingControl({
                 : "Enter a sensitive value"
           }
           onChange={(event) => onChange(event.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+          className="admin-input"
         />
         <p className="text-xs text-amber-700">
           {locale === "ar"
@@ -280,7 +280,7 @@ export default function SettingControl({
         value={value ?? ""}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+        className="w-full admin-select"
       >
         <option value="" disabled>
           {locale === "ar" ? "اختر قيمة" : "Select a value"}
@@ -347,7 +347,7 @@ export default function SettingControl({
         value={value ?? ""}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value || null)}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+        className="admin-input"
       />
     );
   }
@@ -359,7 +359,7 @@ export default function SettingControl({
         value={value ? String(value).slice(0, 16) : ""}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value || null)}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+        className="admin-input"
       />
     );
   }
@@ -372,7 +372,7 @@ export default function SettingControl({
           disabled={disabled}
           rows={4}
           onChange={(event) => onChange(event.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+          className="admin-input"
         />
       );
     }
@@ -385,7 +385,7 @@ export default function SettingControl({
         maxLength={constraints.maxLength ?? undefined}
         pattern={constraints.pattern ?? undefined}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+        className="admin-input"
       />
     );
   }
@@ -406,7 +406,7 @@ export default function SettingControl({
         value={value ?? ""}
         disabled={disabled}
         onChange={(event) => onChange(toNumber(event.target.value))}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#204272] focus:ring-2 focus:ring-[#204272]/20 disabled:bg-gray-100"
+        className="admin-input"
       />
     );
   }

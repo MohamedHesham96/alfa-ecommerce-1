@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { FaUserLarge } from "react-icons/fa6";
 
 import type { PendingOrderRow } from "../types/api.types";
+import StatusBadge from "../components/ui/StatusBadge";
 
 interface DashboardColumnActions {
   t: (key: string) => string;
@@ -25,13 +25,17 @@ export function createDashboardColumns({
       accessorKey: "orderCode",
       header: t("order_id"),
       meta: {
-        headerClassName: "px-5",
-        cellClassName: "font-semibold text-red-500",
+        headerClassName: "",
+        cellClassName: "",
       },
       cell: ({ row }) => (
-        <span onClick={() => onOpen(row.original.orderId)}>
+        <button
+          type="button"
+          className="text-sm font-bold text-[#b4233a] hover:underline"
+          onClick={() => onOpen(row.original.orderId)}
+        >
           {row.original.orderCode}
-        </span>
+        </button>
       ),
     },
     {
@@ -40,7 +44,7 @@ export function createDashboardColumns({
       header: t("date"),
       meta: {
         headerClassName: "",
-        cellClassName: "text-sm",
+        cellClassName: "text-sm text-[#667085]",
       },
       cell: ({ row }) => formatDate(row.original.createdDate),
     },
@@ -54,20 +58,23 @@ export function createDashboardColumns({
       cell: ({ row }) => {
         const order = row.original;
         return (
-          <div
-            className="flex items-center gap-3"
+          <button
+            type="button"
+            className="flex min-w-0 items-center gap-3 text-start"
             onClick={() => onOpen(order.orderId)}
           >
-            <div>
-              <span className="my-2 flex h-[40px] w-[40px] items-center justify-center rounded-full border bg-gray-50 p-2 text-gray-600">
-                <FaUserLarge />
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-[10px] font-bold text-[#667085]">
+              {(order.userName?.[0] ?? "U").toUpperCase()}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-[#101828]">
+                {order.userName}
               </span>
-            </div>
-            <div>
-              <h1 className="text-sm font-semibold">{order.userName}</h1>
-              <h1 className="text-xs text-gray-500">{order.userEmail}</h1>
-            </div>
-          </div>
+              <span className="block truncate text-xs text-[#667085]">
+                {order.userEmail}
+              </span>
+            </span>
+          </button>
         );
       },
     },
@@ -77,12 +84,16 @@ export function createDashboardColumns({
       header: t("total"),
       meta: {
         headerClassName: "",
-        cellClassName: "text-sm font-semibold",
+        cellClassName: "",
       },
-      cell: ({ row }) =>
-        `${Number(row.original.orderTotal ?? 0).toLocaleString("en-US")} ${t(
-          "currency",
-        )}`,
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-sm font-bold text-[#101828]">
+          {Number(row.original.orderTotal ?? 0).toLocaleString("en-US")}{" "}
+          <span className="text-xs font-medium text-[#667085]">
+            {t("currency")}
+          </span>
+        </span>
+      ),
     },
     {
       id: "state",
@@ -90,9 +101,25 @@ export function createDashboardColumns({
       header: t("state_order"),
       meta: {
         headerClassName: "",
-        cellClassName: "text-sm font-semibold text-red-500",
+        cellClassName: "",
       },
-      cell: ({ row }) => t(row.original.state),
+      cell: ({ row }) => (
+        <StatusBadge
+          tone={
+            row.original.state === "PROCESSING"
+              ? "processing"
+              : row.original.state === "SHIPPED"
+                ? "shipped"
+                : row.original.state === "PENDING"
+                  ? "pending"
+                  : row.original.state === "DELIVERED"
+                    ? "delivered"
+                    : "cancelled"
+          }
+        >
+          {t(row.original.state)}
+        </StatusBadge>
+      ),
     },
   ];
 }

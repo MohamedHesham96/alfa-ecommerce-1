@@ -1,12 +1,13 @@
 "use client";
-import Image from "next/image";
-import { MdCancel } from "react-icons/md";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
 import { useLanguage } from "../../../../context/LanguageContext.js";
 import { postRequest, putRequest } from "../../../../utils/requestsUtils.js";
 import { getRequest } from "../../../../utils/requestsUtils.js";
 import { useIdContext } from "../../../../context/idContext";
 import { useRefresh } from "../../../../context/refreshContext.jsx";
+import AdminModal from "../../components/ui/AdminModal";
+import FormField from "../../components/ui/FormField";
 
 export default function AdminForm({ isFormOpen, setIsFormOpen }) {
   const [adminUser, setAdminUser] = useState({
@@ -35,7 +36,7 @@ export default function AdminForm({ isFormOpen, setIsFormOpen }) {
           username: adminUser.username,
           password: adminUser.password,
           repeatPassword: adminUser.confirmPassword,
-           role: "ADMIN",
+          role: "ADMIN",
         },
         t("message"),
       );
@@ -103,166 +104,175 @@ export default function AdminForm({ isFormOpen, setIsFormOpen }) {
   useEffect(() => {
     AdminData();
   }, [AdminData]);
+
   return (
-    <div
-      id="add-admin-form"
-      className={`fixed inset-0 bg-black/40 flex items-center justify-center z-50 ${isFormOpen ? "flex" : "hidden"}`}
-    >
+    <div id="add-admin-form">
       {loading && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <Image
-            src="/Images/logo.png"
-            alt=""
-            className="w-[100px] h-[100px]  border-t-transparent rounded-full animate-pulse"
-            width={100}
-            height={100}
-            priority
-          />
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#060f1c]/55 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+            <span className="admin-spinner !h-7 !w-7" />
+            <p className="text-sm font-semibold text-[#475467]">
+              {t("loading")}
+            </p>
+          </div>
         </div>
       )}
-      <div className="bg-white shadow-md shadow-slate-400 w-full max-w-[500px] flex flex-col border rounded-md">
-        <div className="m-4 flex justify-between items-center">
-          <h1 id="nameForm" className="text-lg font-semibold">
-            {isEditMode ? t("edit_admin") : t("add_admin")}
-          </h1>
-          <button
-            className="text-2xl   hover:text-red-800"
-            onClick={() => {
-              setIsFormOpen(false);
-              setSelectedAdminId(null);
-            }}
-          >
-            <MdCancel />
-          </button>
-        </div>
-        <hr className="h-1 mb-3"></hr>
-        <div className="flex justify-center items-center ">
-          <form
-            className=" w-[90%] "
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          >
-            <div className="my-5 ">
-              <div className="flex flex-col gap-4 ">
-                <div className="flex justify-between items-center gap-3">
-                  <div>
-                    <label className="text-sm ">{t("first_name")}</label>
-                    <input
-                      type="text"
-                      value={adminUser.f_name}
-                      onChange={(e) =>
-                        setAdminUser((prev) => ({
-                          ...prev,
-                          f_name: e.target.value,
-                        }))
-                      }
-                      required
-                      className="w-full  outline-none  text-lg  p-1 border rounded-md"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm ">{t("last_name")}</label>
-                    <input
-                      type="text"
-                      value={adminUser.l_name}
-                      onChange={(e) =>
-                        setAdminUser((prev) => ({
-                          ...prev,
-                          l_name: e.target.value,
-                        }))
-                      }
-                      className="w-full  outline-none  text-lg  p-1 border rounded-md"
-                    />
-                  </div>
-                </div>
+      <AdminModal
+        open={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedAdminId(null);
+        }}
+        title={isEditMode ? t("edit_admin") : t("add_admin")}
+        description={t("admins_description")}
+        size="md"
+        closeLabel={t("close")}
+        footer={
+          <>
+            <button
+              type="button"
+              className="admin-btn admin-btn-secondary"
+              onClick={() => {
+                setIsFormOpen(false);
+                setSelectedAdminId(null);
+              }}
+            >
+              {t("cancel")}
+            </button>
+            <button
+              type="submit"
+              form="admin-account-form"
+              id={isEditMode ? "btn-edit" : "btn-save"}
+              className="admin-btn admin-btn-primary"
+              onClick={() => {
+                if (isEditMode) updateAdmin();
+                else addAdminUser();
+              }}
+              disabled={loading}
+            >
+              {isEditMode ? t("save-changes") : t("save")}
+            </button>
+          </>
+        }
+      >
+        <form
+          id="admin-account-form"
+          className="flex flex-col gap-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <section className="admin-form-section">
+            <div className="admin-form-section-header">
+              <div>
+                <h3 className="admin-form-section-title">
+                  {t("section_identity")}
+                </h3>
+                <p className="admin-form-section-description">
+                  {t("section_identity_description")}
+                </p>
+              </div>
+            </div>
+            <div className="admin-form-grid admin-form-grid-2">
+              <FormField label={t("first_name")} htmlFor="admin-first-name" required>
+                <input
+                  id="admin-first-name"
+                  type="text"
+                  value={adminUser.f_name}
+                  onChange={(e) =>
+                    setAdminUser((prev) => ({
+                      ...prev,
+                      f_name: e.target.value,
+                    }))
+                  }
+                  required
+                  className="admin-input"
+                />
+              </FormField>
+              <FormField label={t("last_name")} htmlFor="admin-last-name">
+                <input
+                  id="admin-last-name"
+                  type="text"
+                  value={adminUser.l_name}
+                  onChange={(e) =>
+                    setAdminUser((prev) => ({
+                      ...prev,
+                      l_name: e.target.value,
+                    }))
+                  }
+                  className="admin-input"
+                />
+              </FormField>
+              <FormField
+                label={t("username")}
+                htmlFor="admin-username"
+                className="md:col-span-2"
+              >
+                <input
+                  id="admin-username"
+                  type="text"
+                  value={adminUser.username}
+                  onChange={(e) =>
+                    setAdminUser((prev) => ({
+                      ...prev,
+                      username: e.target.value,
+                    }))
+                  }
+                  className="admin-input"
+                />
+              </FormField>
+            </div>
+          </section>
 
-                <div>
-                  <label className="text-sm">{t("username")}</label>
-                  <input
-                    type="text"
-                    value={adminUser.username}
-                    onChange={(e) =>
-                      setAdminUser((prev) => ({
-                        ...prev,
-                        username: e.target.value,
-                      }))
-                    }
-                    className="w-full  outline-none  text-lg  p-1 border rounded-md"
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <div>
-                    <label className="text-sm ">{t("password")}</label>
-                    <input
-                      type="password"
-                      value={adminUser.password}
-                      onChange={(e) =>
-                        setAdminUser((prev) => ({
-                          ...prev,
-                          password: e.target.value,
-                        }))
-                      }
-                      className="w-full  outline-none text-lg  p-1 border rounded-md"
-                    />
-                  </div>
-                  <div>
-                    {" "}
-                    <label className="text-sm ">{t("confirm_password")}</label>
-                    <input
-                      type="password"
-                      value={adminUser.confirmPassword}
-                      onChange={(e) =>
-                        setAdminUser((prev) => ({
-                          ...prev,
-                          confirmPassword: e.target.value,
-                        }))
-                      }
-                      className="w-full  outline-none  text-lg  p-1 border rounded-md"
-                    />
-                  </div>
-                </div>
+          <section className="admin-form-section">
+            <div className="admin-form-section-header">
+              <div>
+                <h3 className="admin-form-section-title">
+                  {t("section_security")}
+                </h3>
+                <p className="admin-form-section-description">
+                  {t("section_security_description")}
+                </p>
               </div>
             </div>
-            <div className="flex  px-4 h-20 my-10 rounded-md justify-center items-center ">
-              <div className="flex justify-between w-full gap-3 items-center ">
-                <div className="flex  w-full items-center">
-                  <button
-                    type="submit"
-                    id="btn-save"
-                    className={`bg-red-600 h-8  px-3 text-white w-full hover:bg-red-800 rounded-lg ${isEditMode ? "hidden" : ""}`}
-                    onClick={() => {
-                      addAdminUser();
-                    }}
-                  >
-                    {t("save")}
-                  </button>
-                  <button
-                    type="submit"
-                    id="btn-edit"
-                    className={`bg-red-600 h-8  px-3 text-white w-full  hover:bg-red-800 rounded-lg ${isEditMode ? "" : "hidden"}`}
-                    onClick={() => {
-                      updateAdmin();
-                    }}
-                  >
-                    {t("save-changes")}
-                  </button>
-                </div>
-                <button
-                  type="submit"
-                  className="bg-white w-full  border h-8  px-3 text-gray-700ss   hover:bg-red-800 hover:text-white rounded-lg"
-                  onClick={() => {
-                    setIsFormOpen(false);
-                    setSelectedAdminId(null);
-                  }}
-                >
-                  {t("cancel")}
-                </button>
-              </div>
+            <div className="admin-form-grid admin-form-grid-2">
+              <FormField label={t("password")} htmlFor="admin-password">
+                <input
+                  id="admin-password"
+                  type="password"
+                  value={adminUser.password}
+                  onChange={(e) =>
+                    setAdminUser((prev) => ({
+                      ...prev,
+                      password: e.target.value,
+                    }))
+                  }
+                  className="admin-input"
+                  autoComplete="new-password"
+                />
+              </FormField>
+              <FormField
+                label={t("confirm_password")}
+                htmlFor="admin-confirm-password"
+              >
+                <input
+                  id="admin-confirm-password"
+                  type="password"
+                  value={adminUser.confirmPassword}
+                  onChange={(e) =>
+                    setAdminUser((prev) => ({
+                      ...prev,
+                      confirmPassword: e.target.value,
+                    }))
+                  }
+                  className="admin-input"
+                  autoComplete="new-password"
+                />
+              </FormField>
             </div>
-          </form>
-        </div>
-      </div>
+          </section>
+        </form>
+      </AdminModal>
     </div>
   );
 }

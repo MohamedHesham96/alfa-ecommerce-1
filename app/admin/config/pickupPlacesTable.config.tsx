@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { MdEdit } from "react-icons/md";
 
 import type { PickupPlaceRow } from "../types/api.types";
+import StatusBadge from "../components/ui/StatusBadge";
 
 interface PickupPlaceColumnActions {
   t: (key: string) => string;
@@ -27,15 +28,15 @@ export function createPickupPlaceColumns({
         searchable: true,
         sortable: true,
         filterable: true,
-        headerClassName: "px-4",
-        cellClassName: "px-4",
+        headerClassName: "",
+        cellClassName: "",
       },
       cell: ({ row }) => (
         <div className="min-w-0">
-          <h1 className="text-sm font-semibold text-gray-900">
+          <p className="text-sm font-semibold text-[#101828]">
             {row.original.name}
-          </h1>
-          <p className="mt-1 max-w-[360px] text-xs leading-5 text-gray-500">
+          </p>
+          <p className="mt-1 max-w-[360px] text-xs leading-5 text-[#667085]">
             {row.original.description}
           </p>
         </div>
@@ -51,11 +52,11 @@ export function createPickupPlaceColumns({
         searchable: true,
         sortable: true,
         filterable: true,
-        headerClassName: "px-4",
-        cellClassName: "px-4",
+        headerClassName: "",
+        cellClassName: "",
       },
       cell: ({ row }) => (
-        <div className="max-w-[320px] text-sm leading-6 text-gray-700">
+        <div className="max-w-[320px] text-sm leading-6 text-[#475467]">
           {row.original.address}
         </div>
       ),
@@ -70,10 +71,14 @@ export function createPickupPlaceColumns({
         searchable: true,
         sortable: true,
         filterable: true,
-        headerClassName: "px-4",
-        cellClassName: "px-4 text-sm",
+        headerClassName: "",
+        cellClassName: "text-sm",
       },
-      cell: ({ row }) => <span dir="ltr">{row.original.phone}</span>,
+      cell: ({ row }) => (
+        <span dir="ltr" className="text-[#475467]">
+          {row.original.phone}
+        </span>
+      ),
     },
     {
       id: "workingHours",
@@ -84,11 +89,11 @@ export function createPickupPlaceColumns({
         dataType: "STRING",
         sortable: true,
         filterable: true,
-        headerClassName: "px-4",
-        cellClassName: "px-4 text-sm",
+        headerClassName: "",
+        cellClassName: "text-sm",
       },
       cell: ({ row }) => (
-        <span className="text-gray-700">{row.original.workingHours}</span>
+        <span className="text-[#475467]">{row.original.workingHours}</span>
       ),
     },
     {
@@ -100,25 +105,21 @@ export function createPickupPlaceColumns({
         dataType: "BOOLEAN",
         sortable: true,
         filterable: true,
-        headerClassName: "px-4",
-        cellClassName: "px-4",
+        headerClassName: "",
+        cellClassName: "",
       },
       cell: ({ row }) => (
         <button
           type="button"
           onClick={() => onToggleActive(row.original)}
-          className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-            row.original.active
-              ? "border-green-200 bg-green-50 text-green-700"
-              : "border-gray-300 bg-gray-100 text-gray-600"
-          }`}
-          title={
-            row.original.active ? t("deactivate") : t("activate")
-          }
+          title={row.original.active ? t("deactivate") : t("activate")}
+          aria-label={row.original.active ? t("deactivate") : t("activate")}
         >
-          {row.original.active
-            ? t("active_pickup_place")
-            : t("inactive_pickup_place")}
+          <StatusBadge tone={row.original.active ? "success" : "neutral"}>
+            {row.original.active
+              ? t("active_pickup_place")
+              : t("inactive_pickup_place")}
+          </StatusBadge>
         </button>
       ),
     },
@@ -126,26 +127,26 @@ export function createPickupPlaceColumns({
       id: "actions",
       header: "",
       meta: {
-        headerClassName: "px-4",
-        cellClassName: "px-4",
+        headerClassName: "w-[190px]",
+        cellClassName: "",
       },
       cell: ({ row }) => (
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            className="flex items-center gap-1 rounded-md bg-blue-300 px-2 py-1 text-sm font-semibold text-blue-800 hover:bg-blue-400"
+            className="admin-action-edit"
             onClick={() => onEdit(row.original)}
           >
-            <MdEdit />
-            <span className="xs:hidden md:block">{t("edit")}</span>
+            <MdEdit className="text-sm" />
+            <span className="hidden xl:inline">{t("edit")}</span>
           </button>
           <button
             type="button"
-            className={`rounded-md px-2 py-1 text-xs font-semibold ${
+            className={
               row.original.active
-                ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                : "bg-green-100 text-green-800 hover:bg-green-200"
-            }`}
+                ? "inline-flex h-8 items-center justify-center rounded-lg border border-[#f1dfb3] bg-[#fdf6e7] px-2.5 text-xs font-semibold text-[#946200] transition-colors hover:bg-[#fbedd1]"
+                : "inline-flex h-8 items-center justify-center rounded-lg border border-[#bfe8d7] bg-[#e7f7f0] px-2.5 text-xs font-semibold text-[#087443] transition-colors hover:bg-[#d8f2e6]"
+            }
             onClick={() => onToggleActive(row.original)}
           >
             {row.original.active ? t("deactivate") : t("activate")}

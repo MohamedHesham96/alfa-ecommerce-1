@@ -88,7 +88,7 @@ export default function CategorysTable({ setIsFormOpen }) {
   const renderMobileCard = (category) => (
     <div
       key={category.itemCategoryId}
-      className="mx-2 my-3 cursor-pointer rounded-xl border-b bg-white p-3 hover:bg-gray-100"
+      className="admin-mobile-card cursor-pointer"
       onClick={() => openProducts(category)}
     >
       <div className="flex items-start justify-between gap-3">
@@ -100,48 +100,50 @@ export default function CategorysTable({ setIsFormOpen }) {
                 process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL +
                 getThumbnailUrl(category.imageURL ?? "")
               }
-              width={40}
-              height={40}
-              className="h-10 w-10 shrink-0 rounded-xl border p-1"
+              width={44}
+              height={44}
+              className="h-11 w-11 shrink-0 rounded-xl border border-[#e4e8f0] bg-white object-cover p-0.5"
             />
           ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border bg-gray-100 text-[10px] text-gray-400">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#e4e8f0] bg-[#f8fafc] text-[10px] text-[#98a2b3]">
               {t("no_image")}
             </div>
           )}
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold">
+            <p className="truncate text-sm font-semibold text-[#101828]">
               {locale === "ar" ? category.nameAr : category.nameEn}
-            </h1>
-            <h1 className="text-xs text-gray-600">{t("main_category")}</h1>
+            </p>
+            <p className="mt-0.5 text-xs text-[#667085]">
+              {t("main_category")}
+            </p>
           </div>
         </div>
-        <div className="shrink-0 rounded-full bg-red-100 px-3 py-1 text-center text-xs font-semibold text-red-600">
-          <h1>{category.itemsCount ?? 0}</h1>
-          <h2>{t("products_category")}</h2>
-        </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#f3c6cd] bg-[#fbeff2] px-2.5 py-1 text-xs font-semibold text-[#b4233a]">
+          <span className="text-sm font-bold">{category.itemsCount ?? 0}</span>
+          <span className="text-[10px]">{t("products_category")}</span>
+        </span>
       </div>
-      <div className="mt-3 flex items-center gap-3 border-t pt-3">
+      <div className="mt-3 flex items-center gap-2 border-t border-[#eef1f6] pt-3">
         <button
           type="button"
-          className="flex items-center gap-1 rounded-md bg-blue-300 px-3 py-1 text-sm font-semibold text-blue-800 hover:bg-blue-400"
+          className="admin-action-edit"
           onClick={(event) => {
             event.stopPropagation();
             openForm(category.itemCategoryId);
           }}
         >
-          <MdEdit />
+          <MdEdit className="text-sm" />
           {t("edit")}
         </button>
         <button
           type="button"
-          className="flex items-center gap-1 rounded-md bg-red-300 px-3 py-1 text-sm font-semibold text-red-800 hover:bg-red-400"
+          className="admin-action-delete"
           onClick={(event) => {
             event.stopPropagation();
             deleteCategory(category.itemCategoryId);
           }}
         >
-          <MdDelete />
+          <MdDelete className="text-sm" />
           {t("delete")}
         </button>
       </div>
@@ -153,20 +155,17 @@ export default function CategorysTable({ setIsFormOpen }) {
       table={tableState.table}
       searchValue={tableState.globalFilter}
       onSearchChange={tableState.setGlobalFilter}
-      className="!p-3"
       actions={
         <button
           type="button"
-          className="flex items-center justify-center gap-2 rounded-md bg-[#CD4354] p-2 text-center text-white xs:text-xs md:text-sm"
+          className="admin-btn admin-btn-primary"
           onClick={() => {
             setIsFormOpen(true);
             setSelectedCategoryId(null);
           }}
         >
-          <span>
-            <FaPlus />
-          </span>
-          <h1>{t("add_category")}</h1>
+          <FaPlus className="text-xs" />
+          {t("add_category")}
         </button>
       }
     />
@@ -189,11 +188,10 @@ export default function CategorysTable({ setIsFormOpen }) {
         onRetry={tableState.reload}
         toolbar={toolbar}
         mobileCard={renderMobileCard}
-        mobileWrapperClassName="lg:hidden mt-3 h-auto rounded-xl border overflow-y-scroll"
-        desktopWrapperClassName="hidden lg:block mt-3 w-full overflow-y-auto"
-        tableClassName="w-full h-auto table-fixed rounded-3xl border"
-        headerClassName="bg-[#f0eff0] h-12 rounded-lg text-justify sticky top-0 z-10 text-xs"
-        rowClassName="text-red-950 border-t w-full hover:bg-gray-100 cursor-pointer"
+        mobileWrapperClassName="lg:hidden mt-3 rounded-2xl border border-[#e4e8f0] bg-[#f8fafc] p-3"
+        desktopWrapperClassName="admin-table-shell hidden lg:block mt-3 w-full overflow-x-auto overflow-y-auto"
+        tableClassName="admin-table"
+        rowClassName="cursor-pointer"
         emptyMessage={t("no_data")}
       />
     </div>

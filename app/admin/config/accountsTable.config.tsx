@@ -1,9 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { FaCircle } from "react-icons/fa";
-import { FaUserLarge } from "react-icons/fa6";
 import { ImBlocked } from "react-icons/im";
 
 import type { AdminUserRow } from "../types/api.types";
+import StatusBadge from "../components/ui/StatusBadge";
 
 interface AccountColumnActions {
   mode: "admin" | "user";
@@ -17,6 +16,19 @@ function formatDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "--";
   return date.toLocaleDateString("en-GB");
+}
+
+function initials(name: string) {
+  const parts = String(name || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "U";
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 }
 
 export function createAccountColumns({
@@ -33,24 +45,26 @@ export function createAccountColumns({
         backendField: "active",
         dataType: "BOOLEAN",
         filterable: true,
-        headerClassName: "px-4",
+        headerClassName: "w-[130px]",
         cellClassName: "",
       },
       cell: ({ row }) => {
         const user = row.original;
         return (
-          <div className="flex items-center gap-4 rounded-full px-5 py-1 font-semibold">
-            <span
-              className={`flex items-center justify-center text-sm ${
-                user.active ? "text-green-600" : "text-gray-600"
-              }`}
-            >
-              <FaCircle />
-            </span>
+          <div className="flex items-center gap-2">
+            <StatusBadge tone={user.active ? "success" : "neutral"}>
+              {user.active ? t("active") : t("inactive")}
+            </StatusBadge>
             <button
               type="button"
-              className={`flex items-center justify-center text-base ${
-                user.blocked ? "text-red-600" : "text-gray-600"
+              aria-label={
+                user.blocked ? t("activate") : t("deactivate")
+              }
+              title={user.blocked ? t("activate") : t("deactivate")}
+              className={`admin-action-icon ${
+                user.blocked
+                  ? "!text-[#b4233a] hover:!bg-[#fbeff2]"
+                  : "hover:!text-[#b4233a]"
               }`}
               onClick={(event) => {
                 event.stopPropagation();
@@ -72,26 +86,27 @@ export function createAccountColumns({
         dataType: "STRING",
         sortable: true,
         filterable: true,
-        headerClassName: "px-10",
+        headerClassName: "",
         cellClassName: "",
       },
       cell: ({ row }) => {
         const user = row.original;
+        const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
         return (
           <div
-            className="flex items-center gap-3 px-10"
+            className="flex items-center gap-3"
             onClick={() => onOpen(user.userId)}
           >
-            <span className="my-2 flex h-[40px] w-[40px] items-center justify-center rounded-full border bg-gray-50 p-2 text-gray-600">
-              <FaUserLarge />
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#e4e8f0] bg-[#f8fafc] text-xs font-bold text-[#475467]">
+              {initials(fullName)}
             </span>
-            <div>
-              <h1 className="text-sm font-semibold">
-                {user.firstName + " " + user.lastName}
-              </h1>
-              <h1 className="text-xs text-gray-400">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-[#101828]">
+                {fullName}
+              </p>
+              <p className="truncate text-xs text-[#667085]">
                 {mode === "admin" ? user.email : user.username}
-              </h1>
+              </p>
             </div>
           </div>
         );
@@ -114,12 +129,12 @@ export function createAccountColumns({
           cellClassName: "",
         },
         cell: ({ row }) => (
-          <h1
-            className="text-gray-500"
+          <span
+            className="text-sm text-[#667085]"
             onClick={() => onOpen(row.original.userId)}
           >
             {row.original.username}
-          </h1>
+          </span>
         ),
       },
       {
@@ -136,7 +151,7 @@ export function createAccountColumns({
         },
         cell: ({ row }) => (
           <div
-            className="text-sm text-gray-500"
+            className="text-sm text-[#667085]"
             onClick={() => onOpen(row.original.userId)}
           >
             {formatDate(row.original.lastLoginDate)}
@@ -159,12 +174,12 @@ export function createAccountColumns({
           cellClassName: "",
         },
         cell: ({ row }) => (
-          <h1
-            className="text-gray-500"
+          <span
+            className="text-sm text-[#667085]"
             onClick={() => onOpen(row.original.userId)}
           >
             {row.original.email ?? "--"}
-          </h1>
+          </span>
         ),
       },
       {
@@ -181,7 +196,7 @@ export function createAccountColumns({
         },
         cell: ({ row }) => (
           <div
-            className="text-sm text-gray-500"
+            className="text-sm text-[#667085]"
             onClick={() => onOpen(row.original.userId)}
           >
             {formatDate(row.original.registrationDate)}
@@ -192,17 +207,20 @@ export function createAccountColumns({
         id: "ordersCount",
         header: t("orders"),
         meta: {
-          headerClassName: "px-4",
+          headerClassName: "w-[110px]",
           cellClassName: "",
         },
         cell: ({ row }) => (
-          <div
-            className="w-[80px] rounded-full bg-red-100 px-2 text-center font-semibold text-red-700"
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#e4e8f0] bg-[#f8fafc] px-2.5 py-1 text-xs font-semibold text-[#344054]"
             onClick={() => onOpen(row.original.userId)}
           >
-            <h1>{row.original.ordersCount ?? 0}</h1>
-            <h2 className="text-xs">{t("orders")}</h2>
-          </div>
+            <span className="text-sm font-bold text-[#101828]">
+              {row.original.ordersCount ?? 0}
+            </span>
+            <span className="text-[11px] text-[#667085]">{t("orders")}</span>
+          </button>
         ),
       },
     );

@@ -15,7 +15,7 @@ export function DataTableColumnHeader<T>({
   className = "",
 }: DataTableColumnHeaderProps<T>) {
   if (!column.getCanSort() || column.columnDef.meta?.sortable !== true) {
-    return <span className={className}>{title}</span>;
+    return <span className={`inline-flex items-center ${className}`}>{title}</span>;
   }
 
   const sorted = column.getIsSorted();
@@ -24,11 +24,11 @@ export function DataTableColumnHeader<T>({
     <button
       type="button"
       onClick={column.getToggleSortingHandler()}
-      className={`inline-flex items-center gap-1 font-semibold ${className}`}
+      className={`group inline-flex items-center gap-1.5 font-bold text-[#475467] transition-colors hover:text-[#101828] ${className}`}
       title="Shift + click to sort by multiple columns"
     >
       <span>{title}</span>
-      <span className="text-[10px] text-gray-400">
+      <span className="text-[10px] text-[#98a2b3] group-hover:text-[#667085]">
         {sorted === "asc" ? (
           <FaSortUp />
         ) : sorted === "desc" ? (
