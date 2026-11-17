@@ -1,11 +1,26 @@
 "use client";
 
-import { FaTimesCircle } from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import Image from "next/image";
+
 import { useLanguage } from "../../../../context/LanguageContext";
 import { putRequest } from "../../../../utils/requestsUtils";
+import { reportApiFailure } from "../../../../utils/connectivityStore";
+
+import AuthHeading from "../../../../app/components/auth/AuthHeading";
+import { AuthInput } from "../../../../app/components/auth/AuthField";
+import AuthModal from "../../../../app/components/auth/AuthModal";
+import AuthSubmitButton from "../../../../app/components/auth/AuthSubmitButton";
+import FormAlert from "../../../../app/components/auth/FormAlert";
+import PasswordRequirements from "../../../../app/components/auth/PasswordRequirements";
+import {
+  AUTH_PASSWORD_MAX_LENGTH,
+  AUTH_PASSWORD_MIN_LENGTH,
+  extractAuthErrors,
+  getPasswordByteLength,
+  isBlank,
+  pickAuthFieldErrors,
+} from "../../../../app/components/auth/authValidation";
 
 const AUTH_STORAGE_KEYS = [
   "accessToken",
@@ -22,40 +37,145 @@ const AUTH_STORAGE_KEYS = [
   "governorateId",
 ];
 
+const FORM_FIELDS = ["oldPassword", "newPassword", "confirmPassword"];
+
 export default function ResetPasswordForm({ isFormOpen, setIsFormOpen }) {
   const router = useRouter();
   const { t } = useLanguage();
+
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [touched, setTouched] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [generalError, setGeneralError] = useState("");
 
-  const closeForm = () => {
-    setIsFormOpen(false);
+  const oldPasswordRef = useRef(null);
+  const newPasswordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
+
+  const requiredMessage =
+    t("authFieldRequired") || "This field is required.";
+
+  const resetState = () => {
     setOldPassword("");
     setNewPassword("");
     setRepeatPassword("");
-    setError("");
+    setTouched({});
+    setFieldErrors({});
+    setGeneralError("");
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!isFormOpen) resetState();
+  }, [isFormOpen]);
+
+  const closeForm = () => {
+    resetState();
+    setIsFormOpen(false);
+  };
+
+  const validateOldPassword = (value = oldPassword) =>
+    isBlank(value) ? requiredMessage : "";
+
+  const validateNewPassword = (value = newPassword) => {
+    if (isBlank(value)) return requiredMessage;
+    if (
+      value.length < AUTH_PASSWORD_MIN_LENGTH ||
+      value.length > AUTH_PASSWORD_MAX_LENGTH
+    ) {
+      return (
+        t("authPasswordLength") ||
+        `Password must be ${AUTH_PASSWORD_MIN_LENGTH} to ${AUTH_PASSWORD_MAX_LENGTH} characters long.`
+      );
+    }
+    if (getPasswordByteLength(value) > 72) {
+      return (
+        t("authPasswordByteLimit") ||
+        "Password is too long. Use fewer characters."
+      );
+    }
+    if (oldPassword && value === oldPassword) {
+      return (
+        t("authPasswordSameAsOld") ||
+        "New password must be different from the old password."
+      );
+    }
+    return "";
+  };
+
+  const validateRepeatPassword = (value = repeatPassword) => {
+    if (isBlank(value)) return requiredMessage;
+    return value === newPassword
+      ? ""
+      : t("passwordMismatch") || "Passwords do not match.";
+  };
+
+  const applyBackendError = (error) => {
+    const extracted = extractAuthErrors(error, t);
+    const { fieldErrors: mapped, fallbackGeneral } = pickAuthFieldErrors(
+      extracted.fieldErrors,
+      FORM_FIELDS,
+    );
+
+    if (Object.keys(mapped).length > 0) {
+      setFieldErrors((previous) => ({ ...previous, ...mapped }));
+      setTouched((previous) => {
+        const next = { ...previous };
+        Object.keys(mapped).forEach((field) => {
+          next[field] = true;
+        });
+        return next;
+      });
+
+      const firstField = Object.keys(mapped)[0];
+      if (firstField === "oldPassword") oldPasswordRef.current?.focus();
+      if (firstField === "newPassword") newPasswordRef.current?.focus();
+      if (firstField === "confirmPassword") {
+        confirmPasswordRef.current?.focus();
+      }
+    }
+
+    const general = extracted.generalError || fallbackGeneral;
+    if (general) setGeneralError(general);
   };
 
   const resetPassword = async (event) => {
     event.preventDefault();
-    setError("");
+    if (loading) return;
 
-    if (newPassword.length < 8) {
-      setError(
-        t("passwordTooShort") ||
-          "Password must be at least 8 characters long.",
-      );
+    setGeneralError("");
+
+    const nextErrors = {
+      oldPassword: validateOldPassword(),
+      newPassword: validateNewPassword(),
+      confirmPassword: validateRepeatPassword(),
+    };
+
+    setTouched({
+      oldPassword: true,
+      newPassword: true,
+      confirmPassword: true,
+    });
+    setFieldErrors(nextErrors);
+
+    if (nextErrors.oldPassword) {
+      oldPasswordRef.current?.focus();
       return;
     }
-    if (newPassword !== repeatPassword) {
-      setError(t("passwordMismatch") || "Passwords do not match.");
+    if (nextErrors.newPassword) {
+      newPasswordRef.current?.focus();
+      return;
+    }
+    if (nextErrors.confirmPassword) {
+      confirmPasswordRef.current?.focus();
       return;
     }
 
     setLoading(true);
+
     try {
       const result = await putRequest(
         "/api/users/reset-password",
@@ -65,6 +185,7 @@ export default function ResetPasswordForm({ isFormOpen, setIsFormOpen }) {
           repeatPassword,
         },
         "",
+        { suppressErrorToast: true },
       );
 
       // putRequest returns null when the user cancels a confirmation dialog.
@@ -75,125 +196,169 @@ export default function ResetPasswordForm({ isFormOpen, setIsFormOpen }) {
       closeForm();
       AUTH_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
       router.push("/signin");
-    } catch (err) {
-      setError(
-        err?.response?.data?.error?.message ||
-          t("somethingWentWrong") ||
-          "Something went wrong. Please try again.",
-      );
+    } catch (error) {
+      reportApiFailure(error);
+      applyBackendError(error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      id="reset-password-modal"
-      className={`fixed inset-0 bg-black/40 flex items-center justify-end z-50 p-5 ${
-        isFormOpen ? "flex" : "hidden"
-      }`}
+    <AuthModal
+      open={Boolean(isFormOpen)}
+      onClose={closeForm}
+      labelledBy="reset-password-title"
+      maxWidth="max-w-[500px]"
     >
-      {loading && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <Image
-            src="/Images/logo.png"
-            alt=""
-            className="w-[100px] h-[100px] border-t-transparent rounded-full animate-pulse"
-            width={100}
-            height={100}
-            priority
-          />
-        </div>
-      )}
-      <div className="w-full flex justify-center items-center">
-        <form
-          onSubmit={resetPassword}
-          autoComplete="off"
-          className="w-full max-w-[500px] py-10 flex flex-col justify-center items-center
-         gap-3 my-5 bg-white shadow-md shadow-slate-400 rounded-lg
-           px-7 pb-10 border max-h-[90vh] overflow-y-auto h-auto"
-        >
-          <div className="w-full flex justify-between items-center">
-            <h1 className="text-lg w-full font-semibold">
-              {t("updatePassword")}
-            </h1>
-            <button
-              type="button"
-              aria-label={t("close")}
-              onClick={closeForm}
-              className="text-xl text-gray-600 hover:text-red-600"
-            >
-              <FaTimesCircle />
-            </button>
-          </div>
-          <hr className="bg-gray-200 w-full h-px" />
-          <div className="flex flex-col w-full">
-            <label htmlFor="old-password" className="text-xs font-semibold">
-              {t("oldPassword")}
-            </label>
-            <div className="flex w-full px-2 rounded-md mt-2 bg-white border h-10 items-center gap-3">
-              <input
-                id="old-password"
-                type="password"
-                className="w-full h-full bg-none outline-none p-2"
-                value={oldPassword}
-                autoComplete="current-password"
-                onChange={(event) => setOldPassword(event.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <div className="flex flex-col w-full">
-            <label htmlFor="new-password" className="text-xs font-semibold">
-              {t("newPassword")}
-            </label>
-            <div className="flex w-full px-2 rounded-md mt-2 bg-white border h-10 items-center gap-3">
-              <input
-                id="new-password"
-                type="password"
-                className="w-full h-full bg-none outline-none p-2"
-                value={newPassword}
-                autoComplete="new-password"
-                onChange={(event) => setNewPassword(event.target.value)}
-                minLength={8}
-                required
-              />
-            </div>
-          </div>
-          <div className="flex flex-col w-full">
-            <label
-              htmlFor="confirm-password"
-              className="text-xs font-semibold"
-            >
-              {t("confirmPassword")}{" "}
-            </label>
-            <div className="flex w-full px-2 rounded-md mt-2 bg-white border h-10 items-center gap-3">
-              <input
-                id="confirm-password"
-                type="password"
-                autoComplete="new-password"
-                className="w-full h-full bg-none outline-none p-2"
-                value={repeatPassword}
-                onChange={(event) => setRepeatPassword(event.target.value)}
-                minLength={8}
-                required
-              />
-            </div>
-          </div>
-          {error ? (
-            <p role="alert" className="w-full text-sm text-red-600">
-              {error}
-            </p>
-          ) : null}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-red-600 p-2 rounded-md mt-5 text-white disabled:opacity-60"
-          >
-            {t("save")}
-          </button>
-        </form>
-      </div>
-    </div>
+      <form
+        onSubmit={resetPassword}
+        noValidate
+        aria-busy={loading || undefined}
+        className="flex w-full flex-col gap-4 px-6 pb-7 pt-8 sm:px-8"
+      >
+        <AuthHeading
+          id="reset-password-title"
+          title={t("updatePassword")}
+          description={t("authChangePasswordDescription")}
+          showLanguageToggle={false}
+          className="pe-10"
+        />
+
+        {generalError ? (
+          <FormAlert className="mt-1">{generalError}</FormAlert>
+        ) : null}
+
+        <AuthInput
+          id="reset-old-password"
+          inputRef={oldPasswordRef}
+          label={t("oldPassword")}
+          type="password"
+          value={oldPassword}
+          autoComplete="current-password"
+          onChange={(event) => {
+            setOldPassword(event.target.value);
+            setGeneralError("");
+            if (touched.oldPassword) {
+              setFieldErrors((previous) => ({
+                ...previous,
+                oldPassword: event.target.value
+                  ? ""
+                  : requiredMessage,
+              }));
+            }
+          }}
+          onBlur={() => {
+            setTouched((previous) => ({
+              ...previous,
+              oldPassword: true,
+            }));
+            setFieldErrors((previous) => ({
+              ...previous,
+              oldPassword: validateOldPassword(),
+            }));
+          }}
+          error={touched.oldPassword ? fieldErrors.oldPassword : ""}
+          enterKeyHint="next"
+          disabled={loading}
+          data-autofocus
+          required
+        />
+
+        <AuthInput
+          id="reset-new-password"
+          inputRef={newPasswordRef}
+          label={t("newPassword")}
+          type="password"
+          value={newPassword}
+          autoComplete="new-password"
+          onChange={(event) => {
+            setNewPassword(event.target.value);
+            setGeneralError("");
+            if (touched.newPassword) {
+              setFieldErrors((previous) => ({
+                ...previous,
+                newPassword: validateNewPassword(event.target.value),
+              }));
+            }
+            if (touched.confirmPassword) {
+              setFieldErrors((previous) => ({
+                ...previous,
+                confirmPassword:
+                  event.target.value === repeatPassword
+                    ? ""
+                    : t("passwordMismatch") ||
+                      "Passwords do not match.",
+              }));
+            }
+          }}
+          onBlur={() => {
+            setTouched((previous) => ({
+              ...previous,
+              newPassword: true,
+            }));
+            setFieldErrors((previous) => ({
+              ...previous,
+              newPassword: validateNewPassword(),
+            }));
+          }}
+          error={touched.newPassword ? fieldErrors.newPassword : ""}
+          enterKeyHint="next"
+          disabled={loading}
+          required
+        />
+
+        <AuthInput
+          id="reset-confirm-password"
+          inputRef={confirmPasswordRef}
+          label={t("confirmPassword")}
+          type="password"
+          value={repeatPassword}
+          autoComplete="new-password"
+          onChange={(event) => {
+            setRepeatPassword(event.target.value);
+            setGeneralError("");
+            if (touched.confirmPassword) {
+              setFieldErrors((previous) => ({
+                ...previous,
+                confirmPassword:
+                  event.target.value === newPassword
+                    ? ""
+                    : t("passwordMismatch") ||
+                      "Passwords do not match.",
+              }));
+            }
+          }}
+          onBlur={() => {
+            setTouched((previous) => ({
+              ...previous,
+              confirmPassword: true,
+            }));
+            setFieldErrors((previous) => ({
+              ...previous,
+              confirmPassword: validateRepeatPassword(),
+            }));
+          }}
+          error={
+            touched.confirmPassword ? fieldErrors.confirmPassword : ""
+          }
+          enterKeyHint="done"
+          disabled={loading}
+          required
+        />
+
+        <PasswordRequirements
+          password={newPassword}
+          confirmPassword={repeatPassword}
+        />
+
+        <AuthSubmitButton
+          loading={loading}
+          label={t("save")}
+          loadingLabel={t("saving") || "Saving..."}
+          className="mt-2"
+        />
+      </form>
+    </AuthModal>
   );
 }

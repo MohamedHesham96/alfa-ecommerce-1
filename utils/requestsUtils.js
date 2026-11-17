@@ -127,13 +127,13 @@ const isForbidden = (error) => error?.response?.status === 403;
 const isBrowserOffline = () =>
   typeof navigator !== "undefined" && navigator.onLine === false;
 
-const throwOfflineMutationError = () => {
+const throwOfflineMutationError = (suppressToast = false) => {
   const isArabic =
     typeof window !== "undefined" && localStorage.getItem("lang") === "ar";
   const message = isArabic
     ? "لا يوجد اتصال بالإنترنت. لم يتم حفظ هذا التغيير. حاول مرة أخرى بعد استعادة الاتصال."
     : "You are offline. This change was not saved. Try again when you are back online.";
-  toast.error(message);
+  if (!suppressToast) toast.error(message);
   const error = new Error(message);
   error.code = "ALFA_OFFLINE";
   error.isOffline = true;
@@ -264,7 +264,7 @@ export const logoutRequest = async () => {
 // };
 
 export const postRequest = async (endpoint, dataBody, message ,toster, options = {}) => {
-  if (isBrowserOffline()) throwOfflineMutationError();
+  if (isBrowserOffline()) throwOfflineMutationError(options.suppressErrorToast);
 
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
@@ -351,10 +351,10 @@ export const postRequest = async (endpoint, dataBody, message ,toster, options =
             throw retryError;
           }
           reportApiFailure(retryError);
-          showRequestError(retryError);
+          if (!options.suppressErrorToast) showRequestError(retryError);
         }
       }
-    } else {
+    } else if (!options.suppressErrorToast) {
       showRequestError(error);
     }
 
@@ -407,8 +407,8 @@ export const getRequest = async (endpoint) => {
   }
 };
 
-export const putRequest = async (endpoint, dataBody, message) => {
-  if (isBrowserOffline()) throwOfflineMutationError();
+export const putRequest = async (endpoint, dataBody, message, options = {}) => {
+  if (isBrowserOffline()) throwOfflineMutationError(options.suppressErrorToast);
 
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
@@ -430,7 +430,9 @@ export const putRequest = async (endpoint, dataBody, message) => {
   const send = async () => {
     const token = getToken();
     const response = await request(token);
-    if (response.data?.message) toast.success(response.data.message);
+    if (!options.suppressSuccessToast && response.data?.message) {
+      toast.success(response.data.message);
+    }
     invalidateCatalogAfterAdminChange(endpoint);
     return response.data;
   };
@@ -475,15 +477,17 @@ export const putRequest = async (endpoint, dataBody, message) => {
       if (newAccessToken) {
         try {
           const retryResponse = await request(newAccessToken);
-          if (retryResponse.data?.message) toast.success(retryResponse.data.message);
+          if (!options.suppressSuccessToast && retryResponse.data?.message) {
+            toast.success(retryResponse.data.message);
+          }
           invalidateCatalogAfterAdminChange(endpoint);
           return retryResponse.data;
         } catch (retryError) {
           reportApiFailure(retryError);
-          showRequestError(retryError);
+          if (!options.suppressErrorToast) showRequestError(retryError);
         }
       }
-    } else {
+    } else if (!options.suppressErrorToast) {
       showRequestError(error);
     }
 

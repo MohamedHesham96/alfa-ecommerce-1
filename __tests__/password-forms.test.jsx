@@ -95,7 +95,8 @@ describe("ForgotPassword page", () => {
         "/api/auth/forgot-password",
         { email: "john@example.com" },
         "",
-        true,
+        false,
+        { suppressErrorToast: true },
       );
     });
     expect(await screen.findByRole("status")).toHaveTextContent(
@@ -127,6 +128,7 @@ describe("ForgotPassword page", () => {
           repeatPassword: "newPassword123",
         },
         "",
+        { suppressErrorToast: true, suppressSuccessToast: true },
       );
     });
     expect(await screen.findByRole("status")).toHaveTextContent("resetSuccess");
@@ -169,7 +171,8 @@ describe("SignIn forgot-password form", () => {
         "/api/auth/forgot-password",
         { email: "john@example.com" },
         "",
-        true,
+        false,
+        { suppressErrorToast: true },
       );
     });
     expect(await screen.findByRole("status")).toHaveTextContent(
@@ -223,6 +226,7 @@ describe("ResetPasswordForm (authenticated change)", () => {
           repeatPassword: "newPassword123",
         },
         "",
+        { suppressErrorToast: true },
       );
     });
     expect(setIsFormOpen).toHaveBeenCalledWith(false);
@@ -374,9 +378,10 @@ describe("SignIn post-login destination", () => {
 
     await submitLogin();
 
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith("Invalid credentials"),
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Invalid credentials",
     );
+    expect(toast.error).not.toHaveBeenCalled();
     expect(mockReplace).not.toHaveBeenCalled();
     expect(window.location.search).toContain(
       "returnUrl=%2Fuser%2Forderdetails%2F7",

@@ -2,11 +2,7 @@
 import { useLanguage } from "../../../context/LanguageContext";
 import { useFeature } from "../../../context/AppConfigContext";
 import { IoMdSearch } from "react-icons/io";
-import {
-  MdCancel,
-  MdLanguage,
-  MdOutlineShoppingCart,
-} from "react-icons/md";
+import { MdLanguage, MdOutlineShoppingCart } from "react-icons/md";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -21,6 +17,7 @@ import { useMenuOpen } from "../../../context/MenuOpenContext";
 import { FiHeart } from "react-icons/fi";
 import { PiListBold, PiUser } from "react-icons/pi";
 import CartDrawer from "./CartDrawer";
+import AuthModal from "../../components/auth/AuthModal";
 import { useCartDrawerOpen } from "../../../context/CartDrawerOpenContext";
 // import { useCartDrawerOpen } from "../../../context/CartDrawerOpenContext";
 
@@ -54,7 +51,17 @@ export default function Header() {
   const [showSignUp, setShowSignUp] = useState(false);
   const [showSignin, setShowSignIn] = useState(false);
   const [openForm, setOpenForm] = useState(false);
-  const { isAdmin, ready: roleReady } = useAuthRole();
+  const {
+    isAdmin,
+    ready: roleReady,
+    hasSession,
+  } = useAuthRole();
+
+  const closeAuthModal = () => {
+    setOpenForm(false);
+    setShowSignIn(false);
+    setShowSignUp(false);
+  };
 
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("id") : "";
@@ -378,27 +385,32 @@ setSearchInput(decodeSearchInput(lastPort))
             </div>
            
 
-            <div className="xs:flex lg:hidden items-center gap-1 cursor-pointer "
-             onClick={() => {
-                  if (isAdmin) {
-                    navigate.push("/admin/Dashboard");
-                  } else if (userId) {
-                    navigate.push("/user/profile");
-                  } else {
-                    setShowSignUp(false);
-                    setShowSignIn(true);
-                    setOpenForm(true);
-
-                  }
-                }}
+            <button
+              type="button"
+              aria-label={
+                isAdmin
+                  ? t("dashboard")
+                  : hasSession
+                    ? t("personalAccount")
+                    : t("login") + " / " + t("register")
+              }
+              className="xs:flex lg:hidden items-center gap-1 rounded p-1 transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+              onClick={() => {
+                if (isAdmin) {
+                  navigate.push("/admin/Dashboard");
+                } else if (userId) {
+                  navigate.push("/user/profile");
+                } else {
+                  setShowSignUp(false);
+                  setShowSignIn(true);
+                  setOpenForm(true);
+                }
+              }}
             >
               <span className="w-8 h-8">
-                <PiUser className="w-full h-full " />
+                <PiUser className="w-full h-full" aria-hidden="true" />
               </span>
-              {/* <span className=" font-semibold text-center xs:hidden lg:flex">
-                login
-              </span> */}
-            </div>
+            </button>
 
           </div>
         </div>
@@ -417,7 +429,16 @@ setSearchInput(decodeSearchInput(lastPort))
                 </div>
               ) : null}
               <hr className="w-px h-5 bg-gray-50 "></hr>
-              <div className=" items-center gap-1 cursor-pointer flex  "
+              <button
+                type="button"
+                aria-label={
+                  isAdmin
+                    ? t("dashboard")
+                    : hasSession || username
+                      ? t("personalAccount")
+                      : t("login") + " / " + t("register")
+                }
+                className="items-center gap-1 rounded flex transition hover:text-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                 onClick={() => {
                   if (isAdmin) {
                     navigate.push("/admin/Dashboard");
@@ -427,21 +448,20 @@ setSearchInput(decodeSearchInput(lastPort))
                     setShowSignUp(false);
                     setShowSignIn(true);
                     setOpenForm(true);
-
                   }
                 }}
               >
                 <span className="w-6 h-6 font-bold xs:hidden lg:block">
-                  <PiUser className="w-full h-full " />
+                  <PiUser className="w-full h-full" aria-hidden="true" />
                 </span>
-                <span className=" font-semibold  text-center ">
+                <span className="font-semibold text-center">
                   {isAdmin
                     ? t("dashboard")
                     : username
                       ? username
                       : t("login") + " / " + t("register")}
                 </span>
-              </div>
+              </button>
             </div>
           </div>
 
@@ -482,25 +502,28 @@ setSearchInput(decodeSearchInput(lastPort))
         </div>
       </div>
 
-      <div
-        className={`fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto ${openForm ? "block" : "hidden"}`}
+      <AuthModal
+        key={showSignUp ? "signup" : "signin"}
+        open={openForm}
+        onClose={closeAuthModal}
+        labelledBy={showSignUp ? "auth-signup-title" : "auth-signin-title"}
       >
-        <div className=" bg-white rounded-md relative w-full max-w-[480px] my-auto max-h-[90vh] overflow-y-auto">
-          <MdCancel
-            className="w-6 h-6 cursor-pointer hover:text-red-600 absolute top-2 right-2 "
-            onClick={() => {
-              setOpenForm(false);
-              setShowSignIn(false);
-              setShowSignUp(false);
-            }}
+        {showSignin ? (
+          <SignIn_Form
+            popUp={true}
+            setShowSignUp={setShowSignUp}
+            setShowSignIn={setShowSignIn}
+            setOpenForm={setOpenForm}
           />
-          {showSignin ? (
-            <SignIn_Form popUp={true} setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn} setOpenForm={setOpenForm} />
-          ) : showSignUp ? (
-            <SignUp_Form popUp={true} setShowSignIn={setShowSignIn} setShowSignUp={setShowSignUp} setOpenForm={setOpenForm} />
-          ) : ""}
-        </div>
-      </div>
+        ) : showSignUp ? (
+          <SignUp_Form
+            popUp={true}
+            setShowSignIn={setShowSignIn}
+            setShowSignUp={setShowSignUp}
+            setOpenForm={setOpenForm}
+          />
+        ) : null}
+      </AuthModal>
 
       <CartDrawer
         isOpen={isCartOpen}

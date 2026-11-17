@@ -1,9 +1,10 @@
 "use client";
+
 import Cartpage from "./components/cart";
 import SignIn_Form from "../../components/SignIn_Form";
 import SignUp_Form from "../../components/SignUp_Form";
 import RequireCustomer from "../components/RequireCustomer";
-import { MdCancel } from "react-icons/md";
+import AuthModal from "../../components/auth/AuthModal";
 import { useState } from "react";
 
 export default function Cart() {
@@ -22,15 +23,15 @@ export default function Cart() {
 
   return (
     <RequireCustomer>
-    <div className="">
-      <div
-        className={`fixed inset-0 bg-black/40 items-center justify-center z-50 ${isAuthOpen ? "flex" : "hidden"}`}
-      >
-        <div className=" bg-white rounded-md relative w-full max-w-[480px] my-auto max-h-[90vh] overflow-y-auto">
-          <MdCancel
-            className="w-6 h-6 cursor-pointer hover:text-red-600 absolute top-2 right-2 "
-            onClick={closeAuthModal}
-          />
+      <div>
+        <AuthModal
+          key={showSignUp ? "signup" : "signin"}
+          open={isAuthOpen}
+          onClose={closeAuthModal}
+          labelledBy={
+            showSignUp ? "auth-signup-title" : "auth-signin-title"
+          }
+        >
           {showSignin ? (
             <SignIn_Form
               popUp={true}
@@ -46,11 +47,10 @@ export default function Cart() {
               setOpenForm={closeAuthModal}
             />
           ) : null}
-        </div>
-      </div>
+        </AuthModal>
 
-      <Cartpage setShowSignIn={setShowSignIn} />
-    </div>
+        <Cartpage setShowSignIn={setShowSignIn} />
+      </div>
     </RequireCustomer>
   );
 }

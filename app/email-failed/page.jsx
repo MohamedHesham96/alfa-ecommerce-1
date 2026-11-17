@@ -2,22 +2,31 @@
 
 import Link from "next/link";
 import { useLanguage } from "../../context/LanguageContext";
+import AuthResultPage from "../components/auth/AuthResultPage";
 
 export default function EmailFailedPage() {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8 text-center">
-      <h1 className="text-3xl font-bold">
-        {t("emailConfirmationFailed") || "Email confirmation failed"}
-      </h1>
-      <p className="max-w-lg text-gray-600">
-        {t("emailConfirmationFailedMessage") ||
-          "The confirmation link is invalid or has expired. Please request a new confirmation email."}
-      </p>
-      <Link href="/signin" className="text-red-600 font-semibold">
-        {t("backToSignIn") || "Back to sign in"}
-      </Link>
-    </div>
+    <AuthResultPage
+      tone="error"
+      title={t("emailConfirmationFailed")}
+      description={t("emailConfirmationFailedMessage")}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <Link
+          href="/signin"
+          className="inline-flex h-11 items-center justify-center rounded-md bg-red-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+        >
+          {t("backToSignIn")}
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex h-11 items-center justify-center rounded-md border border-gray-300 bg-white px-6 text-sm font-bold text-gray-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2"
+        >
+          {t("home")}
+        </Link>
+      </div>
+    </AuthResultPage>
   );
 }
