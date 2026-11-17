@@ -81,6 +81,7 @@
   "email": "البريد الإلكتروني",
   "status": "الحالة",
   "active": "نشط",
+  "inactive": "غير نشط",
   "total_orders": "إجمالي الطلبات",
   "pendding_orders": "الطلبات المعلقة",
   "new_users": "المستخدمين الجدد",

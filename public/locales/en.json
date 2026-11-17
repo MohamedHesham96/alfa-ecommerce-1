@@ -683,5 +683,7 @@
   "page_homepage_title": "Storefront content",
   "page_pickup_title": "Pickup locations",
   "page_settings_title": "Installation settings",
-  "page_account_title": "Customer profile"
+  "page_account_title": "Customer profile",
+  "APPROVED": "Approved",
+  "REFUNDED": "Refunded"
 }
