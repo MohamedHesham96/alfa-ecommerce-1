@@ -72,7 +72,7 @@ export function createCategoryColumns({
           className="min-w-0 text-start"
           onClick={() => onOpen(row.original)}
         >
-          <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
+          <p className="break-words text-sm font-semibold text-[var(--admin-ink)]">
             {locale === "ar" ? row.original.nameAr : row.original.nameEn}
           </p>
           <p className="mt-0.5 text-xs text-[var(--admin-muted)]">{t("main_category")}</p>

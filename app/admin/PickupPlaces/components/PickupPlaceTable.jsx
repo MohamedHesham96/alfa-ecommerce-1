@@ -68,9 +68,9 @@ export default function PickupPlaceTable({ onCreate, onEdit }) {
           </p>
         </div>
         <StatusBadge tone={place.active ? "success" : "neutral"}>
-          {place.active
-            ? t("active_pickup_place")
-            : t("inactive_pickup_place")}
+          {!place.active && locale !== "ar"
+            ? t("inactive_pickup_place")
+            : t("active_pickup_place")}
         </StatusBadge>
       </div>
 

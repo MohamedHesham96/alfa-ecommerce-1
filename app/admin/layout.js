@@ -1,6 +1,16 @@
 import "./admin.css";
+import { Alexandria } from "next/font/google";
+
 import AdminThemeScript from "./components/AdminThemeScript";
 import AdminShell from "./components/AdminShell";
+
+// The admin dashboard has its own typeface so its screens stay visually
+// consistent regardless of the storefront's language/font setup.
+const alexandria = Alexandria({
+  subsets: ["arabic", "latin"],
+  variable: "--font-alexandria",
+  display: "swap",
+});
 
 /**
  * Admin-only route shell. The theme bootstrap script is rendered by this
@@ -11,7 +21,7 @@ export default function AdminLayout({ children }) {
   return (
     <>
       <AdminThemeScript />
-      <AdminShell>{children}</AdminShell>
+      <AdminShell fontClassName={alexandria.variable}>{children}</AdminShell>
     </>
   );
 }

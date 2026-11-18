@@ -79,28 +79,44 @@ export function OrderStateFilter({
             minHeight: "40px",
             cursor: "pointer",
             boxShadow: "none",
-            "&:hover": { borderColor: "var(--admin-border-strong)" },
+            "&:hover": {
+              borderColor: "var(--admin-info-border)",
+              backgroundColor: "var(--admin-info-soft)",
+            },
           }),
           valueContainer: (base) => ({ ...base, paddingInline: "0.65rem" }),
           option: (base, state) => ({
             ...base,
+            margin: "2px 0",
+            padding: "8px 10px",
+            borderRadius: "7px",
             backgroundColor: state.isSelected
               ? "var(--admin-accent-solid)"
               : state.isFocused
-                ? "var(--admin-accent-soft)"
-                : "var(--admin-surface)",
-            color: state.isSelected ? "var(--admin-on-accent)" : "var(--admin-ink-soft)",
+                ? "var(--admin-info)"
+                : "transparent",
+            color: state.isSelected
+              ? "var(--admin-on-accent)"
+              : state.isFocused
+                ? "var(--admin-surface)"
+                : "var(--admin-ink-soft)",
             cursor: "pointer",
             fontSize: "13px",
+            fontWeight: 600,
+            transition: "background-color 0.15s ease, color 0.15s ease",
           }),
           menu: (base) => ({
             ...base,
+            marginTop: 2,
+            padding: 4,
             backgroundColor: "var(--admin-surface)",
-            borderRadius: "12px",
+            border: "1px solid var(--admin-border)",
+            borderRadius: "10px",
             boxShadow: "var(--admin-shadow-popover)",
             zIndex: 9999,
             overflow: "hidden",
           }),
+          menuList: (base) => ({ ...base, padding: 0 }),
           placeholder: (base) => ({
             ...base,
             color: "var(--admin-muted)",
@@ -149,7 +165,10 @@ function statusSelect(
           minHeight: "36px",
           cursor: "pointer",
           boxShadow: "none",
-          "&:hover": { borderColor: "var(--admin-border-strong)" },
+          "&:hover": {
+            borderColor: "var(--admin-info-border)",
+            backgroundColor: "var(--admin-info-soft)",
+          },
           "&:focus": {
             borderColor: "var(--admin-accent)",
             boxShadow: "0 0 0 3px var(--admin-focus-ring)",
@@ -158,23 +177,36 @@ function statusSelect(
         valueContainer: (base) => ({ ...base, paddingInline: "0.6rem" }),
         option: (base, state) => ({
           ...base,
+          margin: "2px 0",
+          padding: "8px 10px",
+          borderRadius: "7px",
           backgroundColor: state.isSelected
             ? "var(--admin-accent-solid)"
             : state.isFocused
-              ? "var(--admin-accent-soft)"
-              : "var(--admin-surface)",
-          color: state.isSelected ? "var(--admin-on-accent)" : "var(--admin-ink-soft)",
+              ? "var(--admin-info)"
+              : "transparent",
+          color: state.isSelected
+            ? "var(--admin-on-accent)"
+            : state.isFocused
+              ? "var(--admin-surface)"
+              : "var(--admin-ink-soft)",
           cursor: "pointer",
           fontSize: "13px",
+          fontWeight: 600,
+          transition: "background-color 0.15s ease, color 0.15s ease",
         }),
         menu: (base) => ({
           ...base,
+          marginTop: 2,
+          padding: 4,
           backgroundColor: "var(--admin-surface)",
-          borderRadius: "12px",
+          border: "1px solid var(--admin-border)",
+          borderRadius: "10px",
           boxShadow: "var(--admin-shadow-popover)",
           zIndex: 9999,
           overflow: "hidden",
         }),
+        menuList: (base) => ({ ...base, padding: 0 }),
         placeholder: (base) => ({
           ...base,
           color: "var(--admin-muted)",
@@ -278,12 +310,12 @@ export function createOrderColumns({
               {(order.user?.firstName?.[0] ?? "U").toUpperCase()}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold text-[var(--admin-ink)]">
+              <span className="block break-words text-sm font-semibold text-[var(--admin-ink)]">
                 {(order.user?.firstName ?? "") +
                   " " +
                   (order.user?.lastName ?? "")}
               </span>
-              <span className="block truncate text-xs text-[var(--admin-muted)]">
+              <span className="block break-words text-xs text-[var(--admin-muted)]">
                 {order.user?.email}
               </span>
             </span>

@@ -124,6 +124,13 @@ let refreshInFlight = null;
 const isUnauthorized = (error) => error?.response?.status === 401;
 const isForbidden = (error) => error?.response?.status === 403;
 
+// A customer-only endpoint called with a valid admin session answers 403
+// ADMIN_OPERATION_FORBIDDEN. Background GETs (cart/wishlist counters, recently
+// viewed items, ...) may still be in flight during the login navigation; their
+// 403 is expected and must not stack error toasts over the admin dashboard.
+const isAdminOperationForbidden = (error) =>
+  error?.response?.data?.error?.code === "ADMIN_OPERATION_FORBIDDEN";
+
 const isBrowserOffline = () =>
   typeof navigator !== "undefined" && navigator.onLine === false;
 
@@ -399,8 +406,14 @@ export const getRequest = async (endpoint, options = {}) => {
         }
       }
     } else if (isForbidden(error)) {
-      // Keep the admin/customer session intact and explain the restriction.
-      showRequestError(error);
+      // Keep the admin/customer session intact. Background admin-blocked GETs
+      // are expected and silent; interactive calls still explain the rule.
+      if (
+        !options.suppressErrorToast &&
+        !isAdminOperationForbidden(error)
+      ) {
+        showRequestError(error);
+      }
     }
 
     throw error;

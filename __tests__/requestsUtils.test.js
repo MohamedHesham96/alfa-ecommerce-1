@@ -1,7 +1,7 @@
 import axios from "axios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-import { getRequest, putRequest } from "../utils/requestsUtils";
+import { getRequest, postRequest, putRequest } from "../utils/requestsUtils";
 
 jest.mock("axios", () => ({
   __esModule: true,
@@ -9,6 +9,7 @@ jest.mock("axios", () => ({
     put: jest.fn(),
     post: jest.fn(),
     get: jest.fn(),
+    isCancel: jest.fn(() => false),
   },
 }));
 
@@ -67,7 +68,7 @@ describe("forbidden customer operations", () => {
     localStorage.clear();
   });
 
-  it("keeps the ADMIN session intact and never refreshes after a 403", async () => {
+  it("keeps the ADMIN session intact and stays silent for background GETs", async () => {
     localStorage.setItem("accessToken", "admin-access");
     localStorage.setItem("refreshToken", "admin-refresh");
     localStorage.setItem("role", "ADMIN");
@@ -91,6 +92,34 @@ describe("forbidden customer operations", () => {
     expect(localStorage.getItem("accessToken")).toBe("admin-access");
     expect(localStorage.getItem("refreshToken")).toBe("admin-refresh");
     expect(localStorage.getItem("role")).toBe("ADMIN");
+    // Cart/wishlist counters are background reads. During the login
+    // navigation they can race with the role switch; their 403 is expected
+    // and must not stack toasts over the dashboard.
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("still explains a blocked interactive mutation", async () => {
+    localStorage.setItem("accessToken", "admin-access");
+    localStorage.setItem("refreshToken", "admin-refresh");
+    localStorage.setItem("role", "ADMIN");
+
+    axios.post.mockRejectedValue({
+      response: {
+        status: 403,
+        data: {
+          success: false,
+          error: {
+            code: "ADMIN_OPERATION_FORBIDDEN",
+            message: "This action is unavailable for administrator accounts.",
+          },
+        },
+      },
+    });
+
+    await expect(
+      postRequest("/api/shopCarts/addLine", {}, ""),
+    ).rejects.toBeTruthy();
+
     expect(toast.error).toHaveBeenCalledWith(
       "This action is unavailable for administrator accounts.",
     );

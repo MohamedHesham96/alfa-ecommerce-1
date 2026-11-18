@@ -81,6 +81,15 @@ const SELECT_STYLES = {
   menuPortal: (base) => ({ ...base, zIndex: 90 }),
 };
 
+// Older admin forms could persist the literal text "undefined" when a product
+// had no description. Treat those placeholders as an empty description so the
+// field does not reopen with invalid text or save it back.
+function normalizeDescription(value) {
+  if (value === null || value === undefined) return "";
+  const text = String(value);
+  return /^(undefined|null)$/i.test(text.trim()) ? "" : text;
+}
+
 function ToggleCard({ label, description, active, onClick, icon, activeClass }) {
   return (
     <button
@@ -242,8 +251,8 @@ export default function FormProduct({
     flash: product.flash,
     brand: product.brand,
     contents: product.contents,
-    descriptionAr: product.descriptionAr,
-    descriptionEn: product.descriptionEn,
+    descriptionAr: normalizeDescription(product.descriptionAr),
+    descriptionEn: normalizeDescription(product.descriptionEn),
     favorite: enabledFavorite,
     active: enabledActive,
     available: enabledAvailable,
@@ -357,7 +366,7 @@ export default function FormProduct({
           code: resData.code,
           price: resData.price,
           oldPrice: resData.oldPrice,
-          descriptionAr: resData.descriptionAr,
+          descriptionAr: normalizeDescription(resData.descriptionAr),
           seoCode: resData.seoCode,
           ram: resData.ram,
           flash: resData.flash,
@@ -366,7 +375,7 @@ export default function FormProduct({
           length: resData.length ?? "",
           width: resData.width ?? "",
           height: resData.height ?? "",
-          descriptionEn: resData.descriptionEn,
+          descriptionEn: normalizeDescription(resData.descriptionEn),
           releaseYear: resData.releaseYear,
           category: {
             ...prev.category,

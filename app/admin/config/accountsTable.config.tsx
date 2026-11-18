@@ -7,6 +7,7 @@ import StatusBadge from "../components/ui/StatusBadge";
 interface AccountColumnActions {
   mode: "admin" | "user";
   t: (key: string) => string;
+  locale: string;
   onOpen: (userId: number) => void;
   onToggleBlocked: (userId: number, blocked: boolean) => void;
 }
@@ -34,6 +35,7 @@ function initials(name: string) {
 export function createAccountColumns({
   mode,
   t,
+  locale,
   onOpen,
   onToggleBlocked,
 }: AccountColumnActions): ColumnDef<AdminUserRow, unknown>[] {
@@ -53,7 +55,7 @@ export function createAccountColumns({
         return (
           <div className="flex items-center gap-2">
             <StatusBadge tone={user.active ? "success" : "neutral"}>
-              {user.active ? t("active") : t("inactive")}
+              {!user.active && locale !== "ar" ? t("inactive") : t("active")}
             </StatusBadge>
             <button
               type="button"
@@ -98,10 +100,10 @@ export function createAccountColumns({
               {initials(fullName)}
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
+              <p className="break-words text-sm font-semibold text-[var(--admin-ink)]">
                 {fullName}
               </p>
-              <p className="truncate text-xs text-[var(--admin-muted)]">
+              <p className="break-words text-xs text-[var(--admin-muted)]">
                 {mode === "admin" ? user.email : user.username}
               </p>
             </div>

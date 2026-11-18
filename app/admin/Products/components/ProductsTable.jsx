@@ -214,7 +214,9 @@ export default function ProductsTable({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+              title={product.active ? t("deactivate") : t("activate")}
+              aria-label={product.active ? t("deactivate") : t("activate")}
+              className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
                 product.active
                   ? "border-[var(--admin-success-border)] bg-[var(--admin-success-soft)] text-[var(--admin-success-text)]"
                   : "border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[var(--admin-muted)]"
@@ -229,7 +231,7 @@ export default function ProductsTable({
                   product.active ? "bg-[var(--admin-success)]" : "bg-[var(--admin-muted-soft)]"
                 }`}
               />
-              {product.active ? t("active") : t("inactive")}
+              {!product.active && locale !== "ar" ? t("inactive") : t("active")}
             </button>
             <button
               type="button"

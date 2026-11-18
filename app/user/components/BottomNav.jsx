@@ -28,7 +28,9 @@ export default function BottomNav() {
   const getProductInCart = useCallback(async () => {
     try {
       if (!roleReady) return;
-      if (isAdmin) {
+      // The stored role is the source of truth right after login; useAuthRole
+      // can still hold the previous (guest/user) value for one render.
+      if (isAdmin || isAdminSession()) {
         setItemNum(0);
         return;
       }

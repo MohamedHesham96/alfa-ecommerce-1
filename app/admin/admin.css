@@ -8,8 +8,17 @@
    portalled UI (toasts, react-select menus, SweetAlert) pick up the theme.
    -------------------------------------------------------------------------- */
 
+:root {
+  --admin-scroll-thumb: rgba(22, 59, 95, 0.32);
+  --admin-scroll-thumb-hover: rgba(22, 59, 95, 0.58);
+  --admin-scroll-track: rgba(22, 59, 95, 0.055);
+}
+
 html[data-admin-theme="dark"] {
   color-scheme: dark;
+  --admin-scroll-thumb: rgba(255, 255, 255, 0.24);
+  --admin-scroll-thumb-hover: rgba(255, 255, 255, 0.46);
+  --admin-scroll-track: rgba(255, 255, 255, 0.045);
   --admin-canvas: #0a1220;
   --admin-surface: #111c2c;
   --admin-surface-muted: #162238;
@@ -122,12 +131,27 @@ html[data-admin-theme="dark"] {
    -------------------------------------------------------------------------- */
 .admin-shell {
   min-height: 100dvh;
+  font-family: var(--font-alexandria), var(--font-plex), sans-serif;
   background: var(--admin-canvas);
   color: var(--admin-ink);
   background-image:
     radial-gradient(1100px 520px at 88% -12%, rgba(207, 67, 86, 0.05), transparent 60%),
     radial-gradient(900px 460px at -10% 0%, rgba(22, 59, 95, 0.055), transparent 55%);
   background-attachment: fixed;
+}
+
+/* Form controls do not inherit the page font by default. The storefront's
+   Latin bold classes also point at Urbanist, so keep every admin screen on
+   Alexandria regardless of the active language. */
+.admin-shell button,
+.admin-shell input,
+.admin-shell select,
+.admin-shell textarea,
+html .admin-shell .font-semibold,
+html .admin-shell .font-bold,
+html .admin-shell .font-extrabold,
+html .admin-shell .font-black {
+  font-family: var(--font-alexandria), var(--font-plex), sans-serif;
 }
 
 .admin-main {
@@ -358,6 +382,10 @@ html[data-admin-theme="dark"] {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* Arabic descenders (ع، ج، ي، ...) need more room than the old 1.2 line
+     box; otherwise the overflow clip cuts the bottom of the letter. */
+  line-height: 1.5;
+  padding-block: 2px;
 }
 
 .admin-sidebar-footer {
@@ -1204,6 +1232,21 @@ html[data-admin-theme="dark"] {
   border-radius: var(--admin-radius);
   background: var(--admin-surface);
   box-shadow: var(--admin-shadow-sm);
+}
+
+/*
+ * Table wrappers are also the scroll containers for infinite scrolling.
+ * This stylesheet is imported after the Tailwind utilities, so the plain
+ * `overflow: hidden` above would win the specificity tie and clip the rows
+ * (including the infinite-scroll sentinel) instead of scrolling them.
+ * Re-assert the utilities that the table screens apply on the same element.
+ */
+.admin-table-shell.overflow-x-auto {
+  overflow-x: auto;
+}
+
+.admin-table-shell.overflow-y-auto {
+  overflow-y: auto;
 }
 
 .admin-table-scroll {
@@ -2743,4 +2786,145 @@ html[data-admin-theme="dark"] .admin-select__menu-list {
   .analytics-split-segment {
     transition: none;
   }
+}
+
+/* --------------------------------------------------------------------------
+   Scrollbars
+   The thumb is transparent until the visitor hovers the container or scrolls;
+   AdminShell adds .admin-scroll-active on scroll and removes it after a short
+   idle period. `overlay` keeps the bar on top of the content where supported,
+   and falls back to `auto` elsewhere.
+   -------------------------------------------------------------------------- */
+.admin-sidebar,
+.admin-table-shell.overflow-y-auto,
+.admin-drawer-body,
+.admin-modal-body {
+  overflow-y: overlay;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+html,
+.admin-sidebar,
+.admin-table-shell,
+.admin-drawer-body,
+.admin-modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+html.admin-scroll-active,
+.admin-scroll-active,
+.admin-sidebar:hover,
+.admin-table-shell:hover,
+.admin-drawer-body:hover,
+.admin-modal-body:hover {
+  scrollbar-color: var(--admin-scroll-thumb) transparent;
+}
+
+html::-webkit-scrollbar,
+.admin-sidebar::-webkit-scrollbar,
+.admin-table-shell::-webkit-scrollbar,
+.admin-drawer-body::-webkit-scrollbar,
+.admin-modal-body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html::-webkit-scrollbar-track,
+.admin-sidebar::-webkit-scrollbar-track,
+.admin-table-shell::-webkit-scrollbar-track,
+.admin-drawer-body::-webkit-scrollbar-track,
+.admin-modal-body::-webkit-scrollbar-track,
+html::-webkit-scrollbar-corner,
+.admin-sidebar::-webkit-scrollbar-corner,
+.admin-table-shell::-webkit-scrollbar-corner,
+.admin-drawer-body::-webkit-scrollbar-corner,
+.admin-modal-body::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb,
+.admin-sidebar::-webkit-scrollbar-thumb,
+.admin-table-shell::-webkit-scrollbar-thumb,
+.admin-drawer-body::-webkit-scrollbar-thumb,
+.admin-modal-body::-webkit-scrollbar-thumb {
+  min-height: 36px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-color: transparent;
+  background-clip: padding-box;
+}
+
+html.admin-scroll-active::-webkit-scrollbar-thumb,
+.admin-scroll-active::-webkit-scrollbar-thumb,
+.admin-sidebar:hover::-webkit-scrollbar-thumb,
+.admin-table-shell:hover::-webkit-scrollbar-thumb,
+.admin-drawer-body:hover::-webkit-scrollbar-thumb,
+.admin-modal-body:hover::-webkit-scrollbar-thumb {
+  background-color: var(--admin-scroll-thumb);
+}
+
+html.admin-scroll-active::-webkit-scrollbar-thumb:hover,
+.admin-scroll-active::-webkit-scrollbar-thumb:hover,
+.admin-sidebar:hover::-webkit-scrollbar-thumb:hover,
+.admin-table-shell:hover::-webkit-scrollbar-thumb:hover,
+.admin-drawer-body:hover::-webkit-scrollbar-thumb:hover,
+.admin-modal-body:hover::-webkit-scrollbar-thumb:hover {
+  background-color: var(--admin-scroll-thumb-hover);
+}
+
+
+/* Only the scroll container currently in use should show a bar. While the
+   pointer is over a table/sidebar/drawer, hide the page scrollbar (and the
+   sidebar bar hides while a table or dialog is being used). */
+html:has(.admin-sidebar:hover),
+html:has(.admin-table-shell:hover),
+html:has(.admin-drawer-body:hover),
+html:has(.admin-modal-body:hover) {
+  scrollbar-color: transparent transparent;
+}
+
+html:has(.admin-sidebar:hover)::-webkit-scrollbar-thumb,
+html:has(.admin-table-shell:hover)::-webkit-scrollbar-thumb,
+html:has(.admin-drawer-body:hover)::-webkit-scrollbar-thumb,
+html:has(.admin-modal-body:hover)::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+.admin-sidebar:hover ~ .admin-main .admin-table-shell,
+.admin-shell:has(.admin-table-shell:hover) .admin-sidebar,
+.admin-shell:has(.admin-drawer-body:hover) .admin-sidebar,
+.admin-shell:has(.admin-modal-body:hover) .admin-sidebar {
+  scrollbar-color: transparent transparent;
+}
+
+.admin-sidebar:hover ~ .admin-main .admin-table-shell::-webkit-scrollbar-thumb,
+.admin-shell:has(.admin-table-shell:hover) .admin-sidebar::-webkit-scrollbar-thumb,
+.admin-shell:has(.admin-drawer-body:hover) .admin-sidebar::-webkit-scrollbar-thumb,
+.admin-shell:has(.admin-modal-body:hover) .admin-sidebar::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+/* The sidebar uses a custom overlay thumb so its native rail never takes
+   width from the menu. The thumb is positioned by SideMenu on scroll. */
+.admin-sidebar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.admin-sidebar-scrollthumb {
+  position: fixed;
+  z-index: 45;
+  width: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  transition: opacity 0.18s ease;
 }

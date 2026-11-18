@@ -77,7 +77,7 @@ export function createProductsColumns({
                 event.stopPropagation();
                 onToggleActive(product.itemId, !product.active);
               }}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+              className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
                 product.active
                   ? "border-[var(--admin-success-border)] bg-[var(--admin-success-soft)] text-[var(--admin-success-text)]"
                   : "border-[var(--admin-border)] bg-[var(--admin-surface-muted)] text-[var(--admin-muted)]"
@@ -89,7 +89,7 @@ export function createProductsColumns({
                 }`}
                 aria-hidden="true"
               />
-              {product.active ? t("active") : t("inactive")}
+              {!product.active && !isArabic ? t("inactive") : t("active")}
             </button>
             <button
               type="button"
@@ -161,10 +161,10 @@ export function createProductsColumns({
               </div>
             )}
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
+              <p className="break-words text-sm font-semibold text-[var(--admin-ink)]">
                 {productName(product)}
               </p>
-              <p className="truncate text-xs text-[var(--admin-muted)]">
+              <p className="break-words text-xs text-[var(--admin-muted)]">
                 {t("code")}: {product.code}
               </p>
             </div>

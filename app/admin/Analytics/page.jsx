@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   MdCalendarMonth,
   MdDateRange,
+  MdEventAvailable,
   MdOutlinePeopleAlt,
   MdOutlineVisibility,
   MdPeopleOutline,
@@ -244,7 +245,7 @@ export default function WebsiteAnalyticsPage() {
 
       {summary && !showSkeleton ? (
         <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-6">
             <StatCard
               label={t("analytics_active_now")}
               value={formatNumber(activeValue)}
@@ -283,6 +284,13 @@ export default function WebsiteAnalyticsPage() {
               value={formatNumber(summary.monthVisitors)}
               icon={<MdCalendarMonth />}
               tone="green"
+              hint={t("analytics_legend_visitors")}
+            />
+            <StatCard
+              label={t("analytics_year_visitors")}
+              value={formatNumber(summary.yearVisitors)}
+              icon={<MdEventAvailable />}
+              tone="gray"
               hint={t("analytics_legend_visitors")}
             />
           </div>
@@ -385,8 +393,8 @@ export default function WebsiteAnalyticsPage() {
 function AnalyticsSkeleton() {
   return (
     <div className="flex flex-col gap-4" aria-busy="true" aria-live="polite">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, index) => (
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-6">
+        {Array.from({ length: 6 }).map((_, index) => (
           <div
             key={`analytics-stat-skeleton-${index}`}
             className="admin-card admin-card-pad"

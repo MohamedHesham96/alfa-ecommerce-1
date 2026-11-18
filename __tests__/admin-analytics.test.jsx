@@ -29,6 +29,7 @@ function summary(overrides = {}) {
     todayPageViews: 30,
     weekVisitors: 40,
     monthVisitors: 90,
+    yearVisitors: 365,
     periodVisitors: 12,
     periodPageViews: 30,
     sessions: {
@@ -112,6 +113,7 @@ describe("website analytics admin page", () => {
     expect(screen.getByText("Today's Visitors")).toBeInTheDocument();
     expect(screen.getByText("This Week's Visitors")).toBeInTheDocument();
     expect(screen.getByText("This Month's Visitors")).toBeInTheDocument();
+    expect(screen.getByText("This Year's Visitors")).toBeInTheDocument();
 
     await waitFor(() =>
       expect(
@@ -131,6 +133,7 @@ describe("website analytics admin page", () => {
         todayPageViews: 0,
         weekVisitors: 0,
         monthVisitors: 0,
+        yearVisitors: 0,
         periodVisitors: 0,
         periodPageViews: 0,
         trafficSources: [],

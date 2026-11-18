@@ -85,7 +85,10 @@ export default function Header() {
   const getProductInCart = useCallback(async () => {
     try {
       if (!roleReady) return;
-      if (isAdmin) {
+      // Read the role synchronously as well: the component may re-render with
+      // the freshly stored admin id before useAuthRole's state catches up,
+      // which used to fire customer-only cart requests right after login.
+      if (isAdmin || isAdminSession()) {
         setNetTotal(0);
         setItemNum(0);
         setCartItems([]);

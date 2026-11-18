@@ -116,9 +116,9 @@ export function createPickupPlaceColumns({
           aria-label={row.original.active ? t("deactivate") : t("activate")}
         >
           <StatusBadge tone={row.original.active ? "success" : "neutral"}>
-            {row.original.active
-              ? t("active_pickup_place")
-              : t("inactive_pickup_place")}
+            {!row.original.active && locale !== "ar"
+              ? t("inactive_pickup_place")
+              : t("active_pickup_place")}
           </StatusBadge>
         </button>
       ),

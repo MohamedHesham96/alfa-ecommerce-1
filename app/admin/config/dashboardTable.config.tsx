@@ -67,10 +67,10 @@ export function createDashboardColumns({
               {(order.userName?.[0] ?? "U").toUpperCase()}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold text-[var(--admin-ink)]">
+              <span className="block break-words text-sm font-semibold text-[var(--admin-ink)]">
                 {order.userName}
               </span>
-              <span className="block truncate text-xs text-[var(--admin-muted)]">
+              <span className="block break-words text-xs text-[var(--admin-muted)]">
                 {order.userEmail}
               </span>
             </span>

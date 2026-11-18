@@ -32,7 +32,7 @@ function initials(name) {
 }
 
 export default function AccountsTable({ mode, setIsFormOpen }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { refreshKey } = useRefresh();
   const router = useRouter();
   const { setSelectedAdminId, setSelectedUserId } = useIdContext();
@@ -74,10 +74,11 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
       createAccountColumns({
         mode,
         t,
+        locale,
         onOpen: openAccount,
         onToggleBlocked: toggleBlocked,
       }),
-    [mode, t, openAccount, toggleBlocked],
+    [mode, t, locale, openAccount, toggleBlocked],
   );
 
   const tableState = useServerDataTable({
@@ -118,7 +119,7 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <StatusBadge tone={user.active ? "success" : "neutral"}>
-              {user.active ? t("active") : t("inactive")}
+              {!user.active && locale !== "ar" ? t("inactive") : t("active")}
             </StatusBadge>
             <button
               type="button"

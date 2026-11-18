@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation.js";
 import {
   MdAdminPanelSettings,
@@ -167,6 +167,80 @@ export default function SideMenu({
   const pickupEnabled = useAppConfig("pickup.enabled", false);
   const [username, setUsername] = useState("");
   const [role, setRole] = useState("");
+  const sidebarRef = useRef(null);
+  const hideThumbTimerRef = useRef(null);
+  const [scrollThumb, setScrollThumb] = useState({
+    available: false,
+    visible: false,
+    top: 0,
+    left: 0,
+    height: 0,
+  });
+
+  // The sidebar is its own scroll container. Its native scrollbar takes 10px
+  // from the menu and shows a permanent rail, so hide it and paint a small
+  // overlay thumb that follows the real scroll position without taking space.
+  const updateScrollThumb = useCallback(() => {
+    const element = sidebarRef.current;
+    if (!element) return;
+    const maxScroll = element.scrollHeight - element.clientHeight;
+    if (maxScroll <= 1) {
+      setScrollThumb((previous) =>
+        previous.available ? { ...previous, available: false } : previous,
+      );
+      return;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const viewport = element.clientHeight;
+    const height = Math.max(36, (viewport / element.scrollHeight) * viewport);
+    const travel = viewport - height;
+    const top = rect.top + (element.scrollTop / maxScroll) * travel;
+    const isRtl = getComputedStyle(element).direction === "rtl";
+    const left = isRtl ? rect.left + 2 : rect.right - 7;
+
+    setScrollThumb((previous) => ({
+      ...previous,
+      available: true,
+      top,
+      left,
+      height,
+    }));
+  }, []);
+
+  const scheduleThumbHide = useCallback((delay = 800) => {
+    window.clearTimeout(hideThumbTimerRef.current);
+    hideThumbTimerRef.current = window.setTimeout(() => {
+      if (!sidebarRef.current?.matches(":hover")) {
+        setScrollThumb((previous) => ({ ...previous, visible: false }));
+      }
+    }, delay);
+  }, []);
+
+  const showScrollThumb = useCallback(() => {
+    updateScrollThumb();
+    setScrollThumb((previous) => ({ ...previous, visible: true }));
+    scheduleThumbHide();
+  }, [updateScrollThumb, scheduleThumbHide]);
+
+  useEffect(() => {
+    updateScrollThumb();
+    const element = sidebarRef.current;
+    const onResize = () => updateScrollThumb();
+    window.addEventListener("resize", onResize);
+
+    let resizeObserver;
+    if (element && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => updateScrollThumb());
+      resizeObserver.observe(element);
+    }
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      resizeObserver?.disconnect();
+      window.clearTimeout(hideThumbTimerRef.current);
+    };
+  }, [updateScrollThumb, mobileOpen, collapsed]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -260,10 +334,18 @@ export default function SideMenu({
       ) : null}
 
       <aside
+        ref={sidebarRef}
         className={`admin-sidebar ${mobileOpen ? "admin-sidebar--mobile-open" : ""} ${
           collapsed ? "admin-sidebar--collapsed" : ""
         }`}
         aria-label={t("platform_mang")}
+        onMouseEnter={() => {
+          window.clearTimeout(hideThumbTimerRef.current);
+          updateScrollThumb();
+          setScrollThumb((previous) => ({ ...previous, visible: true }));
+        }}
+        onMouseLeave={() => scheduleThumbHide(150)}
+        onScroll={showScrollThumb}
       >
         <div className="admin-sidebar-brand">
           <span className="admin-sidebar-logo">
@@ -369,6 +451,17 @@ export default function SideMenu({
             <span className="admin-sidebar-footer-label">{t("logout")}</span>
           </button>
         </div>
+
+        <span
+          className="admin-sidebar-scrollthumb"
+          aria-hidden="true"
+          style={{
+            top: `${scrollThumb.top}px`,
+            left: `${scrollThumb.left}px`,
+            height: `${scrollThumb.height}px`,
+            opacity: scrollThumb.available && scrollThumb.visible ? 1 : 0,
+          }}
+        />
       </aside>
     </>
   );
