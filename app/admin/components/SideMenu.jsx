@@ -211,9 +211,7 @@ export default function SideMenu({
   const scheduleThumbHide = useCallback((delay = 800) => {
     window.clearTimeout(hideThumbTimerRef.current);
     hideThumbTimerRef.current = window.setTimeout(() => {
-      if (!sidebarRef.current?.matches(":hover")) {
-        setScrollThumb((previous) => ({ ...previous, visible: false }));
-      }
+      setScrollThumb((previous) => ({ ...previous, visible: false }));
     }, delay);
   }, []);
 
@@ -339,12 +337,6 @@ export default function SideMenu({
           collapsed ? "admin-sidebar--collapsed" : ""
         }`}
         aria-label={t("platform_mang")}
-        onMouseEnter={() => {
-          window.clearTimeout(hideThumbTimerRef.current);
-          updateScrollThumb();
-          setScrollThumb((previous) => ({ ...previous, visible: true }));
-        }}
-        onMouseLeave={() => scheduleThumbHide(150)}
         onScroll={showScrollThumb}
       >
         <div className="admin-sidebar-brand">

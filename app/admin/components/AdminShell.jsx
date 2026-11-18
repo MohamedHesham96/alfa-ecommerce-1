@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Header from "./Header";
 import SideMenu from "./SideMenu";
@@ -12,6 +12,13 @@ import { SystemSettingsAccessProvider } from "../context/SystemSettingsAccessCon
 export default function AdminShell({ children, fontClassName = "" }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const pageThumbTimerRef = useRef(null);
+  const [pageThumb, setPageThumb] = useState({
+    visible: false,
+    top: 0,
+    left: 0,
+    height: 0,
+  });
 
   // The scrollbar thumb is hidden until the user scrolls (or hovers the
   // scroll container). This keeps tables and the sidebar visually clean without
@@ -42,8 +49,42 @@ export default function AdminShell({ children, fontClassName = "" }) {
       timers.set(element, timer);
     };
 
+    const updatePageThumb = () => {
+      const root = document.documentElement;
+      const viewport = window.innerHeight;
+      const scrollHeight = Math.max(
+        root.scrollHeight,
+        document.body.scrollHeight,
+      );
+      const maxScroll = scrollHeight - viewport;
+      if (maxScroll <= 1) {
+        setPageThumb((previous) =>
+          previous.visible ? { ...previous, visible: false } : previous,
+        );
+        return;
+      }
+
+      const height = Math.max(36, (viewport / scrollHeight) * viewport);
+      const top = (window.scrollY / maxScroll) * (viewport - height);
+      const isRtl = getComputedStyle(root).direction === "rtl";
+      setPageThumb({
+        visible: true,
+        top,
+        left: isRtl ? 2 : window.innerWidth - 7,
+        height,
+      });
+
+      window.clearTimeout(pageThumbTimerRef.current);
+      pageThumbTimerRef.current = window.setTimeout(() => {
+        setPageThumb((previous) => ({ ...previous, visible: false }));
+      }, 900);
+    };
+
     const onScroll = (event) => {
       const target = event.target;
+      if (target === document || target === window) {
+        updatePageThumb();
+      }
       const element =
         target === document || target === window
           ? document.documentElement
@@ -52,6 +93,8 @@ export default function AdminShell({ children, fontClassName = "" }) {
             : null;
       if (element) reveal(element);
     };
+
+    const onResize = () => updatePageThumb();
 
     // Moving the pointer between regions should retire the previous region's
     // bar immediately, so the sidebar and a table never show two bars at once.
@@ -65,9 +108,12 @@ export default function AdminShell({ children, fontClassName = "" }) {
 
     document.addEventListener("scroll", onScroll, true);
     document.addEventListener("pointerover", onPointerOver, true);
+    window.addEventListener("resize", onResize);
     return () => {
       document.removeEventListener("scroll", onScroll, true);
       document.removeEventListener("pointerover", onPointerOver, true);
+      window.removeEventListener("resize", onResize);
+      window.clearTimeout(pageThumbTimerRef.current);
       timers.forEach((timer) => window.clearTimeout(timer));
       timers.clear();
     };
@@ -104,6 +150,16 @@ export default function AdminShell({ children, fontClassName = "" }) {
                 <div className="admin-content">{children}</div>
               </div>
             </main>
+            <span
+              className="admin-page-scrollthumb"
+              aria-hidden="true"
+              style={{
+                top: `${pageThumb.top}px`,
+                left: `${pageThumb.left}px`,
+                height: `${pageThumb.height}px`,
+                opacity: pageThumb.visible ? 1 : 0,
+              }}
+            />
           </AdminInactivityHandler>
         </SystemSettingsAccessProvider>
       </AdminThemeProvider>

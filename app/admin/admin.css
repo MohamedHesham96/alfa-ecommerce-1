@@ -2804,7 +2804,6 @@ html[data-admin-theme="dark"] .admin-select__menu-list {
   scrollbar-color: transparent transparent;
 }
 
-html,
 .admin-sidebar,
 .admin-table-shell,
 .admin-drawer-body,
@@ -2813,7 +2812,6 @@ html,
   scrollbar-color: transparent transparent;
 }
 
-html.admin-scroll-active,
 .admin-scroll-active,
 .admin-sidebar:hover,
 .admin-table-shell:hover,
@@ -2822,7 +2820,6 @@ html.admin-scroll-active,
   scrollbar-color: var(--admin-scroll-thumb) transparent;
 }
 
-html::-webkit-scrollbar,
 .admin-sidebar::-webkit-scrollbar,
 .admin-table-shell::-webkit-scrollbar,
 .admin-drawer-body::-webkit-scrollbar,
@@ -2831,12 +2828,10 @@ html::-webkit-scrollbar,
   height: 10px;
 }
 
-html::-webkit-scrollbar-track,
 .admin-sidebar::-webkit-scrollbar-track,
 .admin-table-shell::-webkit-scrollbar-track,
 .admin-drawer-body::-webkit-scrollbar-track,
 .admin-modal-body::-webkit-scrollbar-track,
-html::-webkit-scrollbar-corner,
 .admin-sidebar::-webkit-scrollbar-corner,
 .admin-table-shell::-webkit-scrollbar-corner,
 .admin-drawer-body::-webkit-scrollbar-corner,
@@ -2844,7 +2839,6 @@ html::-webkit-scrollbar-corner,
   background: transparent;
 }
 
-html::-webkit-scrollbar-thumb,
 .admin-sidebar::-webkit-scrollbar-thumb,
 .admin-table-shell::-webkit-scrollbar-thumb,
 .admin-drawer-body::-webkit-scrollbar-thumb,
@@ -2856,7 +2850,6 @@ html::-webkit-scrollbar-thumb,
   background-clip: padding-box;
 }
 
-html.admin-scroll-active::-webkit-scrollbar-thumb,
 .admin-scroll-active::-webkit-scrollbar-thumb,
 .admin-sidebar:hover::-webkit-scrollbar-thumb,
 .admin-table-shell:hover::-webkit-scrollbar-thumb,
@@ -2865,7 +2858,6 @@ html.admin-scroll-active::-webkit-scrollbar-thumb,
   background-color: var(--admin-scroll-thumb);
 }
 
-html.admin-scroll-active::-webkit-scrollbar-thumb:hover,
 .admin-scroll-active::-webkit-scrollbar-thumb:hover,
 .admin-sidebar:hover::-webkit-scrollbar-thumb:hover,
 .admin-table-shell:hover::-webkit-scrollbar-thumb:hover,
@@ -2922,9 +2914,32 @@ html:has(.admin-modal-body:hover)::-webkit-scrollbar-thumb {
 .admin-sidebar-scrollthumb {
   position: fixed;
   z-index: 45;
+  width: 4px;
+  border-radius: 999px;
+  background: rgba(147, 169, 195, 0.48);
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+/* The page scrollbar is replaced by the same 5px overlay thumb used by the
+   sidebar, so it never reserves a white gutter at the viewport edge. */
+html:has(.admin-shell) {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html:has(.admin-shell)::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.admin-page-scrollthumb {
+  position: fixed;
+  z-index: 100;
   width: 5px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--admin-scroll-thumb);
   pointer-events: none;
   transition: opacity 0.18s ease;
 }
