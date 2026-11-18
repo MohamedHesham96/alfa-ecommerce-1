@@ -6,7 +6,7 @@ import {
   MdSave,
   MdSupportAgent,
 } from "react-icons/md";
-import { FaSquarePhone, FaSquareWhatsapp, FaXTwitter } from "react-icons/fa6";
+import { FaSquarePhone, FaSquareWhatsapp, FaTiktok, FaXTwitter } from "react-icons/fa6";
 import {
   FaFacebookSquare,
   FaInstagramSquare,
@@ -84,6 +84,13 @@ const SOCIAL_FIELDS = [
     tone: "rose",
     placeholder: "https://youtube.com/...",
   },
+  {
+    key: "tiktok",
+    label: "TikTok",
+    icon: <FaTiktok />,
+    tone: "gray",
+    placeholder: "https://tiktok.com/@...",
+  },
 ];
 
 export default function ContactForm() {
@@ -97,6 +104,7 @@ export default function ContactForm() {
     x: "",
     telegram: "",
     youtube: "",
+    tiktok: "",
   });
   const { t, locale } = useLanguage();
   const isArabic = locale === "ar";
@@ -116,6 +124,7 @@ export default function ContactForm() {
           instagramURL: contactInfo.instagram,
           xurl: contactInfo.x,
           youtubeURL: contactInfo.youtube,
+          tiktokURL: contactInfo.tiktok,
         },
         t("message"),
       );
@@ -139,6 +148,7 @@ export default function ContactForm() {
       x: resData.xurl ?? "",
       telegram: resData.telegramURL ?? "",
       youtube: resData.youtubeURL ?? "",
+      tiktok: resData.tiktokURL ?? "",
     }));
   };
 

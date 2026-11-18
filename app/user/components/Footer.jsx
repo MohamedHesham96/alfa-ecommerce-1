@@ -6,7 +6,7 @@ import {
   FaTelegram,
   FaYoutube,
 } from "react-icons/fa";
-import { FaFacebookF, FaInstagram, FaWhatsapp, FaXTwitter } from "react-icons/fa6";
+import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp, FaXTwitter } from "react-icons/fa6";
 import { MdLocalPhone, MdOutlineMailOutline } from "react-icons/md";
 import { getRequest } from "../../../utils/requestsUtils";
 import { useLanguage } from "../../../context/LanguageContext";
@@ -22,6 +22,7 @@ const EMPTY_CONTACT = {
   whatsApp: "",
   telegram: "",
   youtube: "",
+  tiktok: "",
 };
 
 const toContactState = (data) => ({
@@ -33,6 +34,7 @@ const toContactState = (data) => ({
   whatsApp: data?.whatsappURL || "",
   telegram: data?.telegramURL || "",
   youtube: data?.youtubeURL || "",
+  tiktok: data?.tiktokURL || "",
 });
 
 export default function Footer({ initialContact = null }) {
@@ -161,6 +163,18 @@ export default function Footer({ initialContact = null }) {
           >
             <span>
               <FaYoutube className="w-full h-full" />
+            </span>
+          </Link>
+          <Link prefetch={false}
+            href={contact.tiktok}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t("tiktok")}
+            className={` w-8 h-8 rounded-full bg-black text-white p-[6px] ${contact.tiktok === "" ? "hidden" : "block"
+              }`}
+          >
+            <span>
+              <FaTiktok className="w-full h-full" />
             </span>
           </Link>
         </div>

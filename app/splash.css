@@ -283,7 +283,7 @@ html[data-alfa-splash="on"] {
   transform: scaleX(0);
   transform-origin: left center;
   animation:
-    splash-progress var(--splash-duration, 7000ms) linear forwards,
+    splash-progress var(--splash-duration, 5000ms) linear forwards,
     splash-sheen 2.2s linear infinite;
 }
 
@@ -572,7 +572,7 @@ html[data-alfa-splash="on"] {
   }
 
   .splash-progress-fill {
-    animation: splash-progress var(--splash-duration, 7000ms) linear forwards
+    animation: splash-progress var(--splash-duration, 5000ms) linear forwards
       !important;
   }
 
