@@ -362,7 +362,7 @@ export const postRequest = async (endpoint, dataBody, message ,toster, options =
   }
 
 }
-export const getRequest = async (endpoint) => {
+export const getRequest = async (endpoint, options = {}) => {
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
   const lang =
@@ -395,7 +395,7 @@ export const getRequest = async (endpoint) => {
           return retryResponse.data;
         } catch (retryError) {
           reportApiFailure(retryError);
-          showRequestError(retryError);
+          if (!options.suppressErrorToast) showRequestError(retryError);
         }
       }
     } else if (isForbidden(error)) {

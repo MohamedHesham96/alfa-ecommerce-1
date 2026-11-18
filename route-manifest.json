@@ -3,6 +3,7 @@
   "routes": [
     "/",
     "/admin/Admins",
+    "/admin/Analytics",
     "/admin/Categories",
     "/admin/Contact",
     "/admin/Dashboard",

@@ -19,6 +19,7 @@ import "swiper/css";
 import { useRef } from "react";
 import { productPath, categoryPath } from "../../../lib/seo";
 import { isAdminSession, useAuthRole } from "../../../utils/authRole";
+import { trackCartAdd, trackWishlistAdd } from "../../../lib/analytics/client";
 
 export default function ProductCard({ productInfo, favorite, priority = false }) {
   const { setSelectedProductId } = useIdContext();
@@ -72,18 +73,19 @@ export default function ProductCard({ productInfo, favorite, priority = false })
         return false;
       }
       if (userId) {
-        if (productInfo.available) {
-          await postRequest(
-            `/api/shopCarts/addLine`,
-            {
-              itemId: productId,
-              quantity: 1,
-            },
-            "",
-          );
-        }
+        if (!productInfo.available) return false;
+        await postRequest(
+          `/api/shopCarts/addLine`,
+          {
+            itemId: productId,
+            quantity: 1,
+          },
+          "",
+        );
         triggerRefresh();
+        trackCartAdd(productId);
       } else {
+        if (!productInfo.available) return false;
         const product = {
           id: productId,
           quantity: 1,
@@ -100,6 +102,7 @@ export default function ProductCard({ productInfo, favorite, priority = false })
         }
         triggerRefresh();
         localStorage.setItem("cart", JSON.stringify(cart));
+        trackCartAdd(productId);
       }
       return true;
     } catch (error) {
@@ -114,12 +117,15 @@ export default function ProductCard({ productInfo, favorite, priority = false })
       return;
     }
     if (userId) {
-      await postRequest(
+      const response = await postRequest(
         `/api/users/favoriteItems/${productId}`,
         "",
         "",
         true
       );
+      if (response?.data?.added === true) {
+        trackWishlistAdd(productId);
+      }
     } else {
       const product = {
         id: productId,
@@ -131,13 +137,12 @@ export default function ProductCard({ productInfo, favorite, priority = false })
 
       const existingItem = favoriteItems.find((item) => item.id === productId);
 
-      if (existingItem) {
-      } else {
+      if (!existingItem) {
         favoriteItems.push(product);
+        localStorage.setItem("favoriteItems", JSON.stringify(favoriteItems));
+        trackWishlistAdd(productId);
         toast.success(t("product_added_to_wishlist"));
       }
-
-      localStorage.setItem("favoriteItems", JSON.stringify(favoriteItems));
     }
   };
 

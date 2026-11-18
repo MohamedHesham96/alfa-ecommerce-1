@@ -11,6 +11,7 @@ import { LuColumns2, LuColumns3, LuColumns4 } from "react-icons/lu";
 import Filter from "./components/filter"
 import Pagination from "./components/Pagination"
 import { decodeSearchInput } from "../../../../utils/functions";
+import { trackSearch } from "../../../../lib/analytics/client";
 
 const DEFAULT_PRICE_BOUNDS = { min: 0, max: 1 };
 const FILTER_OPTIONS_LOOKUP_SIZE = 100;
@@ -51,6 +52,11 @@ export default function Searchpage({params}) {
         appliedFilters.year ?? "",
       ].join("|")
     : "";
+
+  // A meaningful search is an engagement event for bounce-rate purposes.
+  useEffect(() => {
+    trackSearch(searchInput);
+  }, [searchInput]);
 
   const [prevSearchInput, setPrevSearchInput] = useState(searchInput);
   if (prevSearchInput !== searchInput) {

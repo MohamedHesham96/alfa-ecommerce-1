@@ -14,6 +14,7 @@ import Link from "next/link";
 import StarRating from "../../components/StarRating";
 import { categoryPath } from "../../../../lib/seo";
 import { isAdminSession, useAuthRole } from "../../../../utils/authRole";
+import { trackCartAdd, trackWishlistAdd } from "../../../../lib/analytics/client";
 
 export default function ProductInfo({
     product,
@@ -57,11 +58,16 @@ export default function ProductInfo({
             return;
         }
         if (userId) {
-            await postRequest(
-                `/api/users/${userId}/favoriteItems/${itemId}`,
+            const response = await postRequest(
+                `/api/users/favoriteItems/${itemId}`,
                 "",
                 "",
             );
+            // The backend reports whether a row was actually inserted, so a
+            // repeated click on an existing favorite is not counted again.
+            if (response?.data?.added === true) {
+                trackWishlistAdd(itemId);
+            }
         } else {
             const productItem = {
                 id: itemId,
@@ -73,13 +79,12 @@ export default function ProductInfo({
 
             const existingItem = favoriteItems.find((item) => item.id === itemId);
 
-            if (existingItem) {
-            } else {
+            if (!existingItem) {
                 favoriteItems.push(productItem);
+                localStorage.setItem("favoriteItems", JSON.stringify(favoriteItems));
+                trackWishlistAdd(itemId);
                 toast.success(t("product_added_to_wishlist"));
             }
-
-            localStorage.setItem("favoriteItems", JSON.stringify(favoriteItems));
         }
     };
 
@@ -103,18 +108,19 @@ export default function ProductInfo({
                 toast.info(t("adminActionUnavailable"));
                 return;
             }
+            if (!product.available) return;
+
             if (userId) {
-                if (product.available) {
-                    await postRequest(
-                        `/api/shopCarts/addLine`,
-                        {
-                            itemId: itemId,
-                            quantity: count,
-                        },
-                        "",
-                    );
-                }
+                await postRequest(
+                    `/api/shopCarts/addLine`,
+                    {
+                        itemId: itemId,
+                        quantity: count,
+                    },
+                    "",
+                );
                 triggerRefresh();
+                trackCartAdd(itemId);
 
                 if (buyNow) {
                     navigate.push("/user/cart");
@@ -138,6 +144,7 @@ export default function ProductInfo({
                 }
                 triggerRefresh();
                 localStorage.setItem("cart", JSON.stringify(cart));
+                trackCartAdd(itemId);
                 if (buyNow) {
                     navigate.push("/user/cart");
                 } else {

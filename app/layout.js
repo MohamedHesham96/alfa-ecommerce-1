@@ -14,6 +14,7 @@ import { ToastContainer } from "react-toastify";
 import RTLController from './components/RTLController.jsx'
 import GlobalErrorOverlay from './components/GlobalErrorOverlay.jsx'
 import PageScrollLock from './components/PageScrollLock.jsx'
+import AnalyticsProvider from './components/AnalyticsProvider.jsx'
 import { PwaProvider } from './components/pwa/PwaProvider.jsx'
 import { isPwaEnabled } from '../lib/pwa/constants'
 import { SPLASH_BOOT_SCRIPT } from '../lib/splash'
@@ -259,6 +260,7 @@ export default async function RootLayout({ children }) {
           position={"bottom-center"} />
 
         <PageScrollLock />
+        <AnalyticsProvider />
 
         <AppConfigProvider
           initialConfig={initialConfig}

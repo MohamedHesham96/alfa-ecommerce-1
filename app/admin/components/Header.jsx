@@ -14,6 +14,7 @@ const PAGE_STATE_MAP = {
   "Orders Management": "orders_management",
   "Dashboard Overview": "dashboard_overview",
   "Homepage Management": "homepage_management",
+  "Website Analytics": "website_analytics",
   "Users Management": "users_management",
   "Admins Management": "admins_management",
   "Contact Management": "contact_management",
@@ -26,6 +27,7 @@ const PAGE_STATE_MAP = {
 const SECTION_MAP = {
   dashboard_overview: "nav_overview",
   homepage_management: "nav_overview",
+  website_analytics: "nav_overview",
   categories_management: "nav_catalog",
   products_management: "nav_catalog",
   orders_management: "nav_sales",

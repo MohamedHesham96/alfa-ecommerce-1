@@ -23,6 +23,7 @@ import { IoIosCalendar } from "react-icons/io";
 import Link from "next/link";
 import { categoryPath } from "../../../../lib/seo";
 import { useAuthRole } from "../../../../utils/authRole";
+import { trackProductView } from "../../../../lib/analytics/client";
 
 const EMPTY_PRODUCT = {
   nameEn: "",
@@ -132,6 +133,12 @@ export default function ProductDetails({
     } finally {
       setReviewsLoading(false);
     }
+  }, [itemId]);
+
+  // Track the actual storefront product view for all visitors. The module
+  // de-duplicates accidental double effects and the backend uses event ids.
+  useEffect(() => {
+    trackProductView(itemId);
   }, [itemId]);
 
   // عند فتح صفحة المنتج نضيفه لـ recentWatched (للمستخدم المسجل فقط)

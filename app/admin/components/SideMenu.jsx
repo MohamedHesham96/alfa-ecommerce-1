@@ -12,6 +12,7 @@ import {
   MdClose,
   MdContactSupport,
   MdDashboard,
+  MdInsights,
   MdOutlineShoppingCart,
   MdSettings,
   MdStorefront,
@@ -47,6 +48,13 @@ const SECTIONS = [
         icon: <RiPagesFill />,
         activeKey: "homepage_management",
         displayName: "Homepage Management",
+      },
+      {
+        href: "/admin/Analytics",
+        labelKey: "website_analytics",
+        icon: <MdInsights />,
+        activeKey: "website_analytics",
+        displayName: "Website Analytics",
       },
     ],
   },
@@ -186,7 +194,9 @@ export default function SideMenu({
                 ? "System Settings"
                 : window.location.pathname.includes("PickupPlaces")
                   ? "Pickup Places Management"
-                  : `${lastPort} Management`,
+                  : window.location.pathname.includes("Analytics")
+                    ? "Website Analytics"
+                    : `${lastPort} Management`,
     );
   }, [setSelectedNamePage]);
 
