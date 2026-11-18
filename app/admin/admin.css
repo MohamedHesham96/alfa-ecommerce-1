@@ -1685,6 +1685,359 @@ html[dir="rtl"] .admin-drawer {
 }
 
 /* --------------------------------------------------------------------------
+   Product drawer — compact single-screen form with images pinned beside it
+   -------------------------------------------------------------------------- */
+.product-drawer {
+  width: min(100%, 1240px);
+}
+
+.product-drawer-header {
+  padding: 0.65rem 1.1rem;
+}
+
+.product-drawer-body {
+  padding: 0.85rem 1.1rem;
+}
+
+.product-form-layout {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.product-form-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.product-form-columns {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.product-form-column {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Keep the Descriptions card level with the Inventory card: it fills the
+   remaining column height and the textareas absorb the extra space. */
+@media (min-width: 768px) {
+  .product-form-column:last-child > .product-form-section:last-child {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+  }
+
+  .product-form-column:first-child > .product-form-section:last-child {
+    flex: 1 1 auto;
+  }
+
+  .product-form-column:last-child
+    > .product-form-section:last-child
+    .product-form-grid-descriptions {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .product-form-column:last-child
+    > .product-form-section:last-child
+    .admin-field {
+    min-height: 0;
+  }
+
+  .product-form-column:last-child
+    > .product-form-section:last-child
+    .admin-textarea {
+    height: auto;
+    flex: 1 1 auto;
+  }
+}
+
+.product-form-aside {
+  min-width: 0;
+}
+
+.product-form-section {
+  padding: 0.75rem 0.85rem;
+}
+
+.product-form-section .admin-form-section-header {
+  margin-bottom: 0.55rem;
+}
+
+.product-form-section .admin-form-section-title {
+  font-size: 0.8125rem;
+}
+
+.product-form-section .admin-form-section-description {
+  margin-top: 0.1rem;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+}
+
+.product-form-section .admin-form-grid {
+  gap: 0.55rem 0.75rem;
+}
+
+.product-form-section .admin-field {
+  gap: 0.25rem;
+}
+
+.product-form-section .admin-label {
+  font-size: 0.75rem;
+}
+
+.product-form-section .admin-input,
+.product-form-section .admin-textarea {
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8125rem;
+}
+
+/* The select controls in this row are 38px tall; without this the SEO field
+   stays at the shorter plain-input height and looks sunken next to them. */
+.product-form-section .product-seo-input {
+  min-height: 38px;
+}
+
+.product-form-section .admin-textarea {
+  min-height: 56px;
+}
+
+/* Description editors get as much vertical room as the viewport can spare. */
+.product-form-grid-descriptions .admin-textarea {
+  height: 105px;
+}
+
+/* Contents often holds long text, so it gets a wide, tall editor too. */
+.product-contents-field .admin-textarea {
+  height: 45px;
+}
+
+.product-form-section .product-contents-field .admin-textarea {
+  min-height: 45px;
+}
+
+@media (min-width: 1000px) and (min-height: 690px) {
+  .product-form-grid-descriptions .admin-textarea {
+    height: 120px;
+  }
+
+  .product-contents-field .admin-textarea {
+    height: 90px;
+  }
+}
+
+@media (min-width: 1250px) and (min-height: 700px) {
+  .product-form-grid-descriptions .admin-textarea {
+    height: 150px;
+  }
+
+  .product-contents-field .admin-textarea {
+    height: 110px;
+  }
+}
+
+@media (min-width: 1250px) and (min-height: 760px) {
+  .product-form-grid-descriptions .admin-textarea {
+    height: 190px;
+  }
+
+  .product-contents-field .admin-textarea {
+    height: 145px;
+  }
+}
+
+@media (min-width: 1250px) and (min-height: 900px) {
+  .product-form-grid-descriptions .admin-textarea {
+    height: 220px;
+  }
+
+  .product-contents-field .admin-textarea {
+    height: 170px;
+  }
+}
+
+.product-form-grid-basic {
+  display: grid;
+  gap: 0.55rem 0.75rem;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+/* Image column */
+.product-form-aside .admin-form-section {
+  padding: 0.75rem;
+}
+
+.product-images-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.product-image-upload {
+  display: flex;
+  grid-column: 1 / -1;
+  min-height: 42px;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.5rem;
+  border: 2px dashed var(--admin-border-strong);
+  border-radius: 10px;
+  background: var(--admin-surface-muted);
+  padding: 0.35rem 0.55rem;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.product-image-upload:hover {
+  border-color: var(--admin-accent);
+  background: var(--admin-danger-soft);
+}
+
+.product-image-tile {
+  height: 72px;
+}
+
+.product-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.6rem 1.1rem;
+}
+
+@media (min-width: 640px) {
+  .product-form-grid-basic {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .product-form-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .product-form-grid-basic {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .product-form-layout.has-images {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 290px;
+    align-items: start;
+  }
+
+  .product-form-columns {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+
+  .product-form-grid-basic.product-form-grid-descriptions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* At the narrowest side-by-side width each toggle is too slim for a side icon. */
+@media (min-width: 900px) and (max-width: 1023px) {
+  .product-visibility-grid > button {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+    padding: 0.45rem;
+  }
+
+  .product-visibility-grid > button > span:last-child {
+    height: 1.5rem;
+    width: 1.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* At full width the four cards share explicit grid rows, so Pricing and
+   Visibility end on the same line and Inventory/Descriptions start together. */
+@media (min-width: 900px) {
+  .product-form-columns {
+    column-gap: 0.75rem;
+    row-gap: 0.5rem;
+  }
+
+  .product-form-column {
+    display: contents;
+  }
+
+  .product-form-column:first-child > .product-form-section:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .product-form-column:first-child > .product-form-section:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .product-form-column:last-child > .product-form-section:nth-child(1) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .product-form-column:last-child > .product-form-section:nth-child(2) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+@media (min-width: 1280px) {
+  .product-form-layout.has-images {
+    grid-template-columns: minmax(0, 1fr) 330px;
+  }
+}
+
+/* Short screens: drop helper copy and tighten spacing so every field fits. */
+@media (max-height: 820px) {
+  .product-drawer-header {
+    padding: 0.5rem 1.1rem;
+  }
+
+  .product-drawer-header .admin-modal-description {
+    display: none;
+  }
+
+  .product-drawer-body {
+    padding: 0.55rem 0.9rem 0.25rem;
+  }
+
+  .product-form-section {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .product-form-section .admin-form-section-header {
+    margin-bottom: 0.45rem;
+  }
+
+  .product-form-section .admin-form-section-description {
+    display: none;
+  }
+
+  .product-form-section .admin-input,
+  .product-form-section .admin-textarea {
+    padding: 0.3rem 0.55rem;
+  }
+
+  .product-form-section .admin-textarea {
+    min-height: 50px;
+  }
+
+  .product-form-footer {
+    padding: 0.4rem 0.9rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Loading / skeletons
    -------------------------------------------------------------------------- */
 .admin-skeleton {

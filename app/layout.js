@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./splash.css";
 
 import { LanguageProvider } from "../context/LanguageContext";
 import { IdProvider } from "../context/idContext";
@@ -12,8 +13,10 @@ import { getPublicConfig } from "../lib/api";
 import { ToastContainer } from "react-toastify";
 import RTLController from './components/RTLController.jsx'
 import GlobalErrorOverlay from './components/GlobalErrorOverlay.jsx'
+import PageScrollLock from './components/PageScrollLock.jsx'
 import { PwaProvider } from './components/pwa/PwaProvider.jsx'
 import { isPwaEnabled } from '../lib/pwa/constants'
+import { SPLASH_BOOT_SCRIPT } from '../lib/splash'
 
 import {
   SITE_URL,
@@ -205,6 +208,8 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
+        {/* Decide whether the homepage intro is visible before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT_SCRIPT }} />
         {API_ORIGIN ? (
           <>
             <link rel="preconnect" href={API_ORIGIN} crossOrigin="anonymous" />
@@ -252,6 +257,8 @@ export default async function RootLayout({ children }) {
 
         <ToastContainer
           position={"bottom-center"} />
+
+        <PageScrollLock />
 
         <AppConfigProvider
           initialConfig={initialConfig}

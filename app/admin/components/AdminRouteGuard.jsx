@@ -5,12 +5,10 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { useLanguage } from "../../../context/LanguageContext";
-import {
-  buildSignInUrl,
-  getCurrentRelativeUrl,
-} from "../../../utils/authRedirect";
+import { buildSignInUrl, getCurrentRelativeUrl } from "../../../utils/authRedirect";
 import { useAuthRole } from "../../../utils/authRole";
 import { clearAuthStorage } from "../../../utils/authSession";
+import ForbiddenScreen from "../../components/forbidden/ForbiddenScreen";
 
 /**
  * Route-level gate for the admin application.
@@ -63,28 +61,7 @@ export default function AdminRouteGuard({ children }) {
   }
 
   if (role !== "ADMIN") {
-    return (
-      <div
-        className="flex h-screen w-full items-center justify-center bg-[var(--admin-canvas)] p-5 text-center"
-        role="alert"
-        data-testid="admin-route-forbidden"
-      >
-        <div className="admin-card w-full max-w-lg p-8">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)]">
-            <Image
-              src="/Images/logo.png"
-              width={200}
-              height={200}
-              alt={t("logo_alt")}
-              className="h-10 w-10 object-contain"
-            />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--admin-ink)]">
-            {t("unauthorized_page")}
-          </h1>
-        </div>
-      </div>
-    );
+    return <ForbiddenScreen redirectTo="/" testId="admin-route-forbidden" />;
   }
 
   return children;

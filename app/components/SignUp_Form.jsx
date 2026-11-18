@@ -152,7 +152,7 @@ export default function SignUp({
         return AUTH_USERNAME_PATTERN.test(value.trim())
           ? ""
           : t("authUsernameInvalid") ||
-              "Use 3 to 30 letters, numbers, dots, underscores or hyphens.";
+              "Use 3 to 30 characters, start with a letter, end with a letter or number, and use only letters, numbers, dots, underscores or hyphens.";
       case "phoneNumber":
         if (isBlank(value)) return requiredMessage;
         return AUTH_PHONE_PATTERN.test(value)

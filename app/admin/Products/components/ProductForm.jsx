@@ -36,8 +36,8 @@ const SELECT_STYLES = {
   control: (provided) => ({
     ...provided,
     border: "1px solid var(--admin-border-strong)",
-    borderRadius: "10px",
-    minHeight: "40px",
+    borderRadius: "8px",
+    minHeight: "34px",
     boxShadow: "none",
     backgroundColor: "var(--admin-surface)",
     "&:hover": { borderColor: "var(--admin-border-strong)" },
@@ -46,7 +46,7 @@ const SELECT_STYLES = {
       boxShadow: "0 0 0 3px var(--admin-focus-ring)",
     },
   }),
-  valueContainer: (base) => ({ ...base, paddingInline: "0.65rem" }),
+  valueContainer: (base) => ({ ...base, paddingInline: "0.6rem" }),
   menu: (base) => ({
     ...base,
     borderRadius: "12px",
@@ -63,11 +63,20 @@ const SELECT_STYLES = {
         : "var(--admin-surface)",
     color: state.isSelected ? "var(--admin-on-accent)" : "var(--admin-ink-soft)",
     cursor: "pointer",
+    fontSize: "12px",
+  }),
+  input: (base) => ({ ...base, color: "var(--admin-ink-soft)", fontSize: "13px" }),
+  placeholder: (base) => ({
+    ...base,
+    color: "var(--admin-muted-soft)",
     fontSize: "13px",
   }),
-  input: (base) => ({ ...base, color: "var(--admin-ink-soft)" }),
-  placeholder: (base) => ({ ...base, color: "var(--admin-muted-soft)" }),
-  singleValue: (base) => ({ ...base, color: "var(--admin-ink-soft)", fontWeight: "600" }),
+  singleValue: (base) => ({
+    ...base,
+    color: "var(--admin-ink-soft)",
+    fontWeight: "600",
+    fontSize: "13px",
+  }),
   indicatorSeparator: () => ({ display: "none" }),
   menuPortal: (base) => ({ ...base, zIndex: 90 }),
 };
@@ -431,15 +440,6 @@ export default function FormProduct({
     };
   }, [revokeImageUrls]);
 
-  useEffect(() => {
-    if (!isFormOpen) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isFormOpen]);
-
   const closeForm = () => {
     setIsFormOpen(false);
     setSelectedProductId(null);
@@ -466,10 +466,10 @@ export default function FormProduct({
         className={`admin-drawer-overlay ${isFormOpen ? "flex" : "hidden"}`}
       >
         <form
-          className="admin-drawer"
+          className="admin-drawer product-drawer"
           onSubmit={(e) => e.preventDefault()}
         >
-          <div className="admin-drawer-header">
+          <div className="admin-drawer-header product-drawer-header">
             <div className="min-w-0">
               <h1 id="nameFormProduct" className="admin-modal-title">
                 {isEditMode ? t("edit_product") : t("add_product")}
@@ -488,17 +488,15 @@ export default function FormProduct({
             </button>
           </div>
 
-          <div className="admin-drawer-body">
+          <div className="admin-drawer-body product-drawer-body">
             <div
-              className={
-                showImages && showProductData
-                  ? "grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]"
-                  : "flex flex-col gap-4"
-              }
+              className={`product-form-layout ${
+                showImages && showProductData ? "has-images" : ""
+              }`}
             >
               {showProductData ? (
-                <div className="flex min-w-0 flex-col gap-4">
-                  <section className="admin-form-section">
+                <div className="product-form-main">
+                  <section className="admin-form-section product-form-section">
                     <div className="admin-form-section-header">
                       <div>
                         <h2 className="admin-form-section-title">
@@ -509,7 +507,7 @@ export default function FormProduct({
                         </p>
                       </div>
                     </div>
-                    <div className="admin-form-grid admin-form-grid-2">
+                    <div className="product-form-grid-basic">
                       <div className="admin-field">
                         <label className="admin-label" htmlFor="product-name-en">
                           {t("product_name")} [EN]
@@ -650,7 +648,7 @@ export default function FormProduct({
                           id="product-seo"
                           value={product.seoCode || ""}
                           onChange={(e) => update("seoCode", e.target.value)}
-                          className="admin-input"
+                          className="admin-input product-seo-input"
                           dir="ltr"
                         />
                       </div>
@@ -674,284 +672,279 @@ export default function FormProduct({
                     </div>
                   </section>
 
-                  <section className="admin-form-section">
-                    <div className="admin-form-section-header">
-                      <div>
-                        <h2 className="admin-form-section-title">
-                          {t("section_pricing")}
-                        </h2>
-                        <p className="admin-form-section-description">
-                          {t("section_pricing_description")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="admin-form-grid admin-form-grid-2">
-                      <div className="admin-field">
-                        <label className="admin-label" htmlFor="product-price">
-                          {t("Price")}
-                          <span className="admin-label-required">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            id="product-price"
-                            type="number"
-                            value={product.price || ""}
-                            onChange={(e) => update("price", e.target.value)}
-                            required
-                            className="admin-input pe-16"
-                            min="0"
-                            step="0.01"
-                          />
-                          <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[var(--admin-muted)]">
-                            {t("currency")}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="admin-field">
-                        <label
-                          className="admin-label"
-                          htmlFor="product-old-price"
-                        >
-                          {t("old_price")}{" "}
-                          <span className="text-xs font-medium text-[var(--admin-muted-soft)]">
-                            ({t("option")})
-                          </span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            id="product-old-price"
-                            type="number"
-                            value={product.oldPrice || ""}
-                            onChange={(e) => update("oldPrice", e.target.value)}
-                            className="admin-input pe-16"
-                            min="0"
-                            step="0.01"
-                          />
-                          <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[var(--admin-muted)]">
-                            {t("currency")}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="admin-form-section">
-                    <div className="admin-form-section-header">
-                      <div>
-                        <h2 className="admin-form-section-title">
-                          {t("section_inventory")}
-                        </h2>
-                        <p className="admin-form-section-description">
-                          {t("section_inventory_description")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="admin-form-grid admin-form-grid-2">
-                      <div className="admin-field">
-                        <label className="admin-label" htmlFor="product-ram">
-                          {t("ram")}
-                        </label>
-                        <input
-                          id="product-ram"
-                          type="text"
-                          value={product.ram || ""}
-                          onChange={(e) => update("ram", e.target.value)}
-                          className="admin-input"
-                          dir="ltr"
-                        />
-                      </div>
-                      <div className="admin-field">
-                        <label className="admin-label" htmlFor="product-flash">
-                          {t("flash")}
-                        </label>
-                        <input
-                          id="product-flash"
-                          type="text"
-                          value={product.flash || ""}
-                          onChange={(e) => update("flash", e.target.value)}
-                          className="admin-input"
-                          dir="ltr"
-                        />
-                      </div>
-                      <div className="admin-field md:col-span-2">
-                        <label
-                          className="admin-label"
-                          htmlFor="product-contents"
-                        >
-                          {t("contents")}
-                        </label>
-                        <input
-                          id="product-contents"
-                          type="text"
-                          value={product.contents || ""}
-                          onChange={(e) => update("contents", e.target.value)}
-                          className="admin-input"
-                        />
-                      </div>
-                      {itemDimensionsEnabled ? (
-                        <>
-                          <div className="admin-form-grid admin-form-grid-3 md:col-span-2">
-                            {[
-                              ["length", t("length")],
-                              ["width", t("width")],
-                              ["height", t("height")],
-                            ].map(([key, label]) => (
-                              <div className="admin-field" key={key}>
-                                <label
-                                  className="admin-label"
-                                  htmlFor={`product-${key}`}
-                                >
-                                  {label}
-                                  <span className="admin-label-required">
-                                    *
-                                  </span>
-                                </label>
-                                <input
-                                  id={`product-${key}`}
-                                  type="number"
-                                  min="0.01"
-                                  step="0.01"
-                                  inputMode="decimal"
-                                  value={product[key]}
-                                  onChange={(e) =>
-                                    update(key, e.target.value)
-                                  }
-                                  required={itemDimensionsEnabled}
-                                  className="admin-input"
-                                />
-                              </div>
-                            ))}
+                  <div className="product-form-columns">
+                    <div className="product-form-column">
+                      <section className="admin-form-section product-form-section">
+                        <div className="admin-form-section-header">
+                          <div>
+                            <h2 className="admin-form-section-title">
+                              {t("section_pricing")}
+                            </h2>
+                            <p className="admin-form-section-description">
+                              {t("section_pricing_description")}
+                            </p>
                           </div>
-                        </>
-                      ) : null}
-                    </div>
-                  </section>
+                        </div>
+                        <div className="admin-form-grid admin-form-grid-2">
+                          <div className="admin-field">
+                            <label
+                              className="admin-label"
+                              htmlFor="product-price"
+                            >
+                              {t("Price")}
+                              <span className="admin-label-required">*</span>
+                            </label>
+                            <div className="relative">
+                              <input
+                                id="product-price"
+                                type="number"
+                                value={product.price || ""}
+                                onChange={(e) =>
+                                  update("price", e.target.value)
+                                }
+                                required
+                                className="admin-input pe-16"
+                                min="0"
+                                step="0.01"
+                              />
+                              <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[var(--admin-muted)]">
+                                {t("currency")}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="admin-field">
+                            <label
+                              className="admin-label"
+                              htmlFor="product-old-price"
+                            >
+                              {t("old_price")}{" "}
+                              <span className="text-xs font-medium text-[var(--admin-muted-soft)]">
+                                ({t("option")})
+                              </span>
+                            </label>
+                            <div className="relative">
+                              <input
+                                id="product-old-price"
+                                type="number"
+                                value={product.oldPrice || ""}
+                                onChange={(e) =>
+                                  update("oldPrice", e.target.value)
+                                }
+                                className="admin-input pe-16"
+                                min="0"
+                                step="0.01"
+                              />
+                              <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-semibold text-[var(--admin-muted)]">
+                                {t("currency")}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </section>
 
-                  <section className="admin-form-section">
-                    <div className="admin-form-section-header">
-                      <div>
-                        <h2 className="admin-form-section-title">
-                          {t("section_visibility")}
-                        </h2>
-                        <p className="admin-form-section-description">
-                          {t("section_visibility_description")}
-                        </p>
-                      </div>
+                      <section className="admin-form-section product-form-section">
+                        <div className="admin-form-section-header">
+                          <div>
+                            <h2 className="admin-form-section-title">
+                              {t("section_inventory")}
+                            </h2>
+                            <p className="admin-form-section-description">
+                              {t("section_inventory_description")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="admin-form-grid admin-form-grid-2">
+                          <div className="admin-field">
+                            <label
+                              className="admin-label"
+                              htmlFor="product-ram"
+                            >
+                              {t("ram")}
+                            </label>
+                            <input
+                              id="product-ram"
+                              type="text"
+                              value={product.ram || ""}
+                              onChange={(e) => update("ram", e.target.value)}
+                              className="admin-input"
+                              dir="ltr"
+                            />
+                          </div>
+                          <div className="admin-field">
+                            <label
+                              className="admin-label"
+                              htmlFor="product-flash"
+                            >
+                              {t("flash")}
+                            </label>
+                            <input
+                              id="product-flash"
+                              type="text"
+                              value={product.flash || ""}
+                              onChange={(e) => update("flash", e.target.value)}
+                              className="admin-input"
+                              dir="ltr"
+                            />
+                          </div>
+                          <div className="admin-field product-contents-field md:col-span-2">
+                            <label
+                              className="admin-label"
+                              htmlFor="product-contents"
+                            >
+                              {t("contents")}
+                            </label>
+                            <textarea
+                              id="product-contents"
+                              rows={3}
+                              value={product.contents || ""}
+                              onChange={(e) =>
+                                update("contents", e.target.value)
+                              }
+                              className="admin-textarea"
+                            />
+                          </div>
+                          {itemDimensionsEnabled ? (
+                            <div className="admin-form-grid admin-form-grid-3 md:col-span-2">
+                              {[
+                                ["length", t("length")],
+                                ["width", t("width")],
+                                ["height", t("height")],
+                              ].map(([key, label]) => (
+                                <div className="admin-field" key={key}>
+                                  <label
+                                    className="admin-label"
+                                    htmlFor={`product-${key}`}
+                                  >
+                                    {label}
+                                    <span className="admin-label-required">
+                                      *
+                                    </span>
+                                  </label>
+                                  <input
+                                    id={`product-${key}`}
+                                    type="number"
+                                    min="0.01"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    value={product[key]}
+                                    onChange={(e) =>
+                                      update(key, e.target.value)
+                                    }
+                                    required={itemDimensionsEnabled}
+                                    className="admin-input"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      </section>
                     </div>
-                    <div className="grid gap-2 sm:grid-cols-3">
-                      <ToggleCard
-                        label={t("visible_in_store")}
-                        active={enabledActive}
-                        onClick={() => setEnabledActive(!enabledActive)}
-                        icon={<FaCircle />}
-                        activeClass="bg-[var(--admin-success-soft)] text-[var(--admin-success)]"
-                      />
-                      <ToggleCard
-                        label={t("featured-product")}
-                        active={enabledFavorite}
-                        onClick={() => setEnabledFavorite(!enabledFavorite)}
-                        icon={<GoStarFill />}
-                        activeClass="bg-[var(--admin-warning-soft)] text-[var(--admin-warning-text)]"
-                      />
-                      <ToggleCard
-                        label={t("available_in_store")}
-                        active={enabledAvailable}
-                        onClick={() => setEnabledAvailable(!enabledAvailable)}
-                        icon={
-                          enabledAvailable ? (
-                            <IoCheckmarkCircleOutline />
-                          ) : (
-                            <MdBlock />
-                          )
-                        }
-                        activeClass="bg-[var(--admin-success-soft)] text-[var(--admin-success)]"
-                      />
-                    </div>
-                  </section>
 
-                  <section className="admin-form-section">
-                    <div className="admin-form-section-header">
-                      <div>
-                        <h2 className="admin-form-section-title">
-                          {t("section_descriptions")}
-                        </h2>
-                        <p className="admin-form-section-description">
-                          {t("section_descriptions_description")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      <div className="admin-field">
-                        <label
-                          className="admin-label"
-                          htmlFor="product-description-en"
-                        >
-                          {t("description")} [EN]
-                          <span className="admin-label-required">*</span>
-                        </label>
-                        <textarea
-                          id="product-description-en"
-                          required
-                          value={product.descriptionEn || ""}
-                          onChange={(e) =>
-                            update("descriptionEn", e.target.value)
-                          }
-                          rows={5}
-                          className="admin-textarea"
-                        />
-                      </div>
-                      <div className="admin-field">
-                        <label
-                          className="admin-label"
-                          htmlFor="product-description-ar"
-                        >
-                          {t("description")} [AR]
-                          <span className="admin-label-required">*</span>
-                        </label>
-                        <textarea
-                          id="product-description-ar"
-                          required
-                          value={product.descriptionAr || ""}
-                          onChange={(e) =>
-                            update("descriptionAr", e.target.value)
-                          }
-                          rows={5}
-                          className="admin-textarea"
-                          dir="rtl"
-                        />
-                      </div>
-                    </div>
-                  </section>
+                    <div className="product-form-column">
+                      <section className="admin-form-section product-form-section">
+                        <div className="admin-form-section-header">
+                          <div>
+                            <h2 className="admin-form-section-title">
+                              {t("section_visibility")}
+                            </h2>
+                            <p className="admin-form-section-description">
+                              {t("section_visibility_description")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="product-visibility-grid grid gap-2 sm:grid-cols-3">
+                          <ToggleCard
+                            label={t("visible_in_store")}
+                            active={enabledActive}
+                            onClick={() => setEnabledActive(!enabledActive)}
+                            icon={<FaCircle />}
+                            activeClass="bg-[var(--admin-success-soft)] text-[var(--admin-success)]"
+                          />
+                          <ToggleCard
+                            label={t("featured-product")}
+                            active={enabledFavorite}
+                            onClick={() => setEnabledFavorite(!enabledFavorite)}
+                            icon={<GoStarFill />}
+                            activeClass="bg-[var(--admin-warning-soft)] text-[var(--admin-warning-text)]"
+                          />
+                          <ToggleCard
+                            label={t("available_in_store")}
+                            active={enabledAvailable}
+                            onClick={() => setEnabledAvailable(!enabledAvailable)}
+                            icon={
+                              enabledAvailable ? (
+                                <IoCheckmarkCircleOutline />
+                              ) : (
+                                <MdBlock />
+                              )
+                            }
+                            activeClass="bg-[var(--admin-success-soft)] text-[var(--admin-success)]"
+                          />
+                        </div>
+                      </section>
 
-                  <div className="admin-form-footer">
-                    {!isEditMode ? (
-                      <button
-                        type="submit"
-                        id="btn-saveProduct"
-                        className="admin-btn admin-btn-primary"
-                        onClick={addProductData}
-                        disabled={loading}
-                      >
-                        {t("save_data")}
-                      </button>
-                    ) : (
-                      <button
-                        type="submit"
-                        id="btn-editProduct"
-                        className="admin-btn admin-btn-primary"
-                        onClick={updateProduct}
-                        disabled={loading}
-                      >
-                        {t("save-changes")}
-                      </button>
-                    )}
+                      <section className="admin-form-section product-form-section">
+                        <div className="admin-form-section-header">
+                          <div>
+                            <h2 className="admin-form-section-title">
+                              {t("section_descriptions")}
+                            </h2>
+                            <p className="admin-form-section-description">
+                              {t("section_descriptions_description")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="product-form-grid-basic product-form-grid-descriptions">
+                          <div className="admin-field">
+                            <label
+                              className="admin-label"
+                              htmlFor="product-description-en"
+                            >
+                              {t("description")} [EN]
+                              <span className="admin-label-required">*</span>
+                            </label>
+                            <textarea
+                              id="product-description-en"
+                              required
+                              value={product.descriptionEn || ""}
+                              onChange={(e) =>
+                                update("descriptionEn", e.target.value)
+                              }
+                              rows={4}
+                              className="admin-textarea"
+                            />
+                          </div>
+                          <div className="admin-field">
+                            <label
+                              className="admin-label"
+                              htmlFor="product-description-ar"
+                            >
+                              {t("description")} [AR]
+                              <span className="admin-label-required">*</span>
+                            </label>
+                            <textarea
+                              id="product-description-ar"
+                              required
+                              value={product.descriptionAr || ""}
+                              onChange={(e) =>
+                                update("descriptionAr", e.target.value)
+                              }
+                              rows={4}
+                              className="admin-textarea"
+                              dir="rtl"
+                            />
+                          </div>
+                        </div>
+                      </section>
+                    </div>
                   </div>
                 </div>
               ) : null}
 
               {showImages ? (
-                <aside className="min-w-0">
-                  <div className="admin-form-section">
+                <aside className="product-form-aside">
+                  <div className="admin-form-section product-form-section">
                     <div className="admin-form-section-header">
                       <div>
                         <h2 className="admin-form-section-title">
@@ -966,19 +959,21 @@ export default function FormProduct({
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="product-images-grid">
                       <label
                         htmlFor="productImg_fileInput"
-                        className="group flex h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--admin-border-strong)] bg-[var(--admin-surface-muted)] p-3 text-center transition-colors hover:border-[var(--admin-accent)] hover:bg-[var(--admin-danger-soft)]"
+                        className="product-image-upload group"
                       >
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--admin-surface)] text-base text-[var(--admin-accent)] shadow-sm transition-transform group-hover:scale-105">
+                        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[var(--admin-surface)] text-sm text-[var(--admin-accent)] shadow-sm transition-transform group-hover:scale-105">
                           <IoCloudUploadSharp />
                         </span>
-                        <span className="text-[11px] font-semibold text-[var(--admin-ink-soft)]">
-                          {t("click_to_upload")}
-                        </span>
-                        <span className="text-[9px] text-[var(--admin-muted-soft)]">
-                          {t("image_formats")}
+                        <span className="min-w-0 text-start">
+                          <span className="block text-[11px] font-semibold text-[var(--admin-ink-soft)]">
+                            {t("click_to_upload")}
+                          </span>
+                          <span className="block text-[9px] text-[var(--admin-muted-soft)]">
+                            {t("image_formats")}
+                          </span>
                         </span>
                       </label>
                       <input
@@ -992,7 +987,7 @@ export default function FormProduct({
                       {itemImages.map((img, index) => (
                         <div
                           key={index}
-                          className="group relative h-28 overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)]"
+                          className="product-image-tile group relative overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)]"
                         >
                           <Image
                             src={
@@ -1001,17 +996,17 @@ export default function FormProduct({
                                 : img.preview
                             }
                             alt=""
-                            height={112}
-                            width={140}
+                            height={84}
+                            width={110}
                             className="h-full w-full object-cover"
                           />
                           <button
                             type="button"
-                            className="absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--admin-surface)] text-[var(--admin-ink-soft)] shadow-sm transition-colors hover:bg-[var(--admin-danger-text)] hover:text-white"
+                            className="absolute end-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--admin-surface)] text-[var(--admin-ink-soft)] shadow-sm transition-colors hover:bg-[var(--admin-danger-text)] hover:text-white"
                             onClick={() => deleteProductImg(img.existingId, index)}
                             aria-label={t("delete")}
                           >
-                            <MdCancel className="text-sm" />
+                            <MdCancel className="text-xs" />
                           </button>
                         </div>
                       ))}
@@ -1020,7 +1015,7 @@ export default function FormProduct({
                     <button
                       type="submit"
                       id="btn-saveProductImages"
-                      className="admin-btn admin-btn-primary mt-4 w-full"
+                      className="admin-btn admin-btn-primary mt-3 w-full"
                       onClick={addProductImges}
                       disabled={loading}
                     >
@@ -1030,6 +1025,30 @@ export default function FormProduct({
                 </aside>
               ) : null}
             </div>
+          </div>
+
+          <div className="admin-drawer-footer product-form-footer">
+            {!isEditMode ? (
+              <button
+                type="submit"
+                id="btn-saveProduct"
+                className="admin-btn admin-btn-primary"
+                onClick={addProductData}
+                disabled={loading}
+              >
+                {t("save_data")}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                id="btn-editProduct"
+                className="admin-btn admin-btn-primary"
+                onClick={updateProduct}
+                disabled={loading}
+              >
+                {t("save-changes")}
+              </button>
+            )}
           </div>
         </form>
       </div>

@@ -1,5 +1,6 @@
 import HomePageClient from "./components/HomePageClient";
 import HomeSeoIntro from "./components/HomeSeoIntro";
+import HomeSplash from "./components/splash/HomeSplash";
 import {
   getAllCategories,
   getContact,
@@ -65,6 +66,7 @@ export default async function HomePage() {
           __html: serializeJsonLd(buildBreadcrumbJsonLd(breadcrumbs)),
         }}
       />
+      <HomeSplash />
       <HomePageClient
         initialSliderImages={sliderImages}
         initialCategories={categories}

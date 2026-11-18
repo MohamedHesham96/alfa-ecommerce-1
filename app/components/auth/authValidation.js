@@ -8,7 +8,7 @@
  */
 export const AUTH_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export const AUTH_USERNAME_PATTERN =
-  /^[a-zA-Z0-9](?:[a-zA-Z0-9._-]{1,28}[a-zA-Z0-9])$/;
+  /^[a-zA-Z][a-zA-Z0-9._-]{1,28}[a-zA-Z0-9]$/;
 export const AUTH_PHONE_PATTERN = /^01[0125][0-9]{8}$/;
 export const AUTH_PASSWORD_MIN_LENGTH = 8;
 export const AUTH_PASSWORD_MAX_LENGTH = 72;

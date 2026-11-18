@@ -38,7 +38,8 @@
     "/user/returnorderdetails/[id]",
     "/user/returnorders",
     "/user/search/[searchInput]",
-    "/user/wishlist"
+    "/user/wishlist",
+    "/welcome"
   ],
   "api": {
     "forgotPassword": {

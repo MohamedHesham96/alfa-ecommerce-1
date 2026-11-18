@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { MdClose } from "react-icons/md";
 import { useLanguage } from "../../../../context/LanguageContext";
 
@@ -24,15 +23,6 @@ export default function AdminModal({
     lg: "max-w-3xl",
     xl: "max-w-5xl",
   };
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
 
   return (
     <div
