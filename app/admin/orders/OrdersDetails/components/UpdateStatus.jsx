@@ -11,7 +11,7 @@ import { useLanguage } from "../../../../../context/LanguageContext";
 export default function UpdateStatus({ orderId, orderType }) {
   const [activeStep, setActiveStep] = useState();
   const { t } = useLanguage();
-  const { selectedOrderState, setSelectedOrderState } =
+  const { selectedOrderState, setSelectedOrderState, refreshOrderHistory } =
     useOrderDetailsContext();
   const [orderStepPath, setOrderStepPath] = useState(5);
 
@@ -81,8 +81,9 @@ export default function UpdateStatus({ orderId, orderType }) {
           "",
           t("message"),
         );
-        if (res.success === true) {
+        if (res?.success === true) {
           setSelectedOrderState(state);
+          refreshOrderHistory();
         }
       }
     } catch (error) {}

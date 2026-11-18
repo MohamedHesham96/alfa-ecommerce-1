@@ -1,5 +1,6 @@
 import OrderDetailsHeader from "../components/Header";
 import Order_Iitems from "../components/Order_Items";
+import OrderStatusHistory from "../components/Order_Status_History";
 import User_Info from "../components/User_Info";
 
 export default async function OrderDetailsPage({ params }) {
@@ -12,6 +13,7 @@ export default async function OrderDetailsPage({ params }) {
         <Order_Iitems orderId={id} orderType={"orders"} />
         <User_Info orderId={id} orderType={"orders"} />
       </div>
+      <OrderStatusHistory orderId={id} />
     </div>
   );
 }

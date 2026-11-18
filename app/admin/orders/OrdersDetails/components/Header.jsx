@@ -16,7 +16,8 @@ export default function Orders_Details({ orderId, orderType }) {
   const { t, locale } = useLanguage();
   const { selectedOrderCode, selectedOrderDate, selectedOrderState } =
     useOrderDetailsContext();
-  const { setSelectedOrderState } = useOrderDetailsContext();
+  const { setSelectedOrderState, refreshOrderHistory } =
+    useOrderDetailsContext();
   const { orderSummary } = useOrderDetailsContext();
 
   const date = new Date(selectedOrderDate);
@@ -30,12 +31,15 @@ export default function Orders_Details({ orderId, orderType }) {
   const orderCancel = async () => {
     try {
       if (orderType === "orders") {
-        await postRequest(
+        const res = await postRequest(
           `/api/admin/orders/${orderId}/changeState/CANCELLED`,
           "",
           t("message"),
         );
-        setSelectedOrderState("CANCELLED");
+        if (res?.success === true) {
+          setSelectedOrderState("CANCELLED");
+          refreshOrderHistory();
+        }
       }
       router.refresh();
     } catch (error) {}
@@ -48,8 +52,9 @@ export default function Orders_Details({ orderId, orderType }) {
         "",
         t("message"),
       );
-      if (res.success === true) {
+      if (res?.success === true) {
         setSelectedOrderState(state);
+        refreshOrderHistory();
       }
     } catch (error) {}
   };

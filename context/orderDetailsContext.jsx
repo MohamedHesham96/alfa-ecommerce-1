@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useState } from "react";
 
 const OrderDetailsContext = createContext(undefined);
 
@@ -9,6 +9,13 @@ export function OrderDetailsProvider({ children }) {
   const [selectedOrderCode, setSelectedOrderCode] = useState("");
   const [selectedOrderDate, setSelectedOrderDate] = useState("");
   const [orderSummary, setOrderSummary] = useState(null);
+  // Incremented after a successful status change so the history section can
+  // refetch immediately without coupling the two components.
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+
+  const refreshOrderHistory = useCallback(() => {
+    setHistoryRefreshKey((key) => key + 1);
+  }, []);
 
   return (
     <OrderDetailsContext.Provider
@@ -21,6 +28,8 @@ export function OrderDetailsProvider({ children }) {
         setSelectedOrderDate,
         orderSummary,
         setOrderSummary,
+        historyRefreshKey,
+        refreshOrderHistory,
       }}
     >
       {children}
