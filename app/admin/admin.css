@@ -1377,6 +1377,7 @@ html .admin-shell .font-black {
 }
 
 .admin-toolbar-main {
+  position: relative;
   display: flex;
   min-width: 0;
   flex: 1 1 auto;
@@ -1470,9 +1471,16 @@ html .admin-shell .font-black {
   color: var(--admin-on-accent);
 }
 
+/* The mobile toolbar wraps, so the filter trigger can sit on either side of
+   the row. On narrow screens anchor the panel to the full toolbar row instead
+   of the trigger: a 360px panel aligned to a mid-row trigger overflows the
+   inline-end edge, and in RTL that overflow widens the layout viewport and
+   shifts the whole admin page sideways. */
 .admin-filter-panel {
   position: absolute;
-  inset-inline-start: 0;
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  top: 100%;
   z-index: 50;
   margin-top: 0.5rem;
   width: min(360px, calc(100vw - 2rem));
@@ -1481,6 +1489,20 @@ html .admin-shell .font-black {
   background: var(--admin-surface);
   padding: 0.85rem;
   box-shadow: var(--admin-shadow-popover);
+}
+
+/* From the desktop toolbar breakpoint the trigger no longer wraps, so the
+   panel can drop directly under it again. */
+@media (min-width: 900px) {
+  .admin-filter-anchor {
+    position: relative;
+  }
+
+  .admin-filter-panel {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    top: auto;
+  }
 }
 
 .admin-filter-field {
@@ -2337,6 +2359,14 @@ html[data-admin-theme="dark"] .admin-select__menu-list {
    All colors come from the existing admin tokens so both themes are covered.
    -------------------------------------------------------------------------- */
 
+.analytics-controls {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 .analytics-period-switch {
   display: inline-flex;
   flex-wrap: wrap;
@@ -2346,6 +2376,24 @@ html[data-admin-theme="dark"] .admin-select__menu-list {
   border-radius: 11px;
   background: var(--admin-surface-muted);
   padding: 3px;
+}
+
+.analytics-year-select {
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--admin-surface);
+  padding-inline: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--admin-accent);
+  box-shadow: var(--admin-shadow-sm);
+  cursor: pointer;
+}
+
+.analytics-year-select:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 1px;
 }
 
 .analytics-period-button {
@@ -2767,13 +2815,35 @@ html[data-admin-theme="dark"] .admin-select__menu-list {
     min-width: 145px;
   }
 
-  .analytics-period-switch {
+  .admin-page-actions:has(.analytics-controls) {
+    flex: 1 1 100%;
+  }
+
+  .analytics-controls {
     width: 100%;
+    justify-content: flex-start;
+  }
+
+  .analytics-period-switch {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .analytics-period-button {
-    flex: 1 1 0;
-    padding-inline: 0.45rem;
+    flex: 0 0 auto;
+    padding-inline: 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .analytics-year-select {
+    height: 30px;
+    padding-inline: 0.35rem;
+    font-size: 0.75rem;
+  }
+
+  .analytics-refresh-button {
+    flex: 0 0 auto;
+    padding-inline: 0.55rem;
   }
 }
 

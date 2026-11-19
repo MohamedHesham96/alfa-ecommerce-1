@@ -112,7 +112,7 @@ export function DataTableFilters<T>({ table }: { table: Table<T> }) {
   if (columns.length === 0) return null;
 
   return (
-    <div className="relative">
+    <div className="admin-filter-anchor">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}

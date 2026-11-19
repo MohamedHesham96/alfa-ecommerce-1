@@ -60,6 +60,12 @@ export default function TrendChart({
         timeZone: "UTC",
       }).format(date);
     }
+    if (granularity === "MONTH") {
+      return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
+        month: "short",
+        timeZone: "UTC",
+      }).format(date);
+    }
     return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
       day: "numeric",
       month: "short",
@@ -70,6 +76,13 @@ export default function TrendChart({
   const formatLong = (bucketStart) => {
     const date = toSiteDate(bucketStart);
     if (!date) return "";
+    if (granularity === "MONTH") {
+      return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(date);
+    }
     return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
       weekday: "short",
       day: "numeric",

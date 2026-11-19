@@ -28,6 +28,7 @@ const PERIODS = [
   { value: "TODAY", labelKey: "analytics_period_today" },
   { value: "WEEK", labelKey: "analytics_period_week" },
   { value: "MONTH", labelKey: "analytics_period_month" },
+  { value: "YEAR", labelKey: "analytics_period_year" },
 ];
 
 const ACTIVE_POLL_MS = 5000;
@@ -35,6 +36,8 @@ const ACTIVE_POLL_MS = 5000;
 export default function WebsiteAnalyticsPage() {
   const { t, locale } = useLanguage();
   const [period, setPeriod] = useState("TODAY");
+  const [year, setYear] = useState(() => new Date().getFullYear());
+  const [availableYears, setAvailableYears] = useState([]);
   const [summary, setSummary] = useState(null);
   const [activeUsers, setActiveUsers] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +45,14 @@ export default function WebsiteAnalyticsPage() {
   const [error, setError] = useState(false);
   const requestIdRef = useRef(0);
   const activeRequestRef = useRef(false);
+
+  const yearOptions = useMemo(() => {
+    const values = new Set(availableYears.filter((value) => Number.isFinite(value)));
+    values.add(year);
+    return Array.from(values).sort((first, second) => second - first);
+  }, [availableYears, year]);
+
+  const currentYear = yearOptions[0] ?? year;
 
   const numberFormatter = useMemo(
     () => new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US"),
@@ -75,13 +86,17 @@ export default function WebsiteAnalyticsPage() {
   );
 
   const loadSummary = useCallback(
-    async (targetPeriod, { force = false } = {}) => {
+    async (targetPeriod, targetYear, { force = false } = {}) => {
       const requestId = ++requestIdRef.current;
       setLoading(true);
       setError(false);
       try {
+        const yearQuery =
+          targetPeriod === "YEAR" && targetYear
+            ? `&year=${encodeURIComponent(targetYear)}`
+            : "";
         const response = await getRequest(
-          `/api/admin/analytics/summary?period=${encodeURIComponent(targetPeriod)}${force ? "&refresh=true" : ""}`,
+          `/api/admin/analytics/summary?period=${encodeURIComponent(targetPeriod)}${yearQuery}${force ? "&refresh=true" : ""}`,
           { suppressErrorToast: true },
         );
         if (requestId !== requestIdRef.current) return;
@@ -91,6 +106,15 @@ export default function WebsiteAnalyticsPage() {
         }
         setSummary(data);
         setActiveUsers(Number(data.activeUsers) || 0);
+        if (Array.isArray(data.availableYears)) {
+          const years = data.availableYears
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value));
+          if (years.length > 0) setAvailableYears(years);
+        }
+        if (Number.isFinite(Number(data.selectedYear))) {
+          setYear(Number(data.selectedYear));
+        }
       } catch {
         if (requestId !== requestIdRef.current) return;
         setError(true);
@@ -108,8 +132,8 @@ export default function WebsiteAnalyticsPage() {
   useEffect(() => {
     setSummary(null);
     setError(false);
-    void loadSummary(period);
-  }, [period, loadSummary]);
+    void loadSummary(period, year);
+  }, [period, year, loadSummary]);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,7 +182,7 @@ export default function WebsiteAnalyticsPage() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    void loadSummary(period, { force: true });
+    void loadSummary(period, year, { force: true });
   };
 
   const updatedLabel = (() => {
@@ -184,7 +208,7 @@ export default function WebsiteAnalyticsPage() {
         title={t("website_analytics")}
         description={t("analytics_subtitle")}
         actions={
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="analytics-controls">
             <div
               className="analytics-period-switch"
               role="group"
@@ -201,15 +225,32 @@ export default function WebsiteAnalyticsPage() {
                   {t(option.labelKey)}
                 </button>
               ))}
+              {period === "YEAR" ? (
+                <select
+                  className="analytics-year-select"
+                  value={year}
+                  onChange={(event) => setYear(Number(event.target.value))}
+                  aria-label={t("analytics_year_filter")}
+                  title={t("analytics_year_filter")}
+                >
+                  {yearOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              ) : null}
             </div>
             <button
               type="button"
-              className="admin-btn admin-btn-secondary admin-btn-sm"
+              className="admin-btn admin-btn-secondary admin-btn-sm analytics-refresh-button"
               onClick={handleRefresh}
               disabled={loading || refreshing}
+              aria-label={t("analytics_refresh")}
+              title={t("analytics_refresh")}
             >
               <MdRefresh aria-hidden="true" />
-              {t("analytics_refresh")}
+              <span className="hidden sm:inline">{t("analytics_refresh")}</span>
             </button>
           </div>
         }
@@ -287,7 +328,15 @@ export default function WebsiteAnalyticsPage() {
               hint={t("analytics_legend_visitors")}
             />
             <StatCard
-              label={t("analytics_year_visitors")}
+              label={
+                summary.period === "YEAR" &&
+                Number(summary.selectedYear) !== Number(currentYear)
+                  ? t("analytics_year_visitors_for").replace(
+                      "{year}",
+                      String(summary.selectedYear),
+                    )
+                  : t("analytics_year_visitors")
+              }
               value={formatNumber(summary.yearVisitors)}
               icon={<MdEventAvailable />}
               tone="gray"
@@ -322,7 +371,9 @@ export default function WebsiteAnalyticsPage() {
                 granularity={
                   summary.period === "TODAY"
                     ? "HOUR"
-                    : "DAY"
+                    : summary.period === "YEAR"
+                      ? "MONTH"
+                      : "DAY"
                 }
                 locale={locale}
                 t={t}

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 jest.mock("../context/LanguageContext", () => {
   const en = require("../public/locales/en.json");
@@ -20,6 +20,7 @@ import { getRequest } from "../utils/requestsUtils";
 function summary(overrides = {}) {
   return {
     period: "TODAY",
+    selectedYear: 2026,
     timezone: "Africa/Cairo",
     rangeStart: "2026-11-18T00:00+02:00",
     rangeEnd: "2026-11-18T12:30+02:00",
@@ -67,6 +68,7 @@ function summary(overrides = {}) {
       },
     ],
     generatedAt: "2026-11-18T10:30:00Z",
+    availableYears: [2026, 2025],
     ...overrides,
   };
 }
@@ -122,6 +124,70 @@ describe("website analytics admin page", () => {
         ),
       ).toBe(true),
     );
+  });
+
+  it("offers a year period and loads a previous year from the picker", async () => {
+    getRequest.mockImplementation((endpoint) => {
+      if (endpoint.startsWith("/api/admin/analytics/active-users")) {
+        return Promise.resolve({ data: { activeUsers: 3 } });
+      }
+      if (endpoint.includes("period=YEAR&year=2025")) {
+        return Promise.resolve({
+          data: summary({
+            period: "YEAR",
+            selectedYear: 2025,
+            rangeStart: "2025-01-01T00:00+02:00",
+            rangeEnd: "2025-12-31T23:59:59+02:00",
+            yearVisitors: 777,
+            periodVisitors: 777,
+            periodPageViews: 1400,
+            trend: [
+              {
+                bucketStart: "2025-01-01T00:00+02:00",
+                granularity: "MONTH",
+                visitors: 60,
+                pageViews: 120,
+              },
+            ],
+          }),
+        });
+      }
+      if (endpoint.includes("period=YEAR")) {
+        return Promise.resolve({
+          data: summary({
+            period: "YEAR",
+            selectedYear: 2026,
+            trend: [
+              {
+                bucketStart: "2026-01-01T00:00+02:00",
+                granularity: "MONTH",
+                visitors: 30,
+                pageViews: 60,
+              },
+            ],
+          }),
+        });
+      }
+      return Promise.resolve({ data: summary() });
+    });
+
+    render(<WebsiteAnalyticsPage />);
+
+    expect(await screen.findByText("This Year's Visitors")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Year" }));
+
+    const picker = await screen.findByRole("combobox", { name: "Year" });
+    fireEvent.change(picker, { target: { value: "2025" } });
+
+    await waitFor(() =>
+      expect(
+        getRequest.mock.calls.some(([endpoint]) =>
+          endpoint.includes("/api/admin/analytics/summary?period=YEAR&year=2025"),
+        ),
+      ).toBe(true),
+    );
+    expect(await screen.findByText("2025 Visitors")).toBeInTheDocument();
+    expect(screen.getAllByText("777").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows the no-history explanation when no events exist", async () => {
