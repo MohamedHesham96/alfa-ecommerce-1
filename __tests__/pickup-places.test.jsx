@@ -347,4 +347,18 @@ describe("pickup admin navigation", () => {
     expect(entry).toBeInTheDocument();
     expect(entry.closest("a")).toHaveAttribute("href", "/admin/PickupPlaces");
   });
+
+  it("hides the sales report entry when the setting is disabled", () => {
+    renderMenu({ "features.salesReport.enabled": false });
+    expect(
+      document.querySelector('a[href="/admin/Reports/Sales"]'),
+    ).toBeNull();
+  });
+
+  it("shows the sales report entry when the setting is enabled", () => {
+    renderMenu({ "features.salesReport.enabled": true });
+    expect(
+      document.querySelector('a[href="/admin/Reports/Sales"]'),
+    ).not.toBeNull();
+  });
 });

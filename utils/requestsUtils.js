@@ -420,6 +420,96 @@ export const getRequest = async (endpoint, options = {}) => {
   }
 };
 
+/**
+ * Downloads a binary response (for example an XLSX report) while preserving
+ * the same access-token refresh and error handling as the JSON helpers.
+ */
+export const downloadRequest = async (endpoint, dataBody, options = {}) => {
+  if (isBrowserOffline()) throwOfflineMutationError(options.suppressErrorToast);
+
+  const getToken = () =>
+    typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const lang =
+    typeof window !== "undefined" ? localStorage.getItem("lang") : null;
+  const request = async (token) =>
+    axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + endpoint, dataBody, {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : undefined,
+        "Accept-Language": lang,
+      },
+      responseType: "blob",
+      signal: options.signal,
+    });
+
+  const normalizeBlobError = async (error) => {
+    const data = error?.response?.data;
+    if (data instanceof Blob) {
+      try {
+        const text = await data.text();
+        error.response.data = JSON.parse(text);
+      } catch {
+        // Keep the original error when the body is not JSON.
+      }
+    }
+    return error;
+  };
+
+  const filenameFromHeaders = (headers) => {
+    const fallback = `sales-report-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const disposition = headers?.["content-disposition"];
+    if (!disposition) return fallback;
+    const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
+    if (encoded?.[1]) {
+      try {
+        return decodeURIComponent(encoded[1]);
+      } catch {
+        return encoded[1];
+      }
+    }
+    const plain = /filename="?([^";]+)"?/i.exec(disposition);
+    return plain?.[1] || fallback;
+  };
+
+  try {
+    const response = await request(getToken());
+    return {
+      blob: response.data,
+      filename: filenameFromHeaders(response.headers),
+    };
+  } catch (error) {
+    if (axios.isCancel(error) || error?.code === "ERR_CANCELED") {
+      throw error;
+    }
+    await normalizeBlobError(error);
+    reportApiFailure(error);
+
+    if (isUnauthorized(error)) {
+      const newAccessToken = await getRefreshedAccessToken();
+      if (newAccessToken) {
+        try {
+          const retryResponse = await request(newAccessToken);
+          return {
+            blob: retryResponse.data,
+            filename: filenameFromHeaders(retryResponse.headers),
+          };
+        } catch (retryError) {
+          if (axios.isCancel(retryError) || retryError?.code === "ERR_CANCELED") {
+            throw retryError;
+          }
+          await normalizeBlobError(retryError);
+          reportApiFailure(retryError);
+          if (!options.suppressErrorToast) showRequestError(retryError);
+          throw retryError;
+        }
+      }
+    } else if (!options.suppressErrorToast) {
+      showRequestError(error);
+    }
+
+    throw error;
+  }
+};
+
 export const putRequest = async (endpoint, dataBody, message, options = {}) => {
   if (isBrowserOffline()) throwOfflineMutationError(options.suppressErrorToast);
 

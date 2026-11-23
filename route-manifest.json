@@ -12,6 +12,8 @@
     "/admin/orders/OrdersDetails/[id]",
     "/admin/PickupPlaces",
     "/admin/Products",
+    "/admin/Reports/Sales",
+    "/admin/Reports/Sales/Print",
     "/admin/returnorderdetails/[id]",
     "/admin/Returns",
     "/admin/ShippingCost",

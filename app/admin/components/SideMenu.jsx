@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation.js";
 import {
   MdAdminPanelSettings,
+  MdBarChart,
   MdCategory,
   MdChevronLeft,
   MdChevronRight,
@@ -82,6 +83,13 @@ const SECTIONS = [
     id: "sales",
     labelKey: "nav_sales",
     items: [
+      {
+        href: "/admin/Reports/Sales",
+        labelKey: "sales_report",
+        icon: <MdBarChart />,
+        activeKey: "sales_report",
+        displayName: "Sales Report",
+      },
       {
         href: "/admin/orders",
         labelKey: "orders",
@@ -165,6 +173,10 @@ export default function SideMenu({
   const { canAccess: systemSettingsAccess } = useSystemSettingsAccess();
   const { selectedNamePage, setSelectedNamePage } = useNamePageInAdminContext();
   const pickupEnabled = useAppConfig("pickup.enabled", false);
+  const salesReportEnabled = useAppConfig(
+    "features.salesReport.enabled",
+    false,
+  );
   const [username, setUsername] = useState("");
   const [role, setRole] = useState("");
   const sidebarRef = useRef(null);
@@ -253,28 +265,25 @@ export default function SideMenu({
     setRole(localStorage.getItem("role") || "");
 
     const lastPort = window.location.pathname.split("/").filter(Boolean).pop();
-    setSelectedNamePage(
-      lastPort === "Dashboard"
-        ? `${lastPort} Overview`
-        : window.location.pathname.includes("User")
-          ? "Users Management"
-          : window.location.pathname.includes("orders")
-            ? "Orders Management"
-            : window.location.pathname.includes("returnorderdetails")
-              ? "Returns Management"
-              : window.location.pathname.includes("SystemSettings")
-                ? "System Settings"
-                : window.location.pathname.includes("PickupPlaces")
-                  ? "Pickup Places Management"
-                  : window.location.pathname.includes("Analytics")
-                    ? "Website Analytics"
-                    : `${lastPort} Management`,
-    );
+    const path = window.location.pathname;
+    let pageName = `${lastPort} Management`;
+    if (lastPort === "Dashboard") pageName = `${lastPort} Overview`;
+    else if (path.includes("Reports/Sales")) pageName = "Sales Report";
+    else if (path.includes("User")) pageName = "Users Management";
+    else if (path.includes("orders")) pageName = "Orders Management";
+    else if (path.includes("returnorderdetails")) pageName = "Returns Management";
+    else if (path.includes("SystemSettings")) pageName = "System Settings";
+    else if (path.includes("PickupPlaces")) pageName = "Pickup Places Management";
+    else if (path.includes("Analytics")) pageName = "Website Analytics";
+    setSelectedNamePage(pageName);
   }, [setSelectedNamePage]);
 
   const sections = SECTIONS.map((section) => ({
     ...section,
-    items: [...section.items],
+    items: section.items.filter(
+      (item) =>
+        item.href !== "/admin/Reports/Sales" || salesReportEnabled,
+    ),
   }));
 
   const administration = sections.find(

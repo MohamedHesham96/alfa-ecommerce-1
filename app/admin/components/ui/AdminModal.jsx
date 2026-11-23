@@ -22,6 +22,7 @@ export default function AdminModal({
     md: "max-w-xl",
     lg: "max-w-3xl",
     xl: "max-w-5xl",
+    full: "max-w-[min(96vw,1400px)]",
   };
 
   return (
