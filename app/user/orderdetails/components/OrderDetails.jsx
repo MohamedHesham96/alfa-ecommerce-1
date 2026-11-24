@@ -12,6 +12,7 @@ import ProductReturnForm from './ProductReturnForm'
 import { useLanguage } from "../../../../context/LanguageContext";
 import { useFeature } from "../../../../context/AppConfigContext";
 import BankTransferDetails from "../../components/BankTransferDetails";
+import InstapayPaymentCard from "../../components/InstapayPaymentCard";
 export default function OrderDetails({ orderId }) {
   const [order, setOrder] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -546,6 +547,12 @@ export default function OrderDetails({ orderId }) {
 
             <BankTransferDetails
               paymentMethod={orderSummary.paymentMethod}
+              className="mb-5"
+            />
+
+            <InstapayPaymentCard
+              paymentMethod={orderSummary.paymentMethod}
+              orderState={orderSummary.state}
               className="mb-5"
             />
 
