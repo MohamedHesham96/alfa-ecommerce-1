@@ -9,7 +9,9 @@ import { useAppConfig } from "../../../context/AppConfigContext";
 import { useLanguage } from "../../../context/LanguageContext";
 
 const PAYMENT_LINK_KEY = "payments.instapay.paymentLink";
-const QR_IMAGE_KEY = "payments.instapay.qrImage";
+const QR_IMAGE_KEY = "instapay.qr";
+const LEGACY_QR_IMAGE_KEY = "payments.instapay.qrImage";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/+$/, "");
 
 function normalizePaymentLink(value) {
   const trimmed = String(value ?? "").trim();
@@ -30,6 +32,7 @@ function resolveImageSource(value) {
   if (/^data:image\//i.test(trimmed)) return trimmed;
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   if (trimmed.startsWith("//")) return `https:${trimmed}`;
+  if (trimmed.startsWith("/images/")) return `${API_BASE_URL}${trimmed}`;
   if (trimmed.startsWith("/")) return trimmed;
   return `/${trimmed}`;
 }
@@ -41,7 +44,9 @@ export default function InstapayPaymentCard({
 }) {
   const { t } = useLanguage();
   const paymentLinkValue = useAppConfig(PAYMENT_LINK_KEY, "");
-  const qrImageValue = useAppConfig(QR_IMAGE_KEY, "");
+  const configuredQrImage = useAppConfig(QR_IMAGE_KEY, "");
+  const legacyQrImage = useAppConfig(LEGACY_QR_IMAGE_KEY, "");
+  const qrImageValue = configuredQrImage || legacyQrImage;
   const [qrOpen, setQrOpen] = useState(false);
   const [qrFailed, setQrFailed] = useState(false);
 

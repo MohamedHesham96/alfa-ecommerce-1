@@ -14,6 +14,7 @@ import {
   resetSystemConfiguration,
   updateClientVisibility,
   updateSystemConfiguration,
+  uploadSystemConfigurationImage,
   validateSystemConfiguration,
 } from "../services/systemConfigurationService";
 import SettingControl from "./components/SettingControl";
@@ -154,6 +155,7 @@ export default function SystemSettingsPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [drafts, setDrafts] = useState({});
   const [saving, setSaving] = useState({});
+  const [imageUploading, setImageUploading] = useState({});
   const [visibilitySaving, setVisibilitySaving] = useState({});
   const [bulkSaving, setBulkSaving] = useState(false);
   const [validating, setValidating] = useState(false);
@@ -350,6 +352,41 @@ export default function SystemSettingsPage() {
       }
     } finally {
       setSaving((previous) => {
+        const next = { ...previous };
+        delete next[key];
+        return next;
+      });
+    }
+  };
+
+  const handleImageUpload = async (setting, file) => {
+    if (readOnly || !file) return;
+    const key = setting.definition.key;
+    setImageUploading((previous) => ({ ...previous, [key]: true }));
+    setValidationErrors((previous) => {
+      if (!previous[key]) return previous;
+      const next = { ...previous };
+      delete next[key];
+      return next;
+    });
+
+    try {
+      const updated = await uploadSystemConfigurationImage(
+        key,
+        file,
+        setting.overridden ? setting.storedVersion : 0,
+      );
+      replaceSetting(updated);
+      clearDraft(key);
+      toast.success(isArabic ? "تم رفع الصورة." : "Image uploaded.");
+      refreshRuntimeConfig().catch(() => {});
+    } catch (uploadError) {
+      const errors = extractValidationErrors(uploadError);
+      if (Object.keys(errors).length) {
+        setValidationErrors((previous) => ({ ...previous, ...errors }));
+      }
+    } finally {
+      setImageUploading((previous) => {
         const next = { ...previous };
         delete next[key];
         return next;
@@ -585,6 +622,8 @@ export default function SystemSettingsPage() {
               disabled={disabled}
               locale={locale}
               hasStoredValue={Boolean(setting.hasStoredValue || setting.overridden)}
+              onImageUpload={(file) => handleImageUpload(setting, file)}
+              imageUploading={Boolean(imageUploading[key])}
             />
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
@@ -798,6 +837,8 @@ export default function SystemSettingsPage() {
               disabled={disabled}
               locale={locale}
               hasStoredValue={Boolean(setting.hasStoredValue || setting.overridden)}
+              onImageUpload={(file) => handleImageUpload(setting, file)}
+              imageUploading={Boolean(imageUploading[key])}
             />
           </div>
           {!readOnly ? (

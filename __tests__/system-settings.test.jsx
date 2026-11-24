@@ -26,6 +26,7 @@ jest.mock("../app/admin/services/systemConfigurationService", () => ({
   resetAllSystemConfiguration: jest.fn(),
   validateSystemConfiguration: jest.fn(),
   previewSystemConfiguration: jest.fn(),
+  uploadSystemConfigurationImage: jest.fn(),
 }));
 
 import SystemSettingsPage from "../app/admin/SystemSettings/page";
@@ -37,6 +38,7 @@ import {
   resetSystemConfiguration,
   updateClientVisibility,
   updateSystemConfiguration,
+  uploadSystemConfigurationImage,
   validateSystemConfiguration,
 } from "../app/admin/services/systemConfigurationService";
 
@@ -255,7 +257,9 @@ describe("system settings admin screen", () => {
       .closest("article");
     const galleryCard = screen.getByText("تخطيط المعرض").closest("article");
 
-    expect(within(wishlistCard).getByRole("switch")).toBeInTheDocument();
+    const wishlistSwitch = within(wishlistCard).getByRole("switch");
+    expect(wishlistSwitch).toHaveClass("admin-switch");
+    expect(wishlistSwitch).toHaveClass("admin-switch--on");
     expect(within(pageCard).getByRole("spinbutton")).toHaveValue(12);
     expect(within(galleryCard).getByRole("combobox")).toHaveValue(
       "THUMBNAILS_SIDE",
@@ -408,6 +412,99 @@ describe("system settings admin screen", () => {
         },
       ]);
     });
+  });
+
+  it("uploads IMAGE settings as files and shows a preview", async () => {
+    const user = userEvent.setup();
+    const imageSetting = setting(
+      {
+        key: "instapay.qr",
+        category: "payments",
+        type: "IMAGE",
+        displayName: "InstaPay QR image",
+        displayNameAr: "صورة QR الدفع عبر إنستاباي",
+        description: "Optional QR image.",
+        descriptionAr: "صورة QR اختيارية.",
+        defaultValue: "",
+        featureFlag: false,
+        frontendExposed: true,
+        publicExposed: true,
+        groupKey: "payments.instapay",
+        groupDisplayName: "InstaPay",
+        groupDisplayNameAr: "إنستاباي",
+        constraints: {
+          min: null,
+          max: null,
+          minLength: null,
+          maxLength: 1000,
+          pattern: null,
+          required: false,
+          nullable: true,
+          multiline: false,
+          elementType: null,
+          requiredJsonFields: [],
+        },
+        order: 22,
+      },
+      { value: "" },
+    );
+
+    fetchSystemConfiguration.mockResolvedValue({
+      categories: [
+        {
+          code: "payments",
+          displayName: "Payments",
+          displayNameAr: "المدفوعات",
+          description: "",
+          descriptionAr: "",
+          order: 130,
+          settingCount: 1,
+        },
+      ],
+      settings: [imageSetting],
+      generatedAt: Date.now(),
+      cacheTtlSeconds: 30,
+      viewer: { ...internalViewer, visibleSettingCount: 1 },
+    });
+    uploadSystemConfigurationImage.mockResolvedValue({
+      ...imageSetting,
+      value: "/images/system-settings/qr-code.png",
+      source: "DATABASE",
+      overridden: true,
+      storedVersion: 0,
+    });
+
+    render(<SystemSettingsPage />);
+    await screen.findByText("صورة QR الدفع عبر إنستاباي");
+
+    const card = screen
+      .getByText("صورة QR الدفع عبر إنستاباي")
+      .closest("article");
+    expect(
+      within(card).getByRole("button", { name: "رفع صورة" }),
+    ).toBeInTheDocument();
+    expect(within(card).queryByRole("textbox")).not.toBeInTheDocument();
+
+    const fileInput = within(card).getByLabelText("رفع صورة");
+    const file = new File([new Uint8Array([137, 80, 78, 71])], "qr.png", {
+      type: "image/png",
+    });
+    await user.upload(fileInput, file);
+
+    await waitFor(() => {
+      expect(uploadSystemConfigurationImage).toHaveBeenCalledWith(
+        "instapay.qr",
+        file,
+        0,
+      );
+    });
+
+    const preview = await within(card).findByRole("img");
+    expect(preview.getAttribute("src")).toContain(
+      "/images/system-settings/qr-code.png",
+    );
+    expect(toast.success).toHaveBeenCalledWith("تم رفع الصورة.");
+    expect(mockRefresh).toHaveBeenCalled();
   });
 
   it("loads, validates, and saves the order notification email", async () => {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FiImage, FiUpload } from "react-icons/fi";
 
 const NUMBER_TYPES = new Set([
   "INTEGER",
@@ -10,6 +11,33 @@ const NUMBER_TYPES = new Set([
   "PERCENTAGE",
   "CURRENCY",
 ]);
+
+const IMAGE_ACCEPT = "image/png,image/jpeg,image/gif,image/webp";
+const IMAGE_MIME_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/gif",
+  "image/webp",
+]);
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/+$/, "");
+const IMAGE_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL || `${API_BASE_URL}/images`
+).replace(/\/+$/, "");
+
+function resolveImagePreview(value) {
+  const trimmed = String(value ?? "").trim();
+  if (!trimmed) return "";
+  if (/^data:image\//i.test(trimmed) || /^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  if (trimmed.startsWith("//")) return `https:${trimmed}`;
+  if (/^\/images\//i.test(trimmed)) return `${API_BASE_URL}${trimmed}`;
+  if (trimmed.startsWith("/")) return `${IMAGE_BASE_URL}${trimmed}`;
+  return `${IMAGE_BASE_URL}/${trimmed}`;
+}
 
 const PRIMITIVE_ARRAY_TYPES = new Set([
   "STRING",
@@ -202,6 +230,129 @@ function ListEditor({ definition, value, onChange, disabled, locale }) {
   );
 }
 
+function ImageControl({
+  definition,
+  value,
+  disabled,
+  locale,
+  uploading = false,
+  onUpload,
+}) {
+  const isArabic = locale === "ar";
+  const [clientError, setClientError] = useState("");
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const inputRef = useRef(null);
+  const preview = resolveImagePreview(value);
+  const uploadLabel = isArabic ? "رفع صورة" : "Upload image";
+
+  useEffect(() => {
+    setPreviewFailed(false);
+  }, [value]);
+
+  const handleFile = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (!IMAGE_MIME_TYPES.has(String(file.type).toLowerCase())) {
+      setClientError(
+        isArabic
+          ? "يُسمح فقط بصور PNG وJPEG وGIF وWebP."
+          : "Only PNG, JPEG, GIF, and WebP images are allowed.",
+      );
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setClientError(
+        isArabic
+          ? "يجب ألا يتجاوز حجم الصورة 10 ميجابايت."
+          : "Image size must not exceed 10 MB.",
+      );
+      return;
+    }
+
+    setClientError("");
+    onUpload?.(file);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex min-h-[128px] items-center justify-center overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] p-3">
+        {preview && !previewFailed ? (
+          <img
+            src={preview}
+            alt={
+              isArabic
+                ? definition.displayNameAr || definition.displayName
+                : definition.displayName
+            }
+            className="max-h-40 w-auto max-w-full object-contain"
+            onError={() => setPreviewFailed(true)}
+          />
+        ) : (
+          <div className="flex flex-col items-center gap-1.5 text-center text-[var(--admin-muted)]">
+            <FiImage className="h-7 w-7" aria-hidden="true" />
+            <span className="text-xs font-semibold">
+              {previewFailed
+                ? isArabic
+                  ? "تعذر عرض الصورة"
+                  : "Preview unavailable"
+                : isArabic
+                  ? "لا توجد صورة"
+                  : "No image"}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          ref={inputRef}
+          type="file"
+          accept={IMAGE_ACCEPT}
+          className="sr-only"
+          onChange={handleFile}
+          disabled={disabled || uploading}
+          aria-label={uploadLabel}
+        />
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={disabled || uploading}
+          className="admin-btn admin-btn-secondary admin-btn-xs"
+        >
+          <FiUpload className="h-3.5 w-3.5" aria-hidden="true" />
+          {uploading
+            ? isArabic
+              ? "جارٍ الرفع..."
+              : "Uploading..."
+            : preview
+              ? isArabic
+                ? "تغيير الصورة"
+                : "Change image"
+              : uploadLabel}
+        </button>
+        {value ? (
+          <code className="min-w-0 break-all text-[11px] text-[var(--admin-muted)]">
+            {value}
+          </code>
+        ) : null}
+      </div>
+
+      <p className="text-[11px] leading-4 text-[var(--admin-muted)]">
+        {isArabic
+          ? "PNG أو JPEG أو GIF أو WebP، بحد أقصى 10 ميجابايت."
+          : "PNG, JPEG, GIF, or WebP, up to 10 MB."}
+      </p>
+      {clientError ? (
+        <p className="text-[11px] font-semibold text-[var(--admin-danger)]" role="alert">
+          {clientError}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export default function SettingControl({
   definition,
   value,
@@ -209,10 +360,25 @@ export default function SettingControl({
   disabled = false,
   locale = "ar",
   hasStoredValue = false,
+  onImageUpload,
+  imageUploading = false,
 }) {
   const type = definition.type;
   const constraints = definition.constraints || {};
   const isSensitive = definition.sensitive;
+
+  if (type === "IMAGE") {
+    return (
+      <ImageControl
+        definition={definition}
+        value={value}
+        disabled={disabled}
+        locale={locale}
+        uploading={imageUploading}
+        onUpload={onImageUpload}
+      />
+    );
+  }
 
   if (isSensitive) {
     return (
@@ -252,15 +418,13 @@ export default function SettingControl({
         aria-checked={checked}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-primary-hover)] focus-visible:ring-offset-2 disabled:opacity-50 ${
-          checked ? "bg-[var(--admin-primary-hover)]" : "bg-[var(--admin-switch-off)]"
+        className={`admin-switch ${
+          checked ? "admin-switch--on" : ""
+        } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-focus-ring-strong)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--admin-surface)] ${
+          disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
         }`}
       >
-        <span
-          className={`absolute top-1/2 inline-block h-5 w-5 -translate-y-1/2 rounded-full bg-[var(--admin-surface)] shadow transition-all ${
-            checked ? "start-6" : "start-1"
-          }`}
-        />
+        <span className="admin-switch-knob" />
         <span className="sr-only">
           {checked
             ? locale === "ar"

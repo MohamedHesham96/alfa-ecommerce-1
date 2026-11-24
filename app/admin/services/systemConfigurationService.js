@@ -51,6 +51,22 @@ export async function updateSystemConfiguration(key, value, version) {
   return response.data;
 }
 
+export async function uploadSystemConfigurationImage(key, file, version) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const query =
+    version !== null && version !== undefined
+      ? `?version=${encodeURIComponent(version)}`
+      : "";
+  const response = await postRequest(
+    `${BASE_PATH}/settings/${encodeURIComponent(key)}/image${query}`,
+    formData,
+    "",
+    false,
+  );
+  return response.data;
+}
+
 export async function bulkUpdateSystemConfiguration(updates, reason) {
   const response = await postRequest(
     `${BASE_PATH}/settings/bulk`,

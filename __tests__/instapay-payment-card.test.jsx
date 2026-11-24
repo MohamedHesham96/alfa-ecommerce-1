@@ -13,7 +13,7 @@ import { resetAppConfigForTests } from "../lib/appConfigStore";
 
 const instapayConfig = {
   "payments.instapay.paymentLink": "https://instapay.example/pay/123",
-  "payments.instapay.qrImage": "/Images/instapay-qr.png",
+  "instapay.qr": "/images/system-settings/instapay-qr.png",
 };
 
 function renderCard(props = {}) {
@@ -49,9 +49,10 @@ describe("InstaPay payment card", () => {
     await user.click(screen.getByRole("button", { name: /عرض QR الدفع/ }));
 
     const dialog = screen.getByRole("dialog");
-    expect(
-      within(dialog).getByAltText("امسح كود QR للدفع"),
-    ).toHaveAttribute("src", "/Images/instapay-qr.png");
+    const qr = within(dialog).getByAltText("امسح كود QR للدفع");
+    expect(qr.getAttribute("src")).toContain(
+      "/images/system-settings/instapay-qr.png",
+    );
   });
 
   it("does not render for other payment methods or cancelled orders", () => {
@@ -79,7 +80,7 @@ describe("InstaPay payment card", () => {
       <AppConfigProvider
         initialConfig={{
           "payments.instapay.paymentLink": "",
-          "payments.instapay.qrImage": "",
+          "instapay.qr": "",
         }}
       >
         <LanguageProvider>
