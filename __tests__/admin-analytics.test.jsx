@@ -97,7 +97,7 @@ describe("website analytics admin page", () => {
       await screen.findByRole("heading", { name: "Traffic Trend" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /Session Quality/ }),
+      screen.getByRole("heading", { name: /Visit Quality/ }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: /New vs Returning/ }),

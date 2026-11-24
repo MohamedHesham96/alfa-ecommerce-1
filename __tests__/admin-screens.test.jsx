@@ -37,6 +37,7 @@ import ReturnsTable from "../app/admin/Returns/components/Table";
 import CategoryTable from "../app/admin/Categories/components/CategoryTable";
 import ShippingTable from "../app/admin/ShippingCost/components/Table";
 import DashboardTable from "../app/admin/Dashboard/components/Table";
+import { DashboardSummaryProvider } from "../app/admin/Dashboard/context/DashboardSummaryContext";
 import OrderItems from "../app/admin/orders/OrdersDetails/components/Order_Items";
 import { searchTable } from "../app/admin/services/adminTableService";
 import { getRequest } from "../utils/requestsUtils";
@@ -116,7 +117,13 @@ describe("admin screens use the shared server table contract", () => {
   });
 
   it("dashboard loads the existing dashboard endpoint", async () => {
-    render(wrap(<DashboardTable />));
+    render(
+      wrap(
+        <DashboardSummaryProvider>
+          <DashboardTable />
+        </DashboardSummaryProvider>,
+      ),
+    );
     await waitFor(() => expect(getRequest).toHaveBeenCalledWith("/api/admin/dashboard"));
   });
 

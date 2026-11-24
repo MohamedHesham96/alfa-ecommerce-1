@@ -11,6 +11,7 @@ import { TfiTimer } from "react-icons/tfi";
 import ProductReturnForm from './ProductReturnForm'
 import { useLanguage } from "../../../../context/LanguageContext";
 import { useFeature } from "../../../../context/AppConfigContext";
+import BankTransferDetails from "../../components/BankTransferDetails";
 export default function OrderDetails({ orderId }) {
   const [order, setOrder] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -542,6 +543,11 @@ export default function OrderDetails({ orderId }) {
               <span className="text-gray-600 font">{t("payment_method")}</span>
               <span className="font-semibold">{t(orderSummary.paymentMethod)}</span>
             </div>
+
+            <BankTransferDetails
+              paymentMethod={orderSummary.paymentMethod}
+              className="mb-5"
+            />
 
             <div className="flex justify-between items-center mb-5">
               <span className="text-gray-600">{t("fulfillment_type")}</span>

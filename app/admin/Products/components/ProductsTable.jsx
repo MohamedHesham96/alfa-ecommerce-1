@@ -27,6 +27,7 @@ export default function ProductsTable({
   category,
   setIsEditMode,
   fillContainer = false,
+  onStatsChange,
 }) {
   const { t, locale } = useLanguage();
   const { refreshKey } = useRefresh();
@@ -48,9 +49,12 @@ export default function ProductsTable({
         "",
         t("message"),
       );
-      if (res) patchProduct(productId, { favorite });
+      if (res) {
+        patchProduct(productId, { favorite });
+        onStatsChange?.();
+      }
     },
-    [patchProduct, t],
+    [patchProduct, t, onStatsChange],
   );
 
   const productActive = useCallback(
@@ -60,9 +64,12 @@ export default function ProductsTable({
         "",
         t("message"),
       );
-      if (res) patchProduct(productId, { active });
+      if (res) {
+        patchProduct(productId, { active });
+        onStatsChange?.();
+      }
     },
-    [patchProduct, t],
+    [patchProduct, t, onStatsChange],
   );
 
   const productAvailable = useCallback(
@@ -72,9 +79,12 @@ export default function ProductsTable({
         "",
         t("message"),
       );
-      if (res) patchProduct(productId, { available });
+      if (res) {
+        patchProduct(productId, { available });
+        onStatsChange?.();
+      }
     },
-    [patchProduct, t],
+    [patchProduct, t, onStatsChange],
   );
 
   const openForm = useCallback(
@@ -97,12 +107,13 @@ export default function ProductsTable({
           setItemsRef.current?.((prev) =>
             prev.filter((item) => item.itemId !== product.itemId),
           );
+          onStatsChange?.();
         }
       } catch (error) {
         // The shared request utility already surfaces the error.
       }
     },
-    [t],
+    [t, onStatsChange],
   );
 
   const columns = useMemo(

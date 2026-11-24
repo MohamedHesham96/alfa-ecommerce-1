@@ -22,6 +22,7 @@ import CartTable from "./CartTable";
 import Select from "react-select";
 import FulfillmentOptions from "./FulfillmentOptions";
 import DeliveryAddressSelector from "./DeliveryAddressSelector";
+import BankTransferDetails from "../../components/BankTransferDetails";
 import {
   FULFILLMENT_TYPE,
   buildOrderPayload,
@@ -55,6 +56,10 @@ export default function Cart({ setShowSignIn }) {
   const navigate = useRouter();
   const [paymentMethod, setPaymentMethod] = useState();
   const instapayEnabled = useAppConfig("payments.instapay.enabled", true);
+  const instapayBankAccountEnabled = useAppConfig(
+    "payments.instapayBankAccount.enabled",
+    true,
+  );
   const cashOnDeliveryEnabled = useAppConfig(
     "payments.cashOnDelivery.enabled",
     true,
@@ -76,6 +81,14 @@ export default function Cart({ setShowSignIn }) {
   const paymentMethodOptions = [
     ...(instapayEnabled
       ? [{ value: "INSTAPAY", label: t("INSTAPAY") }]
+      : []),
+    ...(instapayBankAccountEnabled
+      ? [
+          {
+            value: "INSTAPAY_BANK_ACCOUNT",
+            label: t("INSTAPAY_BANK_ACCOUNT"),
+          },
+        ]
       : []),
     ...(cashOnDeliveryEnabled
       ? [{ value: "CASH_ON_DELIVERY", label: t("CASH_ON_DELIVERY") }]
@@ -671,6 +684,11 @@ export default function Cart({ setShowSignIn }) {
                   }}
                 />
               </div>
+
+              <BankTransferDetails
+                paymentMethod={paymentMethod}
+                className="mb-5"
+              />
 
               <hr className="my-6" />
               <div className="flex justify-between items-center text-xl font-semibold">

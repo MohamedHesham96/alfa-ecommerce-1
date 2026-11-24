@@ -1,45 +1,22 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { FiArrowUpRight } from "react-icons/fi";
 
 import { useLanguage } from "../../../../context/LanguageContext.js";
 import { useNamePageInAdminContext } from "../../../../context/namePageInAdmin.jsx";
-import { getRequest } from "../../../../utils/requestsUtils.js";
 import { DataTable } from "../../components/data-table";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { createDashboardColumns } from "../../config/dashboardTable.config";
+import { useDashboardSummary } from "../context/DashboardSummaryContext";
 
 export default function RecentOrders_table() {
   const { t } = useLanguage();
   const { setSelectedNamePage } = useNamePageInAdminContext();
-  const [pendingOrders, setPendingOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { summary, loading, error, reload } = useDashboardSummary();
+  const pendingOrders = summary?.pendingOrders ?? [];
   const router = useRouter();
-
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        setLoading(true);
-        const response = await getRequest("/api/admin/dashboard");
-        if (alive) {
-          setPendingOrders(response.data?.pendingOrders ?? []);
-          setError(null);
-        }
-      } catch (requestError) {
-        if (alive) setError(requestError);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    };
-    load();
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   const goToOrder = (orderId) => {
     router.push(`/admin/orders/OrdersDetails/${orderId}`);
@@ -145,6 +122,7 @@ export default function RecentOrders_table() {
           table={table}
           loading={loading}
           error={error}
+          onRetry={reload}
           mobileCard={renderMobileCard}
           onRowClick={(order) => goToOrder(order.orderId)}
           mobileWrapperClassName="lg:hidden"

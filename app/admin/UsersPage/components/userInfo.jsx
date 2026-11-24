@@ -62,12 +62,26 @@ export default function UserInfo({ userId }) {
       address: resData.address,
       birthDate: resData.birthDate,
     }));
-    resData.ordersState.map((state) => {
-      setOrderState((prevState) => ({
-        ...prevState,
-        [state.state]: state.count,
-      }));
+    const stateCounts = {
+      PROCESSING: 0,
+      PENDING: 0,
+      DELIVERED: 0,
+      SHIPPED: 0,
+    };
+    (resData.ordersState ?? []).forEach((state) => {
+      stateCounts[state.state] = Number(state.count) || 0;
     });
+    setOrderState(stateCounts);
+
+    const stateTotal = Object.values(stateCounts).reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+    setTotalOrders(
+      resData.ordersCount !== null && resData.ordersCount !== undefined
+        ? Number(resData.ordersCount) || 0
+        : stateTotal,
+    );
   };
 
   const addBlock = async () => {

@@ -15,7 +15,7 @@ import { toast } from "react-toastify";
 import { useRefresh } from "../../../context/refreshContext";
 import { useMenuOpen } from "../../../context/MenuOpenContext";
 import { FiHeart } from "react-icons/fi";
-import { PiListBold, PiUser } from "react-icons/pi";
+import { PiArrowUUpLeft, PiListBold, PiPackage, PiUser } from "react-icons/pi";
 import CartDrawer from "./CartDrawer";
 import AuthModal from "../../components/auth/AuthModal";
 import { useCartDrawerOpen } from "../../../context/CartDrawerOpenContext";
@@ -33,6 +33,21 @@ const SignUp_Form = dynamic(() => import("../../components/SignUp_Form"), {
   ssr: false,
   loading: () => <div className="p-8 text-center text-sm text-gray-500">...</div>,
 });
+
+function CustomerBarLink({ href, icon, label }) {
+  return (
+    <Link
+      href={href}
+      prefetch={false}
+      className="group inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold text-white ring-1 ring-white/15 transition duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-[#a11f33] hover:shadow-lg hover:shadow-[#0d0625]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+    >
+      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-white transition-colors duration-200 group-hover:bg-[#d63b4d]">
+        {icon}
+      </span>
+      <span>{label}</span>
+    </Link>
+  );
+}
 
 export default function Header() {
   const { t } = useLanguage();
@@ -418,63 +433,79 @@ setSearchInput(decodeSearchInput(lastPort))
           </div>
         </div>
       </div>
-      <div className="w-full px-6 bg-[#d63b4d]  py-3">
-        <div className="xs:hidden lg:flex text-white">
-          <div className="w-full flex justify-between ">
-            <div className="w-full flex"></div>
-            <div className="w-full flex justify-end items-center gap-5">
-              {wishlistEnabled && !isAdmin ? (
-                <div className="">
-                  <Link href="/user/wishlist" prefetch={false} className="xs:hidden lg:flex items-center gap-1">
-                    <FiHeart className="w-5 h-5 " />
-                    <span className=" font-semibold ">{t("wishlist")} </span>
-                  </Link>
-                </div>
+      <div className="relative w-full overflow-hidden bg-gradient-to-l from-[#b8243b] via-[#d63b4d] to-[#e14a5c] shadow-[0_12px_30px_-18px_rgba(13,6,37,0.85)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_180%_at_50%_-45%,rgba(255,255,255,0.42),transparent_58%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/30" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[#0d0625]/15" />
+
+        <div className="relative mx-auto hidden w-full items-center justify-between gap-4 px-6 py-2.5 lg:flex">
+          <nav className="flex items-center gap-1.5">
+            {wishlistEnabled && !isAdmin ? (
+              <CustomerBarLink
+                href="/user/wishlist"
+                icon={<FiHeart className="h-4 w-4" />}
+                label={t("wishlist")}
+              />
+            ) : null}
+            {!isAdmin && userId ? (
+              <>
+                <CustomerBarLink
+                  href="/user/ordershistory"
+                  icon={<PiPackage className="h-4 w-4" />}
+                  label={t("orders")}
+                />
+                <CustomerBarLink
+                  href="/user/returnorders"
+                  icon={<PiArrowUUpLeft className="h-4 w-4" />}
+                  label={t("returns")}
+                />
+              </>
+            ) : null}
+          </nav>
+
+          <button
+            type="button"
+            aria-label={
+              isAdmin
+                ? t("dashboard")
+                : hasSession || username
+                  ? t("personalAccount")
+                  : t("login") + " / " + t("register")
+            }
+            className="group inline-flex items-center gap-2.5 rounded-full bg-white px-2.5 py-1.5 text-start shadow-[0_8px_24px_-10px_rgba(13,6,37,0.55)] ring-1 ring-white/70 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-10px_rgba(13,6,37,0.7)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            onClick={() => {
+              if (isAdmin) {
+                navigate.push("/admin/Dashboard");
+              } else if (userId) {
+                navigate.push("/user/profile");
+              } else {
+                setShowSignUp(false);
+                setShowSignIn(true);
+                setOpenForm(true);
+              }
+            }}
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0d0625] text-white ring-2 ring-[#d63b4d]/20 transition-colors duration-200 group-hover:bg-[#d63b4d]">
+              <PiUser className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <span className="flex min-w-0 flex-col items-start pe-1 leading-tight">
+              {!isAdmin && username ? (
+                <span className="text-[10px] font-semibold text-[#b8243b]/70">
+                  {t("hello")}
+                </span>
               ) : null}
-              <hr className="w-px h-5 bg-gray-50 "></hr>
-              <button
-                type="button"
-                aria-label={
-                  isAdmin
-                    ? t("dashboard")
-                    : hasSession || username
-                      ? t("personalAccount")
-                      : t("login") + " / " + t("register")
-                }
-                className="items-center gap-1 rounded flex transition hover:text-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                onClick={() => {
-                  if (isAdmin) {
-                    navigate.push("/admin/Dashboard");
-                  } else if (userId) {
-                    navigate.push("/user/profile");
-                  } else {
-                    setShowSignUp(false);
-                    setShowSignIn(true);
-                    setOpenForm(true);
-                  }
-                }}
-              >
-                <span className="w-6 h-6 font-bold xs:hidden lg:block">
-                  <PiUser className="w-full h-full" aria-hidden="true" />
-                </span>
-                <span className="font-semibold text-center">
-                  {isAdmin
-                    ? t("dashboard")
-                    : username
-                      ? username
-                      : t("login") + " / " + t("register")}
-                </span>
-              </button>
-            </div>
-          </div>
-
-
+              <span className="max-w-[190px] truncate text-sm font-bold text-[#7f1d2d]">
+                {isAdmin
+                  ? t("dashboard")
+                  : username
+                    ? username
+                    : t("login") + " / " + t("register")}
+              </span>
+            </span>
+          </button>
         </div>
 
-        <div
-          className="xs:flex lg:hidden items-center bg-white justify-start border-2 w-full bg-none h-10   rounded-full"
-
-        >
+        <div className="relative mx-6 my-3 flex h-10 items-center justify-start rounded-full border-2 border-white bg-white lg:hidden">
           <button
             className="text-white h-full border-2 rounded-full text-2xl bg-[#e14a5c] p-1 "
             aria-label={t("search")}

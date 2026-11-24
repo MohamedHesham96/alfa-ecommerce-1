@@ -31,7 +31,7 @@ function initials(name) {
     .toUpperCase();
 }
 
-export default function AccountsTable({ mode, setIsFormOpen }) {
+export default function AccountsTable({ mode, setIsFormOpen, onStatsChange }) {
   const { t, locale } = useLanguage();
   const { refreshKey } = useRefresh();
   const router = useRouter();
@@ -64,9 +64,10 @@ export default function AccountsTable({ mode, setIsFormOpen }) {
             user.userId === userId ? { ...user, blocked } : user,
           ),
         );
+        onStatsChange?.();
       }
     },
-    [t],
+    [t, onStatsChange],
   );
 
   const columns = useMemo(

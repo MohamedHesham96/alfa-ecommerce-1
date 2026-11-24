@@ -30,6 +30,7 @@ jest.mock("../app/admin/services/systemConfigurationService", () => ({
 
 import SystemSettingsPage from "../app/admin/SystemSettings/page";
 import {
+  bulkUpdateSystemConfiguration,
   fetchConfigurationAudit,
   fetchSystemConfiguration,
   resetAllSystemConfiguration,
@@ -303,6 +304,110 @@ describe("system settings admin screen", () => {
       );
     });
     expect(mockRefresh).toHaveBeenCalled();
+  });
+
+  it("renders grouped settings as one card and saves their changes together", async () => {
+    const user = userEvent.setup();
+    const group = {
+      category: "payments",
+      groupKey: "payments.instapayBankAccount",
+      groupDisplayName: "InstaPay (bank account)",
+      groupDisplayNameAr: "إنستاباي (حساب بنكي)",
+    };
+    const enabled = setting(
+      {
+        ...group,
+        key: "payments.instapayBankAccount.enabled",
+        displayName: "InstaPay (bank account) payment",
+        displayNameAr: "الدفع عبر إنستاباي (حساب بنكي)",
+        description: "Enables the payment method.",
+        descriptionAr: "يفعّل طريقة الدفع.",
+      },
+      { value: true },
+    );
+    const accountName = setting(
+      {
+        ...group,
+        key: "payments.instapayBankAccount.accountName",
+        type: "STRING",
+        displayName: "Account name",
+        displayNameAr: "اسم الحساب",
+        description: "Account holder name.",
+        descriptionAr: "اسم صاحب الحساب.",
+        defaultValue: "كيرلس ابراهيم عثم ملك",
+        featureFlag: false,
+        frontendExposed: true,
+        publicExposed: true,
+        constraints: {
+          min: null,
+          max: null,
+          minLength: null,
+          maxLength: 120,
+          pattern: null,
+          required: false,
+          nullable: false,
+          multiline: false,
+          elementType: null,
+          requiredJsonFields: [],
+        },
+      },
+      { value: "كيرلس ابراهيم عثم ملك" },
+    );
+    const groupedResponse = {
+      categories: [
+        {
+          code: "payments",
+          displayName: "Payments",
+          displayNameAr: "المدفوعات",
+          description: "",
+          descriptionAr: "",
+          order: 130,
+          settingCount: 2,
+        },
+      ],
+      settings: [enabled, accountName],
+      generatedAt: Date.now(),
+      cacheTtlSeconds: 30,
+      viewer: { ...internalViewer, visibleSettingCount: 2 },
+    };
+    fetchSystemConfiguration.mockResolvedValue(groupedResponse);
+    bulkUpdateSystemConfiguration.mockResolvedValue({
+      ...groupedResponse,
+      settings: [
+        enabled,
+        {
+          ...accountName,
+          value: "Alfa Group",
+          source: "DATABASE",
+          overridden: true,
+          storedVersion: 0,
+        },
+      ],
+    });
+
+    render(<SystemSettingsPage />);
+    await screen.findByText("إنستاباي (حساب بنكي)");
+
+    const card = screen.getByText("إنستاباي (حساب بنكي)").closest("article");
+    expect(within(card).getByText("اسم الحساب")).toBeInTheDocument();
+    expect(
+      within(card).getByText("الدفع عبر إنستاباي (حساب بنكي)"),
+    ).toBeInTheDocument();
+
+    const input = within(card).getByDisplayValue("كيرلس ابراهيم عثم ملك");
+    await user.clear(input);
+    await user.type(input, "Alfa Group");
+    await user.click(within(card).getByRole("button", { name: "حفظ" }));
+
+    await waitFor(() => {
+      expect(bulkUpdateSystemConfiguration).toHaveBeenCalledWith([
+        {
+          key: "payments.instapayBankAccount.accountName",
+          value: "Alfa Group",
+          version: 0,
+        },
+      ]);
+    });
   });
 
   it("loads, validates, and saves the order notification email", async () => {

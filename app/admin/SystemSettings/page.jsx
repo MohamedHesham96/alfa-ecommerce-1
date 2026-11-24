@@ -93,6 +93,20 @@ function activationLabel(activation, isArabic) {
   }
 }
 
+function groupTitle(settings, isArabic) {
+  const named = settings.find(
+    (setting) =>
+      setting.definition.groupDisplayName ||
+      setting.definition.groupDisplayNameAr,
+  );
+  if (named) {
+    return isArabic
+      ? named.definition.groupDisplayNameAr || named.definition.groupDisplayName
+      : named.definition.groupDisplayName;
+  }
+  return settings[0]?.definition.displayName || "";
+}
+
 function constraintsSummary(definition, isArabic) {
   const constraints = definition.constraints || {};
   const parts = [];
@@ -219,11 +233,38 @@ export default function SystemSettingsPage() {
         definition.displayNameAr,
         definition.description,
         definition.descriptionAr,
+        definition.groupDisplayName,
+        definition.groupDisplayNameAr,
       ]
         .filter(Boolean)
         .some((text) => String(text).toLowerCase().includes(query));
     });
   }, [settings, search, category, typeFilter]);
+
+  const settingBlocks = useMemo(() => {
+    const blocks = [];
+    const groupIndexes = new Map();
+    filteredSettings.forEach((setting) => {
+      const groupKey = setting.definition.groupKey;
+      if (!groupKey) {
+        blocks.push({
+          key: setting.definition.key,
+          settings: [setting],
+        });
+        return;
+      }
+      if (!groupIndexes.has(groupKey)) {
+        groupIndexes.set(groupKey, blocks.length);
+        blocks.push({
+          key: `group:${groupKey}`,
+          groupKey,
+          settings: [],
+        });
+      }
+      blocks[groupIndexes.get(groupKey)].settings.push(setting);
+    });
+    return blocks;
+  }, [filteredSettings]);
 
   const draftFor = (setting) => drafts[setting.definition.key];
 
@@ -412,6 +453,48 @@ export default function SystemSettingsPage() {
     }
   };
 
+  const handleGroupSave = async (groupSettings) => {
+    if (readOnly) return;
+    const updates = groupSettings
+      .map((setting) => {
+        const draft = drafts[setting.definition.key];
+        if (!draft || deepEqual(draft.value, setting.value)) return null;
+        return {
+          key: setting.definition.key,
+          value: draft.value,
+          version: draft.version,
+        };
+      })
+      .filter(Boolean);
+    if (!updates.length) return;
+
+    setBulkSaving(true);
+    try {
+      const result = await bulkUpdateSystemConfiguration(updates);
+      setData(result || EMPTY_DATA);
+      const savedKeys = new Set(updates.map((update) => update.key));
+      setDrafts((previous) => {
+        const next = { ...previous };
+        savedKeys.forEach((key) => delete next[key]);
+        return next;
+      });
+      setValidationErrors((previous) => {
+        const next = { ...previous };
+        savedKeys.forEach((key) => delete next[key]);
+        return next;
+      });
+      toast.success(isArabic ? "تم حفظ الإعدادات." : "Settings saved.");
+      refreshRuntimeConfig().catch(() => {});
+    } catch (saveError) {
+      const errors = extractValidationErrors(saveError);
+      if (Object.keys(errors).length) {
+        setValidationErrors((previous) => ({ ...previous, ...errors }));
+      }
+    } finally {
+      setBulkSaving(false);
+    }
+  };
+
   const openAudit = async () => {
     if (!isInternalAdmin) return;
     setAuditOpen(true);
@@ -452,6 +535,357 @@ export default function SystemSettingsPage() {
   const discardChanges = () => {
     setDrafts({});
     setValidationErrors({});
+  };
+
+  const renderGroupMember = (setting) => {
+    const definition = setting.definition;
+    const key = definition.key;
+    const draft = draftFor(setting);
+    const controlValue = draft ? draft.value : setting.value;
+    const dirty = draft && !deepEqual(draft.value, setting.value);
+    const disabled = readOnly || !definition.editable || definition.readOnly;
+    const isVisibilitySaving = Boolean(visibilitySaving[key]);
+    const visibilityHint = setting.clientVisibilityConfigurable
+      ? isArabic
+        ? "يظهر فقط عند تفعيل الوصول العام لمديري العملاء."
+        : "Shown only when global client access is enabled."
+      : isArabic
+        ? "هذا الإعداد خاص بالإدارة الداخلية ولا يمكن كشفه."
+        : "This control is internal-only and can never be exposed.";
+
+    return (
+      <div
+        key={key}
+        className={`py-2.5 ${
+          dirty
+            ? "-mx-2 rounded-lg bg-[var(--admin-warning-soft)] px-2"
+            : ""
+        }`}
+      >
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
+          <div className="sm:w-56 sm:shrink-0">
+            <p className="text-xs font-semibold text-[var(--admin-ink)]">
+              {isArabic
+                ? definition.displayNameAr || definition.displayName
+                : definition.displayName}
+            </p>
+            {definition.description || definition.descriptionAr ? (
+              <p className="mt-0.5 text-[11px] leading-4 text-[var(--admin-muted)]">
+                {isArabic
+                  ? definition.descriptionAr || definition.description
+                  : definition.description}
+              </p>
+            ) : null}
+          </div>
+          <div className="min-w-[180px] flex-1">
+            <SettingControl
+              definition={definition}
+              value={controlValue}
+              onChange={(value) => handleChange(setting, value)}
+              disabled={disabled}
+              locale={locale}
+              hasStoredValue={Boolean(setting.hasStoredValue || setting.overridden)}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+            {definition.featureFlag ? (
+              <Badge tone="purple">{isArabic ? "ميزة" : "Feature"}</Badge>
+            ) : null}
+            {setting.overridden || setting.invalidStoredValue ? (
+              <button
+                type="button"
+                onClick={() => setPendingReset(setting)}
+                disabled={disabled}
+                className="text-[11px] font-semibold text-[var(--admin-primary-hover)] underline disabled:opacity-50"
+              >
+                {isArabic ? "إعادة التعيين" : "Reset"}
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {isInternalAdmin ? (
+          <label
+            className="mt-1 flex w-fit items-center gap-2 text-[11px] font-semibold text-[var(--admin-ink-soft)]"
+            title={visibilityHint}
+          >
+            <input
+              type="checkbox"
+              checked={Boolean(setting.visibleToClientAdmins)}
+              disabled={isVisibilitySaving || !setting.clientVisibilityConfigurable}
+              onChange={(event) =>
+                handleVisibilityChange(setting, event.target.checked)
+              }
+              className="h-3.5 w-3.5 rounded border-[var(--admin-border-strong)] text-[var(--admin-primary-hover)] focus:ring-[var(--admin-primary-hover)]"
+            />
+            {isArabic ? "مرئي لمديري العملاء" : "Visible to client admins"}
+          </label>
+        ) : null}
+
+        {validationErrors[key] ? (
+          <p className="mt-1 text-[11px] font-semibold text-[var(--admin-danger)]" role="alert">
+            {validationErrors[key]}
+          </p>
+        ) : null}
+        {setting.source === "INVALID_FALLBACK" ? (
+          <p className="mt-1 text-[11px] font-semibold text-[var(--admin-danger)]">
+            {isArabic
+              ? "القيمة المخزنة غير صالحة؛ الافتراضي فعال"
+              : "Stored value is invalid; default is effective"}
+          </p>
+        ) : null}
+      </div>
+    );
+  };
+
+  const renderGroupCard = (block) => {
+    const groupDirtyCount = block.settings.filter((setting) => {
+      const draft = drafts[setting.definition.key];
+      return draft && !deepEqual(draft.value, setting.value);
+    }).length;
+
+    return (
+      <article key={block.key} className="admin-card p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-sm font-semibold text-[var(--admin-ink)]">
+                {groupTitle(block.settings, isArabic)}
+              </h2>
+              {groupDirtyCount ? (
+                <Badge tone="amber">
+                  {isArabic
+                    ? `${groupDirtyCount} غير محفوظ`
+                    : `${groupDirtyCount} unsaved`}
+                </Badge>
+              ) : null}
+            </div>
+            <p className="mt-0.5 text-[11px] text-[var(--admin-muted)]">
+              {isArabic
+                ? "إعدادات مرتبطة تظهر معًا."
+                : "Related settings shown together."}
+            </p>
+          </div>
+          {!readOnly ? (
+            <button
+              type="button"
+              onClick={() => handleGroupSave(block.settings)}
+              disabled={!groupDirtyCount || bulkSaving}
+              className="admin-btn admin-btn-primary admin-btn-xs"
+            >
+              {bulkSaving
+                ? isArabic
+                  ? "جارٍ الحفظ..."
+                  : "Saving..."
+                : isArabic
+                  ? "حفظ"
+                  : "Save"}
+            </button>
+          ) : (
+            <span className="admin-badge admin-badge-blue">
+              {isArabic ? "للقراءة فقط" : "Read only"}
+            </span>
+          )}
+        </div>
+
+        <div className="mt-1.5 divide-y divide-[var(--admin-border-subtle)]">
+          {block.settings.map((setting) => renderGroupMember(setting))}
+        </div>
+
+        {!readOnly ? (
+          <p className="mt-1.5 text-[11px] text-[var(--admin-muted)]">
+            {isArabic
+              ? "تُحفظ الحقول المعدّلة في هذا القسم معًا."
+              : "Changed fields in this section are saved together."}
+          </p>
+        ) : null}
+      </article>
+    );
+  };
+
+  const renderSettingCard = (setting) => {
+    const definition = setting.definition;
+    const key = definition.key;
+    const draft = draftFor(setting);
+    const controlValue = draft ? draft.value : setting.value;
+    const dirty = draft && !deepEqual(draft.value, setting.value);
+    const disabled = readOnly || !definition.editable || definition.readOnly;
+    const isSaving = Boolean(saving[key]);
+    const isVisibilitySaving = Boolean(visibilitySaving[key]);
+    const metadata = [
+      {
+        label: isArabic ? "القيمة الفعالة" : "Effective",
+        value: formatValue(setting.value, definition.sensitive),
+      },
+      {
+        label: isArabic ? "الافتراضي" : "Default",
+        value: formatValue(definition.defaultValue, definition.sensitive),
+      },
+      {
+        label: isArabic ? "المصدر" : "Source",
+        value: sourceLabel(setting.source, isArabic),
+      },
+      {
+        label: isArabic ? "التفعيل" : "Activation",
+        value: activationLabel(definition.activation, isArabic),
+      },
+    ];
+    const constraints = constraintsSummary(definition, isArabic);
+    const visibilityHint = setting.clientVisibilityConfigurable
+      ? isArabic
+        ? "يظهر فقط عند تفعيل الوصول العام لمديري العملاء."
+        : "Shown only when global client access is enabled."
+      : isArabic
+        ? "هذا الإعداد خاص بالإدارة الداخلية ولا يمكن كشفه."
+        : "This control is internal-only and can never be exposed.";
+
+    return (
+      <article
+        key={key}
+        className={`admin-card p-3 ${
+          dirty ? "!border-[var(--admin-warning-border)] !bg-[var(--admin-warning-soft)]" : ""
+        }`}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <h2 className="text-sm font-semibold text-[var(--admin-ink)]">
+                {isArabic
+                  ? definition.displayNameAr || definition.displayName
+                  : definition.displayName}
+              </h2>
+              <code className="break-all text-[11px] text-[var(--admin-muted)]">
+                {key}
+              </code>
+            </div>
+            <p className="mt-0.5 text-xs leading-5 text-[var(--admin-muted)]">
+              {isArabic
+                ? definition.descriptionAr || definition.description
+                : definition.description}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            <Badge tone="blue">{definition.type}</Badge>
+            {definition.featureFlag ? (
+              <Badge tone="purple">{isArabic ? "ميزة" : "Feature"}</Badge>
+            ) : null}
+            {definition.sensitive ? (
+              <Badge tone="amber">{isArabic ? "حساس" : "Sensitive"}</Badge>
+            ) : null}
+            {definition.readOnly ? (
+              <Badge tone="gray">{isArabic ? "للقراءة فقط" : "Read only"}</Badge>
+            ) : null}
+            {definition.experimental ? (
+              <Badge tone="amber">{isArabic ? "تجريبي" : "Experimental"}</Badge>
+            ) : null}
+            {definition.deprecated ? (
+              <Badge tone="red">{isArabic ? "مهجور" : "Deprecated"}</Badge>
+            ) : null}
+            {definition.requiresRestart ? (
+              <Badge tone="red">
+                {isArabic ? "يتطلب إعادة تشغيل" : "Restart required"}
+              </Badge>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className="min-w-[200px] flex-1">
+            <SettingControl
+              definition={definition}
+              value={controlValue}
+              onChange={(value) => handleChange(setting, value)}
+              disabled={disabled}
+              locale={locale}
+              hasStoredValue={Boolean(setting.hasStoredValue || setting.overridden)}
+            />
+          </div>
+          {!readOnly ? (
+            <>
+              <button
+                type="button"
+                onClick={() => handleSave(setting)}
+                disabled={!dirty || isSaving || disabled}
+                className="admin-btn admin-btn-primary admin-btn-xs"
+              >
+                {isSaving
+                  ? isArabic
+                    ? "جارٍ الحفظ..."
+                    : "Saving..."
+                  : isArabic
+                    ? "حفظ"
+                    : "Save"}
+              </button>
+              {setting.overridden || setting.invalidStoredValue ? (
+                <button
+                  type="button"
+                  onClick={() => setPendingReset(setting)}
+                  disabled={disabled}
+                  className="admin-btn admin-btn-secondary admin-btn-xs"
+                >
+                  {isArabic ? "إعادة التعيين إلى الافتراضي" : "Reset to default"}
+                </button>
+              ) : null}
+            </>
+          ) : (
+            <span className="admin-badge admin-badge-blue">
+              {isArabic ? "للقراءة فقط" : "Read only"}
+            </span>
+          )}
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] leading-5 text-[var(--admin-muted)]">
+          {metadata.map((item) => (
+            <span key={item.label} className="inline-flex items-center gap-1">
+              <span className="font-semibold">{item.label}:</span>
+              <span className="text-[var(--admin-ink-soft)]">{item.value}</span>
+            </span>
+          ))}
+          {constraints ? (
+            <span className="basis-full text-[var(--admin-muted-soft)]">
+              {constraints}
+            </span>
+          ) : null}
+        </div>
+
+        {isInternalAdmin ? (
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--admin-border-subtle)] pt-2">
+            <label
+              className="flex items-center gap-2 text-[11px] font-semibold text-[var(--admin-ink-soft)]"
+              title={visibilityHint}
+            >
+              <input
+                type="checkbox"
+                checked={Boolean(setting.visibleToClientAdmins)}
+                disabled={isVisibilitySaving || !setting.clientVisibilityConfigurable}
+                onChange={(event) =>
+                  handleVisibilityChange(setting, event.target.checked)
+                }
+                className="h-3.5 w-3.5 rounded border-[var(--admin-border-strong)] text-[var(--admin-primary-hover)] focus:ring-[var(--admin-primary-hover)]"
+              />
+              {isVisibilitySaving
+                ? isArabic
+                  ? "جارٍ الحفظ..."
+                  : "Saving..."
+                : isArabic
+                  ? "مرئي لمديري العملاء"
+                  : "Visible to client admins"}
+            </label>
+            {!setting.clientVisibilityConfigurable ? (
+              <span className="text-[11px] text-[var(--admin-muted)]">
+                {isArabic ? "داخلي فقط" : "Internal only"}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+
+        {validationErrors[key] ? (
+          <p className="mt-1 text-[11px] font-semibold text-[var(--admin-danger)]" role="alert">
+            {validationErrors[key]}
+          </p>
+        ) : null}
+      </article>
+    );
   };
 
   if (loading) {
@@ -691,214 +1125,12 @@ export default function SystemSettingsPage() {
               </button>
             </div>
           ) : (
-            <div className="mt-4 space-y-4">
-              {filteredSettings.map((setting) => {
-                const definition = setting.definition;
-                const key = definition.key;
-                const draft = draftFor(setting);
-                const controlValue = draft ? draft.value : setting.value;
-                const dirty = draft && !deepEqual(draft.value, setting.value);
-                const disabled =
-                  readOnly || !definition.editable || definition.readOnly;
-                const isSaving = Boolean(saving[key]);
-                const isVisibilitySaving = Boolean(visibilitySaving[key]);
-
-                return (
-                  <article
-                    key={key}
-                    className={`admin-card p-4 ${
-                      dirty ? "!border-[var(--admin-warning-border)] !bg-[var(--admin-warning-soft)]" : ""
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h2 className="text-base font-semibold text-[var(--admin-ink)]">
-                          {isArabic
-                            ? definition.displayNameAr || definition.displayName
-                            : definition.displayName}
-                        </h2>
-                        <code className="mt-0.5 block break-all text-xs text-[var(--admin-muted)]">
-                          {key}
-                        </code>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        <Badge tone="blue">{definition.type}</Badge>
-                        {definition.featureFlag ? (
-                          <Badge tone="purple">{isArabic ? "ميزة" : "Feature"}</Badge>
-                        ) : null}
-                        {definition.sensitive ? (
-                          <Badge tone="amber">{isArabic ? "حساس" : "Sensitive"}</Badge>
-                        ) : null}
-                        {definition.readOnly ? (
-                          <Badge tone="gray">{isArabic ? "للقراءة فقط" : "Read only"}</Badge>
-                        ) : null}
-                        {definition.experimental ? (
-                          <Badge tone="amber">{isArabic ? "تجريبي" : "Experimental"}</Badge>
-                        ) : null}
-                        {definition.deprecated ? (
-                          <Badge tone="red">{isArabic ? "مهجور" : "Deprecated"}</Badge>
-                        ) : null}
-                        {definition.requiresRestart ? (
-                          <Badge tone="red">
-                            {isArabic ? "يتطلب إعادة تشغيل" : "Restart required"}
-                          </Badge>
-                        ) : null}
-                        {isInternalAdmin && setting.clientVisibilityConfigurable ? (
-                          <Badge tone={setting.visibleToClientAdmins ? "green" : "gray"}>
-                            {setting.visibleToClientAdmins
-                              ? isArabic
-                                ? "مرئي للعملاء"
-                                : "Client visible"
-                              : isArabic
-                                ? "مخفي عن العملاء"
-                                : "Client hidden"}
-                          </Badge>
-                        ) : null}
-                        {isInternalAdmin && !setting.clientVisibilityConfigurable ? (
-                          <Badge tone="gray">
-                            {isArabic ? "داخلي فقط" : "Internal only"}
-                          </Badge>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    <p className="mt-2 text-sm leading-6 text-[var(--admin-muted)]">
-                      {isArabic
-                        ? definition.descriptionAr || definition.description
-                        : definition.description}
-                    </p>
-
-                    <dl className="mt-3 grid gap-3 rounded-xl border border-[var(--admin-border-subtle)] bg-[var(--admin-surface-muted)] p-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
-                      <Info
-                        label={isArabic ? "القيمة الفعالة" : "Effective value"}
-                        value={formatValue(setting.value, definition.sensitive)}
-                      />
-                      <Info
-                        label={isArabic ? "القيمة الافتراضية" : "Default value"}
-                        value={formatValue(definition.defaultValue, definition.sensitive)}
-                      />
-                      <Info
-                        label={isArabic ? "المصدر" : "Source"}
-                        value={sourceLabel(setting.source, isArabic)}
-                      />
-                      <Info
-                        label={isArabic ? "التفعيل" : "Activation"}
-                        value={activationLabel(definition.activation, isArabic)}
-                      />
-                    </dl>
-
-                    {constraintsSummary(definition, isArabic) ? (
-                      <p className="mt-2 text-xs text-[var(--admin-muted-soft)]">
-                        {constraintsSummary(definition, isArabic)}
-                      </p>
-                    ) : null}
-
-                    {isInternalAdmin ? (
-                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-muted)] px-3 py-2">
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-[var(--admin-ink-soft)]">
-                            {isArabic
-                              ? "مرئي لمديري العملاء"
-                              : "Visible to client administrators"}
-                          </p>
-                          <p className="mt-0.5 text-xs text-[var(--admin-muted)]">
-                            {setting.clientVisibilityConfigurable
-                              ? isArabic
-                                ? "يظهر فقط عند تفعيل الوصول العام."
-                                : "Shown only when global client access is enabled."
-                              : isArabic
-                                ? "هذا الإعداد خاص بالإدارة الداخلية ولا يمكن كشفه."
-                                : "This control is internal-only and can never be exposed."}
-                          </p>
-                        </div>
-                        {setting.clientVisibilityConfigurable ? (
-                          <label className="flex items-center gap-2 text-xs font-semibold text-[var(--admin-ink-soft)]">
-                            <input
-                              type="checkbox"
-                              checked={Boolean(setting.visibleToClientAdmins)}
-                              disabled={isVisibilitySaving}
-                              onChange={(event) =>
-                                handleVisibilityChange(setting, event.target.checked)
-                              }
-                              className="h-4 w-4 rounded border-[var(--admin-border-strong)] text-[var(--admin-primary-hover)] focus:ring-[var(--admin-primary-hover)]"
-                            />
-                            {isVisibilitySaving
-                              ? isArabic
-                                ? "جارٍ الحفظ..."
-                                : "Saving..."
-                              : isArabic
-                                ? "مسموح"
-                                : "Allowed"}
-                          </label>
-                        ) : null}
-                      </div>
-                    ) : null}
-
-                    <div className="mt-3">
-                      <SettingControl
-                        definition={definition}
-                        value={controlValue}
-                        onChange={(value) => handleChange(setting, value)}
-                        disabled={disabled}
-                        locale={locale}
-                        hasStoredValue={Boolean(setting.hasStoredValue || setting.overridden)}
-                      />
-                    </div>
-
-                    {validationErrors[key] ? (
-                      <p className="mt-2 text-xs font-semibold text-[var(--admin-danger)]" role="alert">
-                        {validationErrors[key]}
-                      </p>
-                    ) : null}
-
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {!readOnly ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleSave(setting)}
-                            disabled={!dirty || isSaving || disabled}
-                            className="admin-btn admin-btn-primary admin-btn-xs"
-                          >
-                            {isSaving
-                              ? isArabic
-                                ? "جارٍ الحفظ..."
-                                : "Saving..."
-                              : isArabic
-                                ? "حفظ"
-                                : "Save"}
-                          </button>
-                          {setting.overridden || setting.invalidStoredValue ? (
-                            <button
-                              type="button"
-                              onClick={() => setPendingReset(setting)}
-                              disabled={disabled}
-                              className="admin-btn admin-btn-secondary admin-btn-xs"
-                            >
-                              {isArabic ? "إعادة التعيين إلى الافتراضي" : "Reset to default"}
-                            </button>
-                          ) : null}
-                        </>
-                      ) : (
-                        <span className="admin-badge admin-badge-blue">
-                          {isArabic ? "للقراءة فقط" : "Read only"}
-                        </span>
-                      )}
-                      {setting.source === "DATABASE" ? (
-                        <span className="text-xs font-semibold text-[var(--admin-primary-hover)]">
-                          {isArabic ? "تجاوز محفوظ" : "Stored override"}
-                        </span>
-                      ) : null}
-                      {setting.source === "INVALID_FALLBACK" ? (
-                        <span className="text-xs font-semibold text-[var(--admin-danger)]">
-                          {isArabic
-                            ? "القيمة المخزنة غير صالحة؛ الافتراضي فعال"
-                            : "Stored value is invalid; default is effective"}
-                        </span>
-                      ) : null}
-                    </div>
-                  </article>
-                );
+            <div className="mt-3 space-y-2.5">
+              {settingBlocks.map((block) => {
+                if (block.groupKey) {
+                  return renderGroupCard(block);
+                }
+                return renderSettingCard(block.settings[0]);
               })}
             </div>
           )}
@@ -950,15 +1182,6 @@ export default function SystemSettingsPage() {
           onCancel={() => setConfirmResetAll(false)}
         />
       ) : null}
-    </div>
-  );
-}
-
-function Info({ label, value }) {
-  return (
-    <div className="min-w-0">
-      <dt className="font-semibold text-[var(--admin-muted)]">{label}</dt>
-      <dd className="mt-0.5 break-words text-[var(--admin-ink)]">{value}</dd>
     </div>
   );
 }
