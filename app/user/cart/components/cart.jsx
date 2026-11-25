@@ -58,7 +58,7 @@ export default function Cart({ setShowSignIn }) {
   const instapayEnabled = useAppConfig("payments.instapay.enabled", true);
   const instapayBankAccountEnabled = useAppConfig(
     "payments.instapayBankAccount.enabled",
-    true,
+    false,
   );
   const cashOnDeliveryEnabled = useAppConfig(
     "payments.cashOnDelivery.enabled",
