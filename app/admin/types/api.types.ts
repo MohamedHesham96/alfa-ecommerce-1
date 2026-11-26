@@ -110,6 +110,18 @@ export interface ShippingRateRow {
   modifiedDate?: string | null;
 }
 
+export interface AreaRow {
+  areaId: number;
+  governorate?: GovernorateSummary | null;
+  nameAr: string;
+  nameEn: string;
+  shippingCost: number;
+  createdDate?: string | null;
+  createdBy?: string | null;
+  modifiedDate?: string | null;
+  modifiedBy?: string | null;
+}
+
 export interface PickupPlaceRow {
   pickupPlaceId: number;
   name: string;

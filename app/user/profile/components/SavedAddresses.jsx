@@ -7,22 +7,32 @@ import Select from "react-select";
 import { toast } from "react-toastify";
 
 import { useLanguage } from "../../../../context/LanguageContext";
+import { useFeature } from "../../../../context/AppConfigContext";
 import {
   deleteRequest,
   getRequest,
   postRequest,
   putRequest,
 } from "../../../../utils/requestsUtils";
+import DeliveryAreaSelect from "../../components/DeliveryAreaSelect";
+import {
+  areaDisplayName,
+  findAreaById,
+  shouldShowAreaSelector,
+} from "../../components/deliveryAreas";
+import { useGovernorateAreas } from "../../components/useGovernorateAreas";
 
 const EMPTY_FORM = {
   label: "",
   address: "",
   governorateId: "",
+  areaId: "",
   defaultAddress: false,
 };
 
 export default function SavedAddresses({ onChanged }) {
   const { t, locale } = useLanguage();
+  const areasEnabled = useFeature("shipping.areas.enabled");
   const [addresses, setAddresses] = useState([]);
   const [governorates, setGovernorates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +41,13 @@ export default function SavedAddresses({ onChanged }) {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const {
+    areas,
+    loading: areasLoading,
+    error: areasError,
+    reload: reloadAreas,
+    loadedFor: areasLoadedFor,
+  } = useGovernorateAreas(form.governorateId, areasEnabled);
 
   const loadAddresses = useCallback(async () => {
     setLoading(true);
@@ -80,6 +97,17 @@ export default function SavedAddresses({ onChanged }) {
     [governorates, form.governorateId],
   );
 
+  // When the governorate (and therefore the area list) changes, an area from
+  // the previous governorate must never remain selected.
+  useEffect(() => {
+    if (areasLoading) return;
+    if (!form.areaId) return;
+    if (areasLoadedFor !== String(form.governorateId)) return;
+    if (!findAreaById(areas, form.areaId)) {
+      setForm((previous) => ({ ...previous, areaId: "" }));
+    }
+  }, [areas, areasLoading, areasLoadedFor, form.areaId, form.governorateId]);
+
   const openAdd = () => {
     setEditingId(null);
     setForm({ ...EMPTY_FORM, defaultAddress: addresses.length === 0 });
@@ -93,6 +121,9 @@ export default function SavedAddresses({ onChanged }) {
       address: address.address || "",
       governorateId:
         address.governorateId ?? address.governorate?.governorateId ?? "",
+      areaId: areasEnabled
+        ? (address.areaId ?? address.area?.areaId ?? "")
+        : "",
       defaultAddress: Boolean(address.defaultAddress),
     });
     setIsFormOpen(true);
@@ -114,11 +145,27 @@ export default function SavedAddresses({ onChanged }) {
       toast.error(t("field_required"));
       return;
     }
+    if (areasEnabled && areasLoading) {
+      toast.error(t("loading_areas"));
+      return;
+    }
+    if (areasEnabled && areasError) {
+      toast.error(t("areas_load_error"));
+      return;
+    }
+    if (areasEnabled && shouldShowAreaSelector(areas) && !form.areaId) {
+      toast.error(t("area_required"));
+      return;
+    }
 
     const payload = {
       label: form.label.trim() || null,
       address: form.address.trim(),
       governorateId: Number(form.governorateId),
+      areaId:
+        areasEnabled && shouldShowAreaSelector(areas) && form.areaId
+          ? Number(form.areaId)
+          : null,
       defaultAddress: Boolean(form.defaultAddress),
     };
 
@@ -168,6 +215,10 @@ export default function SavedAddresses({ onChanged }) {
     locale === "ar"
       ? address.governorate?.nameAr
       : address.governorate?.nameEn;
+
+  const addressAreaName = (address) =>
+    areaDisplayName(address.area, locale) ||
+    (address.areaId ? `#${address.areaId}` : "");
 
   return (
     <div className="w-full bg-white rounded-3xl mb-10">
@@ -246,6 +297,9 @@ export default function SavedAddresses({ onChanged }) {
                       {governorateName(address) ? (
                         <p className="mt-1 text-xs text-gray-500">
                           {governorateName(address)}
+                          {addressAreaName(address)
+                            ? ` · ${addressAreaName(address)}`
+                            : ""}
                         </p>
                       ) : null}
                     </div>
@@ -316,7 +370,12 @@ export default function SavedAddresses({ onChanged }) {
                     options={governorates}
                     value={selectedGovernorate}
                     onChange={(option) =>
-                      setField("governorateId", option?.value ?? "")
+                      setForm((previous) => ({
+                        ...previous,
+                        governorateId: option?.value ?? "",
+                        // Never carry an area across governorates.
+                        areaId: "",
+                      }))
                     }
                     isSearchable={false}
                     placeholder=""
@@ -342,6 +401,20 @@ export default function SavedAddresses({ onChanged }) {
                   />
                 </div>
               </div>
+              {areasEnabled && form.governorateId ? (
+                <div className="sm:col-span-2">
+                  <DeliveryAreaSelect
+                    id="saved-address-area"
+                    areas={areas}
+                    value={form.areaId}
+                    onChange={(areaId) => setField("areaId", areaId ?? "")}
+                    loading={areasLoading}
+                    error={areasError}
+                    onRetry={reloadAreas}
+                    required
+                  />
+                </div>
+              ) : null}
               <div className="flex flex-col gap-2 sm:col-span-2">
                 <label className="text-xs font-semibold text-gray-500">
                   {t("address")}

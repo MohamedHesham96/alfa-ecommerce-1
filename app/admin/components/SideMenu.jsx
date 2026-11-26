@@ -14,6 +14,7 @@ import {
   MdContactSupport,
   MdDashboard,
   MdInsights,
+  MdLocationCity,
   MdOutlineShoppingCart,
   MdSettings,
   MdStorefront,
@@ -111,6 +112,13 @@ const SECTIONS = [
         activeKey: "ShippingCost_management",
         displayName: "ShippingCost Management",
       },
+      {
+        href: "/admin/Areas",
+        labelKey: "areas_management",
+        icon: <MdLocationCity />,
+        activeKey: "areas_management",
+        displayName: "Areas Management",
+      },
     ],
   },
   {
@@ -173,6 +181,7 @@ export default function SideMenu({
   const { canAccess: systemSettingsAccess } = useSystemSettingsAccess();
   const { selectedNamePage, setSelectedNamePage } = useNamePageInAdminContext();
   const pickupEnabled = useAppConfig("pickup.enabled", false);
+  const areasEnabled = useAppConfig("shipping.areas.enabled", false);
   const salesReportEnabled = useAppConfig(
     "features.salesReport.enabled",
     false,
@@ -274,6 +283,7 @@ export default function SideMenu({
     else if (path.includes("returnorderdetails")) pageName = "Returns Management";
     else if (path.includes("SystemSettings")) pageName = "System Settings";
     else if (path.includes("PickupPlaces")) pageName = "Pickup Places Management";
+    else if (path.includes("Areas")) pageName = "Areas Management";
     else if (path.includes("Analytics")) pageName = "Website Analytics";
     setSelectedNamePage(pageName);
   }, [setSelectedNamePage]);
@@ -282,7 +292,8 @@ export default function SideMenu({
     ...section,
     items: section.items.filter(
       (item) =>
-        item.href !== "/admin/Reports/Sales" || salesReportEnabled,
+        (item.href !== "/admin/Reports/Sales" || salesReportEnabled) &&
+        (item.href !== "/admin/Areas" || areasEnabled),
     ),
   }));
 

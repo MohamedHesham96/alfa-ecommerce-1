@@ -31,6 +31,8 @@ export function buildOrderPayload({
     payload.addressId = addressId;
   }
 
+  // The delivery area is intentionally not part of the order payload. It is
+  // fixed by the saved address/profile and can only be changed there.
   return payload;
 }
 

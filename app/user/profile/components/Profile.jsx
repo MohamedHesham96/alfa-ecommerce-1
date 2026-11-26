@@ -12,8 +12,15 @@ import { RiShoppingBag4Fill } from "react-icons/ri";
 import { TbTruckReturn } from "react-icons/tb";
 import Select from "react-select";
 import { getRequest, putRequest, logoutRequest } from "../../../../utils/requestsUtils";
+import { toast } from "react-toastify";
 import ResetPasswordForm from "./ResetPasswordForm";
 import SavedAddresses from "./SavedAddresses";
+import DeliveryAreaSelect from "../../components/DeliveryAreaSelect";
+import {
+  findAreaById,
+  shouldShowAreaSelector,
+} from "../../components/deliveryAreas";
+import { useGovernorateAreas } from "../../components/useGovernorateAreas";
 export default function Profile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -23,13 +30,25 @@ export default function Profile() {
   const [phone, setPhone] = useState("");
   const [governorateId, setGovernorateId] = useState("");
   const [governorate, setGovernorate] = useState("");
+  const [areaId, setAreaId] = useState("");
   const navigate = useRouter();
   const { t, locale } = useLanguage();
   const wishlistEnabled = useFeature("features.wishlist.enabled");
   const multipleAddressesEnabled = useFeature("MULTIPLE_USER_ADDRESSES");
+  const areasEnabled = useFeature("shipping.areas.enabled");
   const [governorates, setGovernorates] = useState([]);
   const [value, setValue] = useState();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const {
+    areas,
+    loading: areasLoading,
+    error: areasError,
+    reload: reloadAreas,
+    loadedFor: areasLoadedFor,
+  } = useGovernorateAreas(
+    governorateId,
+    areasEnabled && !multipleAddressesEnabled,
+  );
 
 
 
@@ -47,6 +66,7 @@ const responce = await getRequest("/api/users")
     setGovernorateId(resData.governorate.governorateId)
     setGovernorate(locale === "ar" ? resData.governorate.nameAr
       : resData.governorate.nameEn)
+    setAreaId(resData.areaId ?? resData.area?.areaId ?? "")
 } catch(error){
   
 }
@@ -54,6 +74,31 @@ const responce = await getRequest("/api/users")
   }, [locale])
   const updateProfile = async (e) => {
     e.preventDefault();
+    if (
+      areasEnabled &&
+      !multipleAddressesEnabled &&
+      areasLoading
+    ) {
+      toast.error(t("loading_areas"));
+      return;
+    }
+    if (
+      areasEnabled &&
+      !multipleAddressesEnabled &&
+      areasError
+    ) {
+      toast.error(t("areas_load_error"));
+      return;
+    }
+    if (
+      areasEnabled &&
+      !multipleAddressesEnabled &&
+      shouldShowAreaSelector(areas) &&
+      !areaId
+    ) {
+      toast.error(t("area_required"));
+      return;
+    }
     try {
       const res = await putRequest(`/api/users`, {
         username: username,
@@ -65,6 +110,13 @@ const responce = await getRequest("/api/users")
           ? value.value
           : governorateId
             ? Number(governorateId)
+            : null,
+        areaId:
+          areasEnabled &&
+          !multipleAddressesEnabled &&
+          shouldShowAreaSelector(areas) &&
+          areaId
+            ? Number(areaId)
             : null,
       }, t("message"));
       getUserData()
@@ -100,6 +152,23 @@ const responce = await getRequest("/api/users")
       getGovernorate();
     }
   }, [governorateId, getGovernorate]);
+
+  useEffect(() => {
+    if (!areasEnabled || multipleAddressesEnabled || areasLoading) return;
+    if (areasLoadedFor !== String(governorateId)) return;
+    if (areaId && !findAreaById(areas, areaId)) {
+      setAreaId("");
+    }
+  }, [
+    areas,
+    areasLoading,
+    areasLoadedFor,
+    areasEnabled,
+    multipleAddressesEnabled,
+    areaId,
+    governorateId,
+  ]);
+
   useEffect(() => {
     getUserData()
   }, [getUserData]);
@@ -253,7 +322,12 @@ const responce = await getRequest("/api/users")
                     <Select
                       options={governorates}
                       value={value}
-                      onChange={setValue}
+                      onChange={(option) => {
+                        setValue(option);
+                        setGovernorateId(option?.value ?? "");
+                        // Never carry an area across governorates.
+                        setAreaId("");
+                      }}
                       isSearchable={false}
                       placeholder=""
                       styles={{
@@ -297,6 +371,22 @@ const responce = await getRequest("/api/users")
                     />
                   </div>
                 </div>
+                {!multipleAddressesEnabled &&
+                areasEnabled &&
+                governorateId ? (
+                  <div className="flex flex-col gap-3 sm:col-span-2">
+                    <DeliveryAreaSelect
+                      id="profile-area"
+                      areas={areas}
+                      value={areaId}
+                      onChange={(nextAreaId) => setAreaId(nextAreaId ?? "")}
+                      loading={areasLoading}
+                      error={areasError}
+                      onRetry={reloadAreas}
+                      required
+                    />
+                  </div>
+                ) : null}
                 <div className="flex flex-col gap-3">
                   <label className="text-xs font-semibold text-gray-500">
                     {t("address")}

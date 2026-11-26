@@ -83,6 +83,10 @@ export default function DeliveryAddressSelector({
             locale === "ar"
               ? address.governorate?.nameAr
               : address.governorate?.nameEn;
+          const areaName =
+            locale === "ar"
+              ? address.area?.nameAr
+              : address.area?.nameEn;
           return (
             <label
               key={address.userAddressId}
@@ -119,6 +123,7 @@ export default function DeliveryAddressSelector({
                   {governorateName ? (
                     <p className="mt-0.5 text-[11px] text-gray-500">
                       {governorateName}
+                      {areaName ? ` · ${areaName}` : ""}
                     </p>
                   ) : null}
                 </div>

@@ -4,6 +4,7 @@
     "/",
     "/admin/Admins",
     "/admin/Analytics",
+    "/admin/Areas",
     "/admin/Categories",
     "/admin/Contact",
     "/admin/Dashboard",

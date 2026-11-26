@@ -36,6 +36,7 @@ import OrdersTable from "../app/admin/orders/components/Orders_Table";
 import ReturnsTable from "../app/admin/Returns/components/Table";
 import CategoryTable from "../app/admin/Categories/components/CategoryTable";
 import ShippingTable from "../app/admin/ShippingCost/components/Table";
+import AreaTable from "../app/admin/Areas/components/AreaTable";
 import DashboardTable from "../app/admin/Dashboard/components/Table";
 import { DashboardSummaryProvider } from "../app/admin/Dashboard/context/DashboardSummaryContext";
 import OrderItems from "../app/admin/orders/OrdersDetails/components/Order_Items";
@@ -99,6 +100,11 @@ describe("admin screens use the shared server table contract", () => {
           />,
         ),
       "/api/admin/shipping-rates/search",
+    ],
+    [
+      "areas",
+      () => wrap(<AreaTable onCreate={jest.fn()} onEdit={jest.fn()} />),
+      "/api/admin/areas/search",
     ],
   ])("%s uses %s", async (_name, renderTree, endpoint) => {
     render(renderTree());

@@ -17,9 +17,9 @@ import {
 import { LuLoader } from "react-icons/lu";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-// import Link from "next/link";
 import CartTable from "./CartTable";
 import Select from "react-select";
+import Link from "next/link";
 import FulfillmentOptions from "./FulfillmentOptions";
 import DeliveryAddressSelector from "./DeliveryAddressSelector";
 import BankTransferDetails from "../../components/BankTransferDetails";
@@ -43,7 +43,9 @@ export default function Cart({ setShowSignIn }) {
     totalDiscount: "",
     shappingCost: "",
     netTotal: "",
-    address: ""
+    address: "",
+    governorateId: null,
+    areaId: null,
   });
 
   const [itemNum, setItemNum] = useState(0);
@@ -78,6 +80,8 @@ export default function Cart({ setShowSignIn }) {
   const [deliveryAddressId, setDeliveryAddressId] = useState(null);
   const [deliveryAddressLoading, setDeliveryAddressLoading] = useState(false);
   const [deliveryAddressError, setDeliveryAddressError] = useState(false);
+  const [shippingQuote, setShippingQuote] = useState(null);
+  const [shippingQuoteLoading, setShippingQuoteLoading] = useState(false);
   const paymentMethodOptions = [
     ...(instapayEnabled
       ? [{ value: "INSTAPAY", label: t("INSTAPAY") }]
@@ -105,6 +109,48 @@ export default function Cart({ setShowSignIn }) {
     return locale === "en" ? fallbackEn : fallbackAr;
   };
 
+  const isPickupSelected =
+    pickupEnabled && fulfillmentType === FULFILLMENT_TYPE.PICKUP;
+
+  const selectedDeliveryAddress = deliveryAddresses.find(
+    (address) =>
+      String(address.userAddressId) === String(deliveryAddressId),
+  );
+  const deliveryGovernorateId = isPickupSelected
+    ? null
+    : multipleAddressesEnabled
+      ? selectedDeliveryAddress?.governorateId ??
+        selectedDeliveryAddress?.governorate?.governorateId ??
+        null
+      : summery.governorateId;
+
+  // The area is fixed by the selected saved address or the legacy profile.
+  // Checkout never offers an area selector and never sends an override.
+  const persistedDeliveryAreaId = multipleAddressesEnabled
+    ? selectedDeliveryAddress?.areaId ??
+      selectedDeliveryAddress?.area?.areaId ??
+      null
+    : summery.areaId;
+
+  const shippingAreaMissing =
+    !isPickupSelected &&
+    shippingQuote?.areaRequired === true &&
+    (shippingQuote?.shippingCost === null ||
+      shippingQuote?.shippingCost === undefined);
+
+  const cartShippingCost = Number(summery.shappingCost || 0);
+  const quotedShippingCost =
+    shippingQuote &&
+    shippingQuote.shippingCost !== null &&
+    shippingQuote.shippingCost !== undefined
+      ? Number(shippingQuote.shippingCost)
+      : null;
+  const displayedShippingCost = isPickupSelected
+    ? 0
+    : shippingAreaMissing
+      ? null
+      : quotedShippingCost ?? cartShippingCost;
+
   const checkoutDisabled =
     !isOnline ||
     items.length === 0 ||
@@ -129,17 +175,21 @@ export default function Cart({ setShowSignIn }) {
           fulfillmentType,
           addresses: deliveryAddresses,
           addressId: deliveryAddressId,
-        })));
+        }))) ||
+    (Boolean(userId) &&
+      fulfillmentType !== FULFILLMENT_TYPE.PICKUP &&
+      Boolean(deliveryGovernorateId) &&
+      (shippingQuoteLoading || shippingAreaMissing));
 
   const selectedPickupPlace = pickupPlaces.find(
     (place) => String(place.pickupPlaceId) === String(pickupPlaceId),
   );
-  const isPickupSelected =
-    pickupEnabled && fulfillmentType === FULFILLMENT_TYPE.PICKUP;
   const checkoutTotals = calculateCheckoutTotals({
     total: summery.totalOrder,
-    shippingCost: summery.shappingCost,
-    netTotal: summery.netTotal,
+    shippingCost: displayedShippingCost ?? cartShippingCost,
+    // Recalculate from subtotal + the currently displayed shipping fee so a
+    // change of governorate/area updates the total immediately.
+    netTotal: null,
     fulfillmentType: isPickupSelected
       ? FULFILLMENT_TYPE.PICKUP
       : FULFILLMENT_TYPE.DELIVERY,
@@ -235,6 +285,47 @@ export default function Cart({ setShowSignIn }) {
     setDeliveryAddressId(preferred?.userAddressId ?? null);
   }, [deliveryAddresses, deliveryAddressId, multipleAddressesEnabled]);
 
+  // Ask the backend for the authoritative fee of the address-fixed
+  // governorate/area. This also covers saved addresses whose governorate is
+  // not the default one, where the persisted cart shipping value would be
+  // stale. The area cannot be changed from checkout.
+  useEffect(() => {
+    setShippingQuote(null);
+    setShippingQuoteLoading(false);
+    if (isPickupSelected || !deliveryGovernorateId) return;
+
+    let active = true;
+    const areaQuery =
+      persistedDeliveryAreaId !== null &&
+      persistedDeliveryAreaId !== undefined
+        ? `&areaId=${encodeURIComponent(persistedDeliveryAreaId)}`
+        : "";
+    const governorateQuery = encodeURIComponent(deliveryGovernorateId);
+
+    setShippingQuoteLoading(true);
+    getRequest(
+      `/api/public/shipping/quote?governorateId=${governorateQuery}${areaQuery}`,
+      { suppressErrorToast: true },
+    )
+      .then((response) => {
+        if (active) setShippingQuote(response?.data ?? null);
+      })
+      .catch(() => {
+        if (active) setShippingQuote(null);
+      })
+      .finally(() => {
+        if (active) setShippingQuoteLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    isPickupSelected,
+    deliveryGovernorateId,
+    persistedDeliveryAreaId,
+  ]);
+
   const getProductInCart = useCallback(async () => {
     try {
       setLoadError(false);
@@ -251,7 +342,16 @@ export default function Cart({ setShowSignIn }) {
           totalDiscount: rseData.totalDiscount,
           shappingCost: rseData.shippingCost,
           netTotal: rseData.netTotal,
-          address: rseData.user.governorate.nameAr + " " + rseData.user.address
+          address: [
+            rseData.user?.governorate?.nameAr,
+            rseData.user?.address,
+          ]
+            .filter(Boolean)
+            .join(" "),
+          governorateId:
+            rseData.user?.governorate?.governorateId ?? null,
+          areaId:
+            rseData.user?.areaId ?? rseData.user?.area?.areaId ?? null,
         }));
       } else {
         const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -608,14 +708,29 @@ export default function Cart({ setShowSignIn }) {
                         <span className="font-semibold text-gray-600">{summery.address} </span>
                       </div>
                     )}
+                    {shippingAreaMissing ? (
+                      <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-3 text-xs leading-5 text-red-800">
+                        <p className="font-semibold">
+                          {t("area_required_profile")}
+                        </p>
+                        <Link
+                          href="/user/profile"
+                          className="mt-1 inline-block font-semibold text-red-700 underline"
+                        >
+                          {t("update_from_profile")}
+                        </Link>
+                      </div>
+                    ) : null}
                     <div className="flex justify-between items-center mb-5">
                       <span className="">{t("shippingCost")} </span>
                       <span className="font-semibold text-gray-600">
                         {items.length === 0
                           ? 0
-                          : checkoutTotals.shippingCost.toLocaleString("en-US") +
-                            " " +
-                            t("currency")}
+                          : displayedShippingCost == null
+                            ? "--"
+                            : displayedShippingCost.toLocaleString("en-US") +
+                              " " +
+                              t("currency")}
                       </span>
                     </div>
                     {isPickupSelected ? (
@@ -696,9 +811,11 @@ export default function Cart({ setShowSignIn }) {
                 <span className="text-[#da643b]">
                   {items.length === 0
                     ? 0
-                    : checkoutTotals.netTotal.toLocaleString("en-US") +
-                      " " +
-                      t("currency")}
+                    : shippingAreaMissing
+                      ? "--"
+                      : checkoutTotals.netTotal.toLocaleString("en-US") +
+                        " " +
+                        t("currency")}
                 </span>
               </div>
               <button

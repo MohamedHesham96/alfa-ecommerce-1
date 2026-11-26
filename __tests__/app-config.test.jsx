@@ -41,6 +41,7 @@ describe("frontend configuration store", () => {
 
   it("uses developer defaults when no value is stored", () => {
     expect(getAppConfigValue("catalog.showSku")).toBe(true);
+    expect(getAppConfigValue("shipping.areas.enabled")).toBe(false);
     expect(getAppConfigValue("unknown.key", "fallback")).toBe("fallback");
   });
 
