@@ -14,7 +14,6 @@ import {
   postRequest,
   deleteRequest,
 } from "../../../../utils/requestsUtils";
-import { LuLoader } from "react-icons/lu";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import CartTable from "./CartTable";
@@ -22,6 +21,7 @@ import Select from "react-select";
 import Link from "next/link";
 import FulfillmentOptions from "./FulfillmentOptions";
 import DeliveryAddressSelector from "./DeliveryAddressSelector";
+import OrderConfirmationDialog from "./OrderConfirmationDialog";
 import BankTransferDetails from "../../components/BankTransferDetails";
 import {
   FULFILLMENT_TYPE,
@@ -37,7 +37,7 @@ export default function Cart({ setShowSignIn }) {
   const { isOnline } = usePwa();
   const [items, setItems] = useState([]);
   const [loadError, setLoadError] = useState(false);
-  const [Checkout, setCheckout] = useState(false);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [summery, setSummery] = useState({
     totalOrder: "",
     totalDiscount: "",
@@ -53,7 +53,6 @@ export default function Cart({ setShowSignIn }) {
     typeof window !== "undefined" ? localStorage.getItem("id") : null;
   // const { locale } = useLanguage();
 
-  const [isFirstAction, setIsFirstAction] = useState(true);
   const [loading, setLoading] = useState(true);
   const navigate = useRouter();
   const [paymentMethod, setPaymentMethod] = useState();
@@ -194,6 +193,26 @@ export default function Cart({ setShowSignIn }) {
       ? FULFILLMENT_TYPE.PICKUP
       : FULFILLMENT_TYPE.DELIVERY,
   });
+
+  const confirmationAddress = isPickupSelected
+    ? [selectedPickupPlace?.name, selectedPickupPlace?.address]
+        .filter(Boolean)
+        .join(" — ")
+    : multipleAddressesEnabled && selectedDeliveryAddress
+      ? [
+          locale === "ar"
+            ? selectedDeliveryAddress.governorate?.nameAr
+            : selectedDeliveryAddress.governorate?.nameEn ||
+              selectedDeliveryAddress.governorate?.nameAr,
+          selectedDeliveryAddress.address,
+        ]
+          .filter(Boolean)
+          .join(" — ")
+      : summery.address;
+
+  const confirmationTotal = shippingAreaMissing
+    ? "--"
+    : `${checkoutTotals.netTotal.toLocaleString("en-US")} ${t("currency")}`;
 
   const loadPickupPlaces = useCallback(async () => {
     setPickupLoading(true);
@@ -529,6 +548,26 @@ export default function Cart({ setShowSignIn }) {
     }
   };
 
+  const requestOrderConfirmation = () => {
+    if (!userId) {
+      setShowSignIn(true);
+      return;
+    }
+    if (items.length === 0) {
+      toast.error(t("noProductsInCart"));
+      return;
+    }
+    if (!paymentMethod) {
+      toast.error(t("selectPaymentMethod"));
+      return;
+    }
+    if (isPickupSelected && !pickupPlaceId) {
+      toast.error(t("select_pickup_place"));
+      return;
+    }
+    setCheckoutModalOpen(true);
+  };
+
   useEffect(() => {
     getProductInCart();
   }, [getProductInCart]);
@@ -825,21 +864,34 @@ export default function Cart({ setShowSignIn }) {
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-[#E76E7D] hover:bg-[#CD4354]"
                   }`}
-                onClick={placeOrder}
+                onClick={requestOrderConfirmation}
               >
-                {isFirstAction ? (
-                  t("proceedToCheckout")
-                ) : loading ? (
-                  <LuLoader className="animate-spin" />
-                ) : (
-                  t("confirmOrder")
-                )}
+                {t("proceedToCheckout")}
               </button>
 
             </div>
           )}
         </div>
       </div>
+
+      <OrderConfirmationDialog
+        open={checkoutModalOpen}
+        onClose={() => setCheckoutModalOpen(false)}
+        onConfirm={() => {
+          setCheckoutModalOpen(false);
+          placeOrder();
+        }}
+        itemCount={itemNum}
+        fulfillmentLabel={
+          isPickupSelected ? t("PICKUP") : t("DELIVERY")
+        }
+        addressLabel={
+          isPickupSelected ? t("pickup_location") : t("ShippingTo")
+        }
+        address={confirmationAddress}
+        paymentMethodLabel={paymentMethod?.label}
+        total={confirmationTotal}
+      />
     </div>
   );
 }

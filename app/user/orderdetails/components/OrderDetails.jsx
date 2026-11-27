@@ -9,6 +9,7 @@ import { FaBox, FaCheck, FaTruck } from "react-icons/fa";
 import { getThumbnailUrl } from "../../../../utils/functions";
 import { TfiTimer } from "react-icons/tfi";
 import ProductReturnForm from './ProductReturnForm'
+import OrderStatusTimeline from './OrderStatusTimeline'
 import { useLanguage } from "../../../../context/LanguageContext";
 import { useFeature } from "../../../../context/AppConfigContext";
 import BankTransferDetails from "../../components/BankTransferDetails";
@@ -635,6 +636,10 @@ export default function OrderDetails({ orderId }) {
           </div>
         </div>
       </div>
+      <OrderStatusTimeline
+        orderId={orderId}
+        currentState={orderSummary.state}
+      />
     </div>
   );
 }
