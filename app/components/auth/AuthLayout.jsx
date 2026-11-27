@@ -42,11 +42,11 @@ export default function AuthLayout({ children }) {
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[1500px] flex-col lg:flex-row">
-        <section className="relative flex min-w-0 flex-1 flex-col px-4 py-6 sm:px-6 lg:justify-center lg:px-10 lg:py-10 xl:px-16">
+        <section className="relative flex min-w-0 flex-1 flex-col px-4 py-4 sm:px-6 lg:justify-center lg:px-10 lg:py-5 xl:px-16">
           <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col">
             <Link
               href="/"
-              className="group mb-6 inline-flex w-fit items-center gap-3 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff8391]/60 lg:mb-8"
+              className="group mb-3 inline-flex w-fit items-center gap-3 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff8391]/60 lg:mb-4"
               aria-label={t("home")}
             >
               <span className="auth-brand-mark">
@@ -72,7 +72,7 @@ export default function AuthLayout({ children }) {
             </Link>
 
             <div className="flex flex-1 flex-col justify-center">
-              <div className="auth-card p-5 sm:p-7 lg:p-9">{children}</div>
+              <div className="auth-card p-4 sm:p-5 lg:p-6">{children}</div>
             </div>
 
             <p className="auth-secure-line">

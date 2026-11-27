@@ -1,52 +1,167 @@
 "use client";
+
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { FaRegCalendar } from "react-icons/fa";
-import { IoMdSearch } from "react-icons/io";
-import { VscCircleFilled } from "react-icons/vsc";
+import { useRouter } from "next/navigation";
+import {
+  FiAlertCircle,
+  FiArrowLeft,
+  FiArrowRight,
+  FiCalendar,
+  FiHash,
+  FiMapPin,
+  FiPackage,
+  FiRefreshCw,
+  FiSearch,
+  FiShoppingBag,
+  FiTruck,
+  FiX,
+} from "react-icons/fi";
+
 import { postRequest } from "../../../../utils/requestsUtils";
 import { useLanguage } from "../../../../context/LanguageContext";
-import { useRouter } from "next/navigation";
 import { useIdContext } from "../../../../context/idContext";
 import { getThumbnailUrl } from "../../../../utils/functions";
 import Pagination from "../../search/[searchInput]/components/Pagination";
-export default function OrdersHistory() {
-  const { t } = useLanguage();
-  const [orders, setOrders] = useState([]);
-  const [inputSearch, setInputSearch] = useState(null);
-  const [state, setState] = useState(null);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const { locale } = useLanguage();
 
-  const [loading, setLoading] = useState(true);
+const PAGE_SIZE = 5;
+
+const ORDER_STATE_STYLES = {
+  PENDING: {
+    badge: "border-amber-200 bg-amber-50 text-amber-700",
+    dot: "bg-amber-500",
+  },
+  PROCESSING: {
+    badge: "border-blue-200 bg-blue-50 text-blue-700",
+    dot: "bg-blue-500",
+  },
+  SHIPPED: {
+    badge: "border-purple-200 bg-purple-50 text-purple-700",
+    dot: "bg-purple-500",
+  },
+  DELIVERED: {
+    badge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    dot: "bg-emerald-500",
+  },
+  CANCELLED: {
+    badge: "border-red-200 bg-red-50 text-red-700",
+    dot: "bg-red-500",
+  },
+};
+
+const DEFAULT_STATE_STYLE = {
+  badge: "border-gray-200 bg-gray-50 text-gray-600",
+  dot: "bg-gray-400",
+};
+
+const FILTER_STATES = [
+  { value: "", labelKey: "all" },
+  { value: "PENDING", labelKey: "PENDING" },
+  { value: "PROCESSING", labelKey: "PROCESSING" },
+  { value: "SHIPPED", labelKey: "SHIPPED" },
+  { value: "DELIVERED", labelKey: "DELIVERED" },
+  { value: "CANCELLED", labelKey: "CANCELLED" },
+];
+
+function formatMoney(value) {
+  return Number(value ?? 0).toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+  });
+}
+
+function ItemThumbnail({ src, alt }) {
+  const [failed, setFailed] = useState(false);
+
+  return (
+    <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-100 bg-white">
+      {src && !failed ? (
+        <Image
+          src={src}
+          alt={alt}
+          width={56}
+          height={56}
+          className="h-full w-full object-contain p-1"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <FiPackage className="text-xl text-gray-300" aria-hidden="true" />
+      )}
+    </span>
+  );
+}
+
+export default function OrdersHistory() {
+  const { t, locale } = useLanguage();
   const navigate = useRouter();
   const { setSelectedProductId } = useIdContext();
-  const PAGE_SIZE = 5;
+  const [orders, setOrders] = useState([]);
+  const [searchDraft, setSearchDraft] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [state, setState] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
   const getOrders = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
     try {
-      setLoading(true)
       const res = await postRequest(
         "/api/orders/search",
         {
           page: currentPage,
           size: PAGE_SIZE,
-          searchText: inputSearch,
+          searchText: appliedSearch || null,
           orderState: state,
         },
-        ""
+        "",
+        false,
+        { suppressErrorToast: true },
       );
-      console.log(res.data);
-      setOrders(res.data.content);
-      setTotalPages(res.data.totalPages || 0);
+      setOrders(Array.isArray(res.data?.content) ? res.data.content : []);
+      setTotalPages(res.data?.totalPages || 0);
+    } catch {
+      setOrders([]);
+      setTotalPages(0);
+      setLoadError(true);
+    } finally {
       setLoading(false);
-    } catch (error) {
-      console.log(error);
     }
-    finally{
-      setLoading(false)
-    }
-  }, [currentPage, inputSearch, state]);
+  }, [appliedSearch, currentPage, state]);
+
+  useEffect(() => {
+    getOrders();
+  }, [getOrders]);
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    const nextSearch = searchDraft.trim();
+    if (nextSearch === appliedSearch) return;
+    setAppliedSearch(nextSearch);
+    setCurrentPage(0);
+  };
+
+  const clearSearch = () => {
+    setSearchDraft("");
+    if (!appliedSearch) return;
+    setAppliedSearch("");
+    setCurrentPage(0);
+  };
+
+  const handleFilterChange = (nextState) => {
+    if (nextState === state) return;
+    setState(nextState);
+    setCurrentPage(0);
+  };
+
+  const resetFilters = () => {
+    setSearchDraft("");
+    setAppliedSearch("");
+    setState("");
+    setCurrentPage(0);
+  };
 
   const handlePageChange = (page) => {
     if (page === currentPage || page < 0 || page >= totalPages) return;
@@ -54,269 +169,341 @@ export default function OrdersHistory() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  useEffect(() => {
-    getOrders();
-  }, [getOrders]);
+  const openProduct = (item) => {
+    if (!item?.itemId) return;
+    setSelectedProductId(item.itemId);
+    navigate.push(
+      `/user/productdetails/${encodeURIComponent(
+        item.nameEn || item.nameAr || "",
+      )}/${item.itemId}`,
+    );
+  };
+
+  const formatDate = (value) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-GB", {
+      dateStyle: "medium",
+    }).format(date);
+  };
+
+  const hasActiveQuery = Boolean(appliedSearch) || Boolean(state);
+  const imageBase = process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL || "";
+  const DetailsArrow = locale === "ar" ? FiArrowLeft : FiArrowRight;
+
   return (
-    <div >
-      <div className="md:flex xs:block justify-between  items-center  mb-10">
-        <div className="flex flex-col gap-2">
-          <span className="text-3xl font-bold">{t("orderHistory")} </span>
-          <span className=" text-gray-500 opacity-90">
-            {t("trackAndManage")}
+    <div className="w-full">
+      <header className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
+          <span className="inline-flex items-center gap-2 rounded-full bg-[#fff5f6] px-3 py-1 text-xs font-bold text-[#CD4354]">
+            <FiShoppingBag className="text-sm" aria-hidden="true" />
+            {t("orders")}
           </span>
+          <h1 className="mt-3 text-2xl font-bold text-gray-900 sm:text-3xl">
+            {t("orderHistory")}
+          </h1>
+          <p className="mt-1 max-w-xl text-sm leading-6 text-gray-500">
+            {t("trackAndManage")}
+          </p>
         </div>
-        <div className="flex justify-start items-center mt-5 bg-white border rounded-full">
-          <span className="text-[#e14a5c] h-full  rounded-s-full text-2xl p-2 ">
-            <IoMdSearch />
+
+        <form
+          role="search"
+          onSubmit={handleSearchSubmit}
+          className="flex w-full items-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-sm transition focus-within:border-[#CD4354]/50 focus-within:ring-2 focus-within:ring-[#CD4354]/10 sm:w-[360px]"
+        >
+          <span className="ps-3 text-lg text-[#CD4354]">
+            <FiSearch aria-hidden="true" />
           </span>
           <input
-            type="text"
+            type="search"
+            value={searchDraft}
+            onChange={(event) => setSearchDraft(event.target.value)}
             placeholder={t("searchByOrderNumber")}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                setInputSearch(e.target.value);
-                setCurrentPage(0);
-              }
-            }}
-            className="w-[250px] bg-none p-2 outline-none rounded-full text-sm"
+            aria-label={t("searchByOrderNumber")}
+            className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm text-gray-700 outline-none placeholder:text-gray-400"
           />
-        </div>
+          {searchDraft ? (
+            <button
+              type="button"
+              onClick={clearSearch}
+              aria-label={t("clear")}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+            >
+              <FiX aria-hidden="true" />
+            </button>
+          ) : null}
+          <button
+            type="submit"
+            className="shrink-0 rounded-full bg-[#E76E7D] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#CD4354] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CD4354]/40"
+          >
+            {t("search")}
+          </button>
+        </form>
+      </header>
+
+      <div
+        className="mb-5 flex gap-2 overflow-x-auto pb-1"
+        role="group"
+        aria-label={t("filters")}
+      >
+        {FILTER_STATES.map((filter) => {
+          const active = state === filter.value;
+          const style = ORDER_STATE_STYLES[filter.value];
+          return (
+            <button
+              key={filter.value || "all"}
+              type="button"
+              aria-pressed={active}
+              onClick={() => handleFilterChange(filter.value)}
+              className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CD4354]/30 ${
+                active
+                  ? "border-[#CD4354] bg-[#CD4354] text-white shadow-sm"
+                  : "border-gray-200 bg-white text-gray-600 hover:border-[#CD4354]/40 hover:bg-[#fff5f6] hover:text-[#CD4354]"
+              }`}
+            >
+              {style ? (
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    active ? "bg-white" : style.dot
+                  }`}
+                  aria-hidden="true"
+                />
+              ) : null}
+              {t(filter.labelKey)}
+            </button>
+          );
+        })}
       </div>
-      <div className="relative">
-        <div className="flex gap-6 md:text-lg xs:text-sm items-center  ">
-          <span
-            className={` border-b hover:text-red-600 hover:border-red-600 py-4 cursor-pointer 
-               ${state === null ? "text-red-600 border-red-600" : "text-gray-500"}
-              `}
-            onClick={() => {
-              setState(null);
-              setCurrentPage(0);
-            }}
-          >
-            {t("all")}
-          </span>
-          <span
-            className={`border-b hover:text-red-600 hover:border-red-600 py-4 cursor-pointer
-               ${
-                 state === "PENDING"
-                   ? "text-red-600 border-red-600"
-                   : "text-gray-500"
-               }
-              `}
-            onClick={() => {
-              setState("PENDING");
-              setCurrentPage(0);
-            }}
-          >
-            {t("PENDING")}
-          </span>
-          <span
-            className={`border-b hover:text-red-600 hover:border-red-600 py-4 cursor-pointer 
-               ${
-                 state === "PROCESSING"
-                   ? "text-red-600 border-red-600"
-                   : "text-gray-500"
-               }
-              `}
-            onClick={() => {
-              setState("PROCESSING");
-              setCurrentPage(0);
-            }}
-          >
-            {t("PROCESSING")}
-          </span>
-          <span
-            className={`border-b hover:text-red-600 hover:border-red-600 py-4 cursor-pointer
-            ${
-              state === "SHIPPED"
-                ? "text-red-600 hover border-red-600"
-                : "text-gray-500"
-            }  
-            `}
-            onClick={() => {
-              setState("SHIPPED");
-              setCurrentPage(0);
-            }}
-          >
-            {t("SHIPPED")}
-          </span>
-          <span
-            className={` border-b hover:text-red-600 hover:border-red-600 py-4 cursor-pointer 
-              ${
-                state === "DELIVERED"
-                  ? "text-red-600 border-red-600"
-                  : "text-gray-500"
-              }
-              `}
-            onClick={() => {
-              setState("DELIVERED");
-              setCurrentPage(0);
-            }}
-          >
-            {t("DELIVERED")}
-          </span>
-          <span
-            className={` border-b hover:text-red-600 hover:border-red-600 py-4 cursor-pointer 
-              ${
-                state === "CANCELLED"
-                  ? "text-red-600 border-red-600"
-                  : "text-gray-500"
-              }
-              `}
-            onClick={() => {
-              setState("CANCELLED");
-              setCurrentPage(0);
-            }}
-          >
-            {t("CANCELLED")}
-          </span>
-        </div>
-        <hr className=""></hr>
-      </div>
+
       {loading ? (
-        // Skeleton rows
-        [...Array(2)].map((_, index) => (
-          <div key={`skeleton-${index}`} className="py-5 flex flex-col gap-5">
-            <div className="w-full bg-white   rounded-md shadow-sm p-5">
-              <div className="flex justify-between">
-                <div className="flex items-center gap-5">
-                  <span className="h-4 bg-gray-200 rounded animate-pulse w-24"></span>
-                  <span className="h-4 bg-gray-200 rounded animate-pulse w-24"></span>
-                  <span className="h-4 bg-gray-200 rounded animate-pulse w-24"></span>
+        <div className="space-y-4" aria-busy="true" aria-label={t("loading")}>
+          {[0, 1, 2].map((item) => (
+            <div
+              key={item}
+              className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-gray-50/60 px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <span className="h-6 w-28 animate-pulse rounded-full bg-gray-200" />
+                  <span className="h-6 w-24 animate-pulse rounded-full bg-gray-200" />
+                  <span className="h-4 w-24 animate-pulse rounded bg-gray-200" />
                 </div>
-                <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                <span className="h-8 w-24 animate-pulse rounded bg-gray-200" />
               </div>
-              <div className="flex justify-between items-center ">
-                <div className="mt-10 grid grid-cols-3 gap-x-10 gap-y-5 w-[80%]">
-                  <div className="h-16 bg-gray-200 rounded animate-pulse "></div>
-                  <div className=" h-16 bg-gray-200 rounded animate-pulse "></div>
-                  <div className="h-16 bg-gray-200 rounded animate-pulse "></div>
+              <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center">
+                <span className="h-14 w-14 animate-pulse rounded-xl bg-gray-200" />
+                <div className="flex-1 space-y-3">
+                  <span className="block h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+                  <span className="block h-3 w-1/2 animate-pulse rounded bg-gray-100" />
                 </div>
-                <div className="h-10 bg-gray-200 rounded animate-pulse w-[200px] mx-5"></div>
+                <span className="h-10 w-full animate-pulse rounded-full bg-gray-200 sm:w-40" />
               </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
+      ) : loadError ? (
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-red-200 bg-red-50 px-6 py-12 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-xl text-red-500 shadow-sm">
+            <FiAlertCircle aria-hidden="true" />
+          </span>
+          <p className="mt-4 text-sm font-bold text-red-800">
+            {t("orders_load_error")}
+          </p>
+          <button
+            type="button"
+            onClick={getOrders}
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#CD4354] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#b53a49]"
+          >
+            <FiRefreshCw aria-hidden="true" />
+            {t("retry")}
+          </button>
+        </div>
       ) : orders.length === 0 ? (
-        <div className="w-full h-[400px]"></div>
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white px-6 py-14 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#fff5f6] text-2xl text-[#CD4354]">
+            <FiShoppingBag aria-hidden="true" />
+          </span>
+          <h2 className="mt-4 text-lg font-bold text-gray-900">
+            {hasActiveQuery ? t("no_results") : t("orders_empty_title")}
+          </h2>
+          <p className="mt-1 max-w-md text-sm leading-6 text-gray-500">
+            {hasActiveQuery ? t("empty_hint") : t("orders_empty_desc")}
+          </p>
+          {hasActiveQuery ? (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="mt-5 rounded-full bg-[#E76E7D] px-5 py-2 text-xs font-bold text-white transition hover:bg-[#CD4354]"
+            >
+              {t("show_all_orders")}
+            </button>
+          ) : (
+            <Link
+              href="/"
+              className="mt-5 rounded-full bg-[#E76E7D] px-5 py-2 text-xs font-bold text-white transition hover:bg-[#CD4354]"
+            >
+              {t("shopNow")}
+            </Link>
+          )}
+        </div>
       ) : (
-        <div className="py-5 flex flex-col gap-5">
-          {orders.map((order, index) => {
-            const date = new Date(order.createdDate);
-            const dateOnly = date.toLocaleDateString("en-GB");
+        <div className="space-y-4">
+          {orders.map((order) => {
+            const style =
+              ORDER_STATE_STYLES[order.state] ?? DEFAULT_STATE_STYLE;
+            const isPickup = order.fulfillmentType === "PICKUP";
+            const itemLines = Array.isArray(order.orderItemLines)
+              ? order.orderItemLines
+              : [];
+            const previewItems = itemLines.slice(0, 3);
+            const remainingItems = itemLines.length - previewItems.length;
+
             return (
-              <div
-                key={index}
-                className="w-full bg-white   rounded-3xl shadow-sm p-5"
+              <article
+                key={order.orderId}
+                className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md"
               >
-                <div className="flex justify-between items-baseline">
-                  <div className="flex md:flex-row xs:flex-col gap-5">
-                    <span className="p-1 text-sm text-gray-700 rounded-md font-semibold bg-gray-100">
+                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 bg-gray-50/60 px-5 py-4">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-700 ring-1 ring-gray-200">
+                      <FiHash aria-hidden="true" />
                       {order.code}
                     </span>
-                    {order.fulfillmentType === "PICKUP" ? (
-                      <span className="p-1 text-xs rounded-md font-semibold bg-green-100 text-green-700">
-                        {t("pickup")}
-                      </span>
-                    ) : null}
-                    <div className="flex items-center gap-2">
-                       <span className=" text-sm text-gray-700 rounded-md font-semibold flex  items-center gap-2">
-                      <FaRegCalendar /> {dateOnly}
-                    </span>
-                    <br/>
                     <span
-                      className={`flex items-center ${
-                        order.state === "PROCESSING"
-                          ? "text-blue-600"
-                          : order.state === "PENDING"
-                          ? " text-orange-400"
-                          : order.state === "SHIPPED"
-                          ? "text-yellow-600":
-                          order.state === "CANCELLED"
-                          ? "text-red-600"
-                          : "text-green-600"
-                      } `}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold ${
+                        isPickup
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border-slate-200 bg-slate-50 text-slate-600"
+                      }`}
                     >
-                      <VscCircleFilled />
+                      {isPickup ? (
+                        <FiMapPin aria-hidden="true" />
+                      ) : (
+                        <FiTruck aria-hidden="true" />
+                      )}
+                      {t(isPickup ? "pickup" : "delivery")}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold ${style.badge}`}
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${style.dot}`}
+                        aria-hidden="true"
+                      />
                       {t(order.state)}
                     </span>
-                    </div>
-                   
-                  </div>
-                  <div className="flex items-center text-lg gap-1 mx-5">
-                    <span className=" text-gray-600">{t("Total")}: </span>
-                    <span className="text-[#e14a5c] font-semibold">
-                      {order.netTotal.toLocaleString("en-US")} {t("currency")}
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                      <FiCalendar aria-hidden="true" />
+                      {formatDate(order.createdDate)}
                     </span>
                   </div>
+
+                  <div className="text-start sm:text-end">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                      {t("Total")}
+                    </p>
+                    <p className="text-lg font-bold text-[#da643b]">
+                      {formatMoney(order.netTotal ?? order.total)}{" "}
+                      {t("currency")}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex justify-between  ">
-                  <div className="mt-10 grid xl:grid-cols-3 md:grid-cols-2 gap-x-3 gap-y-3 lg:w-[80%] xs:w-full">
-                    {order.orderItemLines.map((itemLine, index) => {
-                      return (
-                        <div
-                          className="bg-gray-50 p-2 rounded-3xl flex items-center gap-3 cursor-pointer"
-                          key={index}
-                          onClick={() => {
-                            setSelectedProductId(itemLine.item.itemId);
-                            navigate.push(
-                              `/user/productdetails/${itemLine.item.nameEn}/${itemLine.item.itemId}`
-                            );
-                          }}
-                        >
-                          <Image
-                            src={
-                              process.env.NEXT_PUBLIC_API_IMAGE_BASE_URL +
-                             getThumbnailUrl(itemLine.item.images[0]?.imageUrl)
-                            }
-                            alt=""
-                            width={60}
-                            height={60}
-                            className="object-fill rounded-3xl"
-                          />
-                          <div className="flex flex-col  font-semibold ">
-                            <span className="">
-                              {locale === "ar"
-                                ? itemLine.item.nameAr
-                                : itemLine.item.nameEn}
-                            </span>
-                            <div className="flex xs:flex-col lg:flex-row gap-3 mt-2 text-xs">
-                             
-                              <span className="text-gray-500 ">
-                                {t("quantity")} : {itemLine.quantity}
+
+                <div className="grid gap-5 px-5 py-5 lg:grid-cols-[1fr_auto] lg:items-end">
+                  <div className="min-w-0">
+                    <div
+                      className={`grid gap-3 ${
+                        previewItems.length > 1 ? "sm:grid-cols-2" : ""
+                      }`}
+                    >
+                      {previewItems.map((itemLine) => {
+                        const item = itemLine.item;
+                        const itemName =
+                          locale === "ar"
+                            ? item?.nameAr || item?.nameEn
+                            : item?.nameEn || item?.nameAr;
+                        const imageUrl = item?.images?.[0]?.imageUrl
+                          ? `${imageBase}${getThumbnailUrl(
+                              item.images[0].imageUrl,
+                            )}`
+                          : null;
+
+                        return (
+                          <button
+                            key={itemLine.itemLineId ?? item?.itemId}
+                            type="button"
+                            onClick={() => openProduct(item)}
+                            className="flex min-w-0 items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50/60 p-2.5 text-start transition hover:border-[#CD4354]/30 hover:bg-[#fff5f6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CD4354]/30"
+                          >
+                            <ItemThumbnail
+                              src={imageUrl}
+                              alt={itemName || ""}
+                            />
+                            <span className="min-w-0">
+                              <span className="line-clamp-2 block text-xs font-bold text-gray-800 sm:text-sm">
+                                {itemName || "—"}
                               </span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                              <span className="mt-1 block text-[11px] text-gray-500">
+                                {t("quantity")}:{" "}
+                                <span className="font-semibold text-gray-700">
+                                  {itemLine.quantity}
+                                </span>
+                              </span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {remainingItems > 0 ? (
+                      <p className="mt-2 text-xs font-semibold text-gray-500">
+                        +{remainingItems} {t("more_items")}
+                      </p>
+                    ) : null}
+
+                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                      <span>
+                        {t("items_in_order")}:{" "}
+                        <span className="font-semibold text-gray-700">
+                          {itemLines.length}
+                        </span>
+                      </span>
+                      {order.paymentMethod ? (
+                        <span>
+                          {t("payment_method")}:{" "}
+                          <span className="font-semibold text-gray-700">
+                            {t(order.paymentMethod)}
+                          </span>
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
 
-                  <div
-                    className="w-[200px] h-[30px] text-sm flex justify-end xs:text-sm md:text-base rounded-full  mt-10"
-                    onClick={() => {
-                      navigate.push(`/user/orderdetails/${order.orderId}`);
-                    }}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate.push(`/user/orderdetails/${order.orderId}`)
+                    }
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#E76E7D] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#CD4354] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CD4354]/40 lg:w-auto"
                   >
-                    <button className="px-2 bg-red-600 text-white rounded-full hover:bg-red-700">
-                {t("orderDetails")}
-                    </button    >
-                  </div>
+                    {t("orderDetails")}
+                    <DetailsArrow aria-hidden="true" />
+                  </button>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
       )}
-      {totalPages > 1 && !loading && orders.length > 0 && (
+
+      {totalPages > 1 && !loading && orders.length > 0 ? (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
         />
-      )}
+      ) : null}
     </div>
   );
 }

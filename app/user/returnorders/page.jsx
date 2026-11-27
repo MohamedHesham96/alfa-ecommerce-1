@@ -7,7 +7,7 @@ export default function OrdersHistoryPage() {
 return(
 <RequireAuth>
   <RequireCustomer>
-    <div className="w-full md:p-10 xs:p-5">
+    <div className="w-full py-6 md:py-8">
       <ReturnOrders/>
     </div>
   </RequireCustomer>

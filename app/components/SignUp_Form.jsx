@@ -26,6 +26,12 @@ import AuthLayout from "./auth/AuthLayout";
 import AuthSubmitButton from "./auth/AuthSubmitButton";
 import FormAlert from "./auth/FormAlert";
 import PasswordRequirements from "./auth/PasswordRequirements";
+import DeliveryAreaSelect from "../user/components/DeliveryAreaSelect";
+import {
+  findAreaById,
+  shouldShowAreaSelector,
+} from "../user/components/deliveryAreas";
+import { useGovernorateAreas } from "../user/components/useGovernorateAreas";
 import {
   AUTH_EMAIL_PATTERN,
   AUTH_PASSWORD_MAX_LENGTH,
@@ -52,10 +58,11 @@ const INITIAL_VALUES = {
 const FIELD_ORDER = [
   "firstName",
   "lastName",
-  "email",
   "username",
+  "email",
   "phoneNumber",
   "governorate",
+  "area",
   "address",
   "password",
   "confirmPassword",
@@ -72,9 +79,11 @@ export default function SignUp({
   const registrationEnabled = useFeature(
     "features.customerRegistration.enabled",
   );
+  const areasEnabled = useFeature("shipping.areas.enabled");
 
   const [values, setValues] = useState(INITIAL_VALUES);
   const [selectedGovernorate, setSelectedGovernorate] = useState(null);
+  const [selectedAreaId, setSelectedAreaId] = useState(null);
   const [governorates, setGovernorates] = useState([]);
   const [governorateLoadFailed, setGovernorateLoadFailed] = useState(false);
   const [governorateLoading, setGovernorateLoading] = useState(true);
@@ -92,6 +101,19 @@ export default function SignUp({
   const addressRef = useRef(null);
   const passwordRef = useRef(null);
   const confirmPasswordRef = useRef(null);
+
+  const {
+    areas,
+    loading: areasLoading,
+    error: areasError,
+    reload: reloadAreas,
+    loadedFor: areasLoadedFor,
+  } = useGovernorateAreas(selectedGovernorate?.value ?? null, areasEnabled);
+
+  const showAreaSelector =
+    areasEnabled &&
+    Boolean(selectedGovernorate) &&
+    (areasLoading || areasError || shouldShowAreaSelector(areas));
 
   const requiredMessage =
     t("authFieldRequired") || "This field is required.";
@@ -135,6 +157,30 @@ export default function SignUp({
       setSelectedGovernorate(refreshed);
     }
   }, [governorates, selectedGovernorate]);
+
+  // A selected area belongs to one governorate only. Drop it when the areas
+  // list no longer contains it (governorate change, deletion, feature off).
+  useEffect(() => {
+    if (!areasEnabled) {
+      if (selectedAreaId) setSelectedAreaId(null);
+      return;
+    }
+
+    if (areasLoading) return;
+    if (!selectedAreaId) return;
+    if (areasLoadedFor !== String(selectedGovernorate?.value ?? "")) return;
+
+    if (!findAreaById(areas, selectedAreaId)) {
+      setSelectedAreaId(null);
+    }
+  }, [
+    areas,
+    areasLoadedFor,
+    areasEnabled,
+    areasLoading,
+    selectedAreaId,
+    selectedGovernorate,
+  ]);
 
   const validateField = (name, value, allValues = values) => {
     switch (name) {
@@ -188,6 +234,11 @@ export default function SignUp({
   };
 
   const focusField = (name) => {
+    if (name === "area") {
+      document.getElementById("signup-area")?.focus?.();
+      return;
+    }
+
     const refs = {
       firstName: firstNameRef,
       lastName: lastNameRef,
@@ -211,6 +262,10 @@ export default function SignUp({
     });
 
     nextErrors.governorate = selectedGovernorate ? "" : requiredMessage;
+    nextErrors.area =
+      areasEnabled && shouldShowAreaSelector(areas) && !selectedAreaId
+        ? t("area_required") || requiredMessage
+        : "";
 
     setFieldErrors(nextErrors);
     setTouched(
@@ -289,6 +344,12 @@ export default function SignUp({
     if (loading) return;
 
     setGeneralError("");
+
+    if (areasEnabled && selectedGovernorate && areasLoading) {
+      setGeneralError(t("loading_areas") || requiredMessage);
+      return;
+    }
+
     if (!validateAll()) return;
 
     setLoading(true);
@@ -304,6 +365,10 @@ export default function SignUp({
       phone: values.phoneNumber,
       language: locale,
       governorateId: selectedGovernorate?.value ?? null,
+      areaId:
+        areasEnabled && shouldShowAreaSelector(areas)
+          ? selectedAreaId
+          : null,
     };
 
     try {
@@ -429,8 +494,6 @@ export default function SignUp({
     );
   }
 
-  const SectionHeading = popUp ? "h3" : "h2";
-
   const content = (
     <div className="w-full">
       <AuthHeading
@@ -442,19 +505,14 @@ export default function SignUp({
       />
 
       <form
-        className="mt-6 space-y-6"
+        className="mt-3 space-y-2.5"
         onSubmit={handleSignUp}
         noValidate
         aria-busy={loading || undefined}
       >
         {generalError ? <FormAlert>{generalError}</FormAlert> : null}
 
-        <section className="space-y-4">
-          <SectionHeading className="text-sm font-bold text-gray-900">
-            {t("authSectionAccount")}
-          </SectionHeading>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
             <AuthInput
               id="signup-first-name"
               inputRef={firstNameRef}
@@ -489,7 +547,25 @@ export default function SignUp({
               disabled={loading}
               required
             />
-          </div>
+
+          <AuthInput
+            id="signup-username"
+            inputRef={usernameRef}
+            label={t("username")}
+            value={values.username}
+            onChange={(event) => updateField("username", event.target.value)}
+            onBlur={() => handleBlur("username")}
+            error={touched.username ? fieldErrors.username : ""}
+            hint={t("authUsernameHint")}
+            icon={<FaUserLarge />}
+            placeholder="ahmed_ali"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            enterKeyHint="next"
+            disabled={loading}
+            required
+          />
 
           <AuthInput
             id="signup-email"
@@ -510,32 +586,6 @@ export default function SignUp({
             required
           />
 
-          <AuthInput
-            id="signup-username"
-            inputRef={usernameRef}
-            label={t("username")}
-            value={values.username}
-            onChange={(event) => updateField("username", event.target.value)}
-            onBlur={() => handleBlur("username")}
-            error={touched.username ? fieldErrors.username : ""}
-            hint={t("authUsernameHint")}
-            icon={<FaUserLarge />}
-            placeholder="ahmed_ali"
-            autoComplete="username"
-            autoCapitalize="none"
-            spellCheck={false}
-            enterKeyHint="next"
-            disabled={loading}
-            required
-          />
-        </section>
-
-        <section className="space-y-4 border-t border-gray-100 pt-6">
-          <SectionHeading className="text-sm font-bold text-gray-900">
-            {t("authSectionContact")}
-          </SectionHeading>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <AuthInput
               id="signup-phone"
               inputRef={phoneRef}
@@ -568,10 +618,12 @@ export default function SignUp({
                 value={selectedGovernorate}
                 onChange={(option) => {
                   setSelectedGovernorate(option);
+                  setSelectedAreaId(null);
                   setGeneralError("");
                   if (touched.governorate) {
                     setFieldErrors((previous) => ({
                       ...previous,
+                      area: "",
                       governorate: option ? "" : requiredMessage,
                     }));
                   }
@@ -613,7 +665,36 @@ export default function SignUp({
                 </p>
               ) : null}
             </div>
-          </div>
+
+            {showAreaSelector ? (
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
+                <DeliveryAreaSelect
+                  id="signup-area"
+                  areas={areas}
+                  value={selectedAreaId}
+                  onChange={(nextAreaId) => {
+                    setSelectedAreaId(nextAreaId ?? null);
+                    setGeneralError("");
+                    if (touched.area) {
+                      setFieldErrors((previous) => ({
+                        ...previous,
+                        area: nextAreaId ? "" : t("area_required"),
+                      }));
+                    }
+                  }}
+                  loading={areasLoading}
+                  error={areasError}
+                  onRetry={reloadAreas}
+                  disabled={loading}
+                  required
+                />
+                {touched.area && fieldErrors.area ? (
+                  <p role="alert" className="text-xs text-red-600">
+                    {fieldErrors.area}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
           <AuthInput
             id="signup-address"
@@ -628,16 +709,10 @@ export default function SignUp({
             autoComplete="street-address"
             enterKeyHint="next"
             disabled={loading}
+            className="sm:col-span-2"
             required
           />
-        </section>
 
-        <section className="space-y-4 border-t border-gray-100 pt-6">
-          <SectionHeading className="text-sm font-bold text-gray-900">
-            {t("authSectionSecurity")}
-          </SectionHeading>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <AuthInput
               id="signup-password"
               inputRef={passwordRef}
@@ -681,17 +756,19 @@ export default function SignUp({
             password={values.password}
             confirmPassword={values.confirmPassword}
           />
-        </section>
 
         <AuthSubmitButton
           loading={loading}
           label={t("create_account")}
           loadingLabel={t("creating_account")}
-          disabled={governorateLoading}
+          disabled={
+            governorateLoading ||
+            (areasEnabled && Boolean(selectedGovernorate) && areasLoading)
+          }
         />
       </form>
 
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-sm text-gray-500">
+      <div className="mt-2.5 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-sm text-gray-500">
         <span>{t("authAlreadyHaveAccount")}</span>
         {popUp ? (
           <button

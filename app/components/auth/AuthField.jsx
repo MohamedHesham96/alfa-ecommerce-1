@@ -26,10 +26,10 @@ export function AuthField({
   className = "",
 }) {
   return (
-    <div className={`flex min-w-0 flex-col gap-1.5 ${className}`}>
+    <div className={`flex min-w-0 flex-col gap-1 ${className}`}>
       <label
         htmlFor={id}
-        className="text-sm font-semibold text-gray-700"
+        className="text-[13px] font-semibold text-gray-700"
       >
         {label}
         {required ? (
@@ -45,7 +45,7 @@ export function AuthField({
         <p
           id={`${id}-error`}
           role="alert"
-          className="flex items-start gap-1.5 text-xs font-medium leading-5 text-red-600"
+          className="flex items-start gap-1.5 text-[11px] font-medium leading-4 text-red-600"
         >
           <FiAlertCircle
             className="mt-0.5 h-3.5 w-3.5 shrink-0"
@@ -54,7 +54,7 @@ export function AuthField({
           <span>{error}</span>
         </p>
       ) : hint ? (
-        <p id={`${id}-hint`} className="text-xs leading-5 text-gray-500">
+        <p id={`${id}-hint`} className="text-[11px] leading-4 text-gray-500">
           {hint}
         </p>
       ) : null}
@@ -93,10 +93,10 @@ export function AuthInput({
       className={className}
     >
       <div
-        className={`flex min-h-[44px] w-full items-center gap-2 rounded-md border bg-white ps-3 pe-2 shadow-sm transition ${
+        className={`flex min-h-[44px] w-full items-center gap-2 rounded-lg border bg-white ps-3 pe-2 shadow-sm transition ${
           error
             ? "border-red-500 ring-2 ring-red-100"
-            : "border-gray-300 focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray-200"
+            : "border-gray-300 focus-within:border-[#d63b4d] focus-within:ring-2 focus-within:ring-[#fbe3e7]"
         }`}
       >
         <input

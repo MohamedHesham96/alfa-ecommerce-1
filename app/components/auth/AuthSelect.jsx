@@ -13,12 +13,12 @@ const selectStyles = (hasError) => ({
     borderColor: hasError
       ? "#ef4444"
       : state.isFocused
-        ? "#6b7280"
+        ? "#d63b4d"
         : "#d1d5db",
     boxShadow: hasError
       ? "0 0 0 2px #fee2e2"
       : state.isFocused
-        ? "0 0 0 2px #e5e7eb"
+        ? "0 0 0 2px #fbe3e7"
         : "0 1px 2px 0 rgb(0 0 0 / 0.05)",
     backgroundColor: "#ffffff",
     fontSize: 14,

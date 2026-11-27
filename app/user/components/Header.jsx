@@ -17,6 +17,7 @@ import { useMenuOpen } from "../../../context/MenuOpenContext";
 import { FiHeart } from "react-icons/fi";
 import { PiArrowUUpLeft, PiListBold, PiPackage, PiUser } from "react-icons/pi";
 import CartDrawer from "./CartDrawer";
+import HeaderAccountChip from "./HeaderAccountChip";
 import AuthModal from "../../components/auth/AuthModal";
 import { useCartDrawerOpen } from "../../../context/CartDrawerOpenContext";
 // import { useCartDrawerOpen } from "../../../context/CartDrawerOpenContext";
@@ -63,6 +64,8 @@ export default function Header() {
   const { toggleMenu } = useMenuOpen();
   const { refreshKey } = useRefresh();
   const wishlistEnabled = useFeature("features.wishlist.enabled");
+  const multipleAddressesEnabled = useFeature("MULTIPLE_USER_ADDRESSES");
+  const [defaultAddress, setDefaultAddress] = useState(null);
   const [showSignUp, setShowSignUp] = useState(false);
   const [showSignin, setShowSignIn] = useState(false);
   const [openForm, setOpenForm] = useState(false);
@@ -215,6 +218,83 @@ setSearchInput(decodeSearchInput(lastPort))
     // userInfo()
   }, [username]);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadDefaultAddress = async () => {
+      if (!roleReady || !hasSession || isAdmin || !userId) {
+        setDefaultAddress(null);
+        return;
+      }
+
+      try {
+        if (multipleAddressesEnabled) {
+          const response = await getRequest("/api/users/addresses", {
+            suppressErrorToast: true,
+          });
+          const addresses = Array.isArray(response?.data)
+            ? response.data
+            : [];
+          const preferred =
+            addresses.find((address) => address.defaultAddress) ||
+            addresses[0] ||
+            null;
+          if (active) setDefaultAddress(preferred);
+        } else {
+          const response = await getRequest("/api/users", {
+            suppressErrorToast: true,
+          });
+          const user = response?.data;
+          if (active) {
+            setDefaultAddress(
+              user?.address
+                ? {
+                    address: user.address,
+                    governorate: user.governorate,
+                    area: user.area,
+                  }
+                : null,
+            );
+          }
+        }
+      } catch {
+        if (active) setDefaultAddress(null);
+      }
+    };
+
+    loadDefaultAddress();
+
+    return () => {
+      active = false;
+    };
+  }, [roleReady, hasSession, isAdmin, userId, multipleAddressesEnabled]);
+
+  const formattedNetTotal = `${netTotal.toLocaleString("en-US")} ${t("currency")}`;
+  const cartCountLabel = `${itemNum.toLocaleString("en-US")} ${
+    itemNum === 1 ? t("cart_item_singular") : t("cart_item_plural")
+  }`;
+  const defaultAddressLabel =
+    defaultAddress?.label || defaultAddress?.address || "";
+  const defaultAddressGovernorate = defaultAddress
+    ? locale === "ar"
+      ? defaultAddress.governorate?.nameAr
+      : defaultAddress.governorate?.nameEn ||
+        defaultAddress.governorate?.nameAr
+    : "";
+  const defaultAddressArea = defaultAddress
+    ? locale === "ar"
+      ? defaultAddress.area?.nameAr
+      : defaultAddress.area?.nameEn || defaultAddress.area?.nameAr
+    : "";
+  const defaultAddressTitle = [
+    defaultAddress?.label,
+    defaultAddress?.address,
+    defaultAddressArea,
+    defaultAddressGovernorate,
+  ]
+    .filter(Boolean)
+    .join(" - ");
+
   return (
     <header className="bg-[#0d0625] pt-[env(safe-area-inset-top)]">
       <div className="md:flex xs:hidden gap-2 flex-wrap gap-y-1 items-center text-white p-2 text-xs w-full justify-between">
@@ -356,18 +436,22 @@ setSearchInput(decodeSearchInput(lastPort))
 
           </div>
 
-          <div className="flex items-center xs:gap-2 lg:gap-5 text-white">
+          <div className="flex items-center gap-1 text-white lg:gap-3">
             <button
+              type="button"
               aria-label={t("change_language")}
+              title={t("change_language")}
               onClick={() => {
                 const newLocale = locale === "ar" ? "en" : "ar";
                 setLocale(newLocale);
                 changeLanguage(newLocale);
               }}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-white/90 transition-colors duration-200 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
-              <MdLanguage className="w-7 h-7 text-white" />
+              <MdLanguage className="h-6 w-6" aria-hidden="true" />
             </button>
-            <div
+            <button
+              type="button"
               onClick={() => {
                 if (isAdmin || isAdminSession()) {
                   toast.info(t("adminActionUnavailable"));
@@ -376,31 +460,38 @@ setSearchInput(decodeSearchInput(lastPort))
                 setIsCartOpen(true);
               }}
               aria-disabled={isAdmin}
+              aria-label={
+                isAdmin
+                  ? t("adminActionUnavailable")
+                  : `${t("cart")}: ${cartCountLabel} - ${formattedNetTotal}`
+              }
               title={isAdmin ? t("adminActionUnavailable") : undefined}
-              className={`items-center justify-center gap-2 xs:hidden lg:flex ${
-                isAdmin ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+              className={`group hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1.5 text-start transition duration-200 lg:flex ${
+                isAdmin
+                  ? "cursor-not-allowed opacity-60"
+                  : "cursor-pointer hover:border-white/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               }`}
             >
-               <span className="relative">
-               <MdOutlineShoppingCart className="w-9 h-9"
-                  />
-             </span>
-            <hr
-              className="w-[1px] h-7 border-0  bg-gray-500"
-            />
-            <div className="flex flex-col text-sm justify-start items-start">
-              <span className="text-[#E76E7D]">
-                {isAdmin
-                  ? t("admin")
-                  : itemNum === 0
-                    ? 0
-                    : netTotal.toLocaleString("en-US") + " " + t("currency")}
+              <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 transition-colors duration-200 group-hover:bg-white/15">
+                <MdOutlineShoppingCart className="h-6 w-6" aria-hidden="true" />
+                {!isAdmin && itemNum > 0 ? (
+                  <span className="absolute -end-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#e14a5c] px-1 text-[11px] font-bold leading-none text-white ring-2 ring-[#0d0625]">
+                    {itemNum > 99 ? "99+" : itemNum}
+                  </span>
+                ) : null}
               </span>
-               <span className=" text-xs">
-                {isAdmin ? t("dashboard") : `${itemNum} ${t("Items")}`}
+
+              <span aria-hidden="true" className="h-8 w-px shrink-0 bg-white/15" />
+
+              <span className="flex min-w-[5rem] flex-col items-start gap-0.5 whitespace-nowrap pe-1 leading-tight">
+                <span className="text-[15px] font-bold tabular-nums text-[#E76E7D]">
+                  {isAdmin ? t("admin") : formattedNetTotal}
+                </span>
+                <span className="text-xs font-medium tabular-nums text-white/65">
+                  {isAdmin ? t("dashboard") : cartCountLabel}
+                </span>
               </span>
-            </div>
-            </div>
+            </button>
            
 
             <button
@@ -463,16 +554,13 @@ setSearchInput(decodeSearchInput(lastPort))
             ) : null}
           </nav>
 
-          <button
-            type="button"
-            aria-label={
-              isAdmin
-                ? t("dashboard")
-                : hasSession || username
-                  ? t("personalAccount")
-                  : t("login") + " / " + t("register")
-            }
-            className="group inline-flex items-center gap-2.5 rounded-full bg-white px-2.5 py-1.5 text-start shadow-[0_8px_24px_-10px_rgba(13,6,37,0.55)] ring-1 ring-white/70 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-10px_rgba(13,6,37,0.7)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+          <HeaderAccountChip
+            isAdmin={isAdmin}
+            hasSession={hasSession}
+            username={username}
+            addressLabel={defaultAddressLabel}
+            addressMeta={defaultAddressGovernorate}
+            addressTitle={defaultAddressTitle}
             onClick={() => {
               if (isAdmin) {
                 navigate.push("/admin/Dashboard");
@@ -484,25 +572,7 @@ setSearchInput(decodeSearchInput(lastPort))
                 setOpenForm(true);
               }
             }}
-          >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0d0625] text-white ring-2 ring-[#d63b4d]/20 transition-colors duration-200 group-hover:bg-[#d63b4d]">
-              <PiUser className="h-4 w-4" aria-hidden="true" />
-            </span>
-            <span className="flex min-w-0 flex-col items-start pe-1 leading-tight">
-              {!isAdmin && username ? (
-                <span className="text-[10px] font-semibold text-[#b8243b]/70">
-                  {t("hello")}
-                </span>
-              ) : null}
-              <span className="max-w-[190px] truncate text-sm font-bold text-[#7f1d2d]">
-                {isAdmin
-                  ? t("dashboard")
-                  : username
-                    ? username
-                    : t("login") + " / " + t("register")}
-              </span>
-            </span>
-          </button>
+          />
         </div>
 
         <div className="relative mx-6 my-3 flex h-10 items-center justify-start rounded-full border-2 border-white bg-white lg:hidden">

@@ -21,7 +21,7 @@ import { productPath, categoryPath } from "../../../lib/seo";
 import { isAdminSession, useAuthRole } from "../../../utils/authRole";
 import { trackCartAdd, trackWishlistAdd } from "../../../lib/analytics/client";
 
-export default function ProductCard({ productInfo, favorite, priority = false }) {
+export default function ProductCard({ productInfo, favorite, priority = false, onFavoriteRemoved }) {
   const { setSelectedProductId } = useIdContext();
   const navigate = useRouter();
   const { t } = useLanguage();
@@ -151,6 +151,25 @@ export default function ProductCard({ productInfo, favorite, priority = false })
       toast.info(t("adminActionUnavailable"));
       return;
     }
+    if (!userId) {
+      try {
+        const favoriteItems = JSON.parse(
+          localStorage.getItem("favoriteItems") || "[]",
+        );
+        localStorage.setItem(
+          "favoriteItems",
+          JSON.stringify(
+            favoriteItems.filter(
+              (item) => String(item.id) !== String(productId),
+            ),
+          ),
+        );
+        onFavoriteRemoved?.(productId);
+      } catch {
+        // Leave the local list untouched when storage is unavailable.
+      }
+      return;
+    }
     try {
       setLoading(true);
 
@@ -163,7 +182,8 @@ export default function ProductCard({ productInfo, favorite, priority = false })
         const divProductId = document.querySelector(
           `#div_${productInfo.itemId}`,
         );
-        divProductId.classList.add("hidden");
+        divProductId?.classList.add("hidden");
+        onFavoriteRemoved?.(productInfo?.itemId);
       }
     } catch (error) {
     } finally {

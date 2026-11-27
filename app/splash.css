@@ -738,7 +738,7 @@ html[data-alfa-splash="on"] {
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  margin: 1.4rem 0 0;
+  margin: 0.75rem 0 0;
   color: rgba(255, 255, 255, 0.42);
   font-size: 0.72rem;
   font-weight: 600;

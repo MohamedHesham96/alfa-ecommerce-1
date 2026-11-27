@@ -45,7 +45,7 @@ export default function PasswordRequirements({
     <ul
       id={id}
       aria-live="polite"
-      className={`mt-1.5 space-y-1 text-xs leading-5 text-gray-500 ${className}`}
+      className={`mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] leading-4 text-gray-500 ${className}`}
     >
       {rules.map((rule) => (
         <li key={rule.key} className="flex items-center gap-1.5">
