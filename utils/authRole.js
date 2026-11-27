@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { AUTH_CHANGED_EVENT } from "./authEvents";
+
 export const ADMIN_ROLE = "ADMIN";
 
 /**
@@ -64,7 +66,11 @@ export function useAuthRole() {
 
     syncRole();
     window.addEventListener("storage", syncRole);
-    return () => window.removeEventListener("storage", syncRole);
+    window.addEventListener(AUTH_CHANGED_EVENT, syncRole);
+    return () => {
+      window.removeEventListener("storage", syncRole);
+      window.removeEventListener(AUTH_CHANGED_EVENT, syncRole);
+    };
   }, []);
 
   return {

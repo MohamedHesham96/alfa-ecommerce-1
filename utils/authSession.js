@@ -1,4 +1,5 @@
 import { clearUserScopedCaches } from "../lib/pwa/client";
+import { notifyAuthChanged } from "./authEvents";
 
 export const AUTH_STORAGE_KEYS = [
   "accessToken",
@@ -23,5 +24,6 @@ export const AUTH_STORAGE_KEYS = [
 export function clearAuthStorage() {
   if (typeof window === "undefined") return Promise.resolve();
   AUTH_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+  notifyAuthChanged();
   return clearUserScopedCaches().catch(() => {});
 }

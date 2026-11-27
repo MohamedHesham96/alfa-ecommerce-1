@@ -59,6 +59,7 @@ export default function Header() {
   const { locale, setLocale } = useLanguage();
   const [username, setUsername] = useState();
   const [itemNum, setItemNum] = useState(0);
+  const [itemLineCount, setItemLineCount] = useState(0);
   const [cartItems, setCartItems] = useState([]);
   const { isCartOpen, setIsCartOpen } = useCartDrawerOpen();
   const { toggleMenu } = useMenuOpen();
@@ -109,6 +110,7 @@ export default function Header() {
       if (isAdmin || isAdminSession()) {
         setNetTotal(0);
         setItemNum(0);
+        setItemLineCount(0);
         setCartItems([]);
         setShippingCost(0);
         return;
@@ -117,12 +119,26 @@ export default function Header() {
         const res = await getRequest(`/api/shopCarts`);
         const resData = res.data;
         setNetTotal(resData.netTotal);
-        setItemNum(resData.itemLines.length);
+        // The badge shows total pieces, while the label under the total keeps
+        // showing the number of distinct cart lines.
+        setItemNum(
+          resData.itemLines.reduce(
+            (total, line) => total + (Number(line.quantity) || 0),
+            0,
+          ),
+        );
+        setItemLineCount(resData.itemLines.length);
         setCartItems(resData.itemLines);
         setShippingCost(resData.shippingCost)
       } else {
         const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-        setItemNum(cart.length);
+        setItemNum(
+          cart.reduce(
+            (total, item) => total + (Number(item.quantity) || 0),
+            0,
+          ),
+        );
+        setItemLineCount(cart.length);
         if (cart.length) {
           const items = await Promise.all(
             cart.map(async (item) => {
@@ -202,21 +218,21 @@ export default function Header() {
     getProductInCart();
   }, [getProductInCart, refreshKey]);
   useEffect(() => {
-  
-    const firstName =
-       localStorage.getItem("firstName") 
+    if (!roleReady) return;
 
-    setUsername(firstName);
-    if(window.location.pathname.includes("search")){
-const lastPort = window.location.pathname.split("/").filter(Boolean).pop();
-setSearchInput(decodeSearchInput(lastPort))
+    // The header renders before the first client auth sync; read the stored
+    // profile again whenever the session changes so signing in/out updates
+    // the account chip without a full page reload.
+    setUsername(hasSession ? localStorage.getItem("firstName") || "" : "");
+  }, [roleReady, hasSession]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.pathname.includes("search")) {
+      const lastPort = window.location.pathname.split("/").filter(Boolean).pop();
+      setSearchInput(decodeSearchInput(lastPort));
     }
-    // const userInfo = async()=>{
-    //  const res = await getUserInfo()
-    //  console.lo(res)
-    // } 
-    // userInfo()
-  }, [username]);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -270,11 +286,11 @@ setSearchInput(decodeSearchInput(lastPort))
   }, [roleReady, hasSession, isAdmin, userId, multipleAddressesEnabled]);
 
   const formattedNetTotal = `${netTotal.toLocaleString("en-US")} ${t("currency")}`;
-  const cartCountLabel = `${itemNum.toLocaleString("en-US")} ${
-    itemNum === 1 ? t("cart_item_singular") : t("cart_item_plural")
+  const cartCountLabel = `${itemLineCount.toLocaleString("en-US")} ${
+    itemLineCount === 1 ? t("cart_item_singular") : t("cart_item_plural")
   }`;
-  const defaultAddressLabel =
-    defaultAddress?.label || defaultAddress?.address || "";
+  const defaultAddressDetails =
+    defaultAddress?.address || defaultAddress?.label || "";
   const defaultAddressGovernorate = defaultAddress
     ? locale === "ar"
       ? defaultAddress.governorate?.nameAr
@@ -286,8 +302,9 @@ setSearchInput(decodeSearchInput(lastPort))
       ? defaultAddress.area?.nameAr
       : defaultAddress.area?.nameEn || defaultAddress.area?.nameAr
     : "";
+  // The chip shows the actual street/address details and the governorate.
+  // The saved address label (for example "Home") is intentionally omitted.
   const defaultAddressTitle = [
-    defaultAddress?.label,
     defaultAddress?.address,
     defaultAddressArea,
     defaultAddressGovernorate,
@@ -558,7 +575,7 @@ setSearchInput(decodeSearchInput(lastPort))
             isAdmin={isAdmin}
             hasSession={hasSession}
             username={username}
-            addressLabel={defaultAddressLabel}
+            addressLabel={defaultAddressDetails}
             addressMeta={defaultAddressGovernorate}
             addressTitle={defaultAddressTitle}
             onClick={() => {

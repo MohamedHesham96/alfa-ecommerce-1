@@ -14,6 +14,7 @@ import { reportApiFailure } from "../../utils/connectivityStore";
 import { resolveLanguage } from "../../utils/languageUtils";
 import { postRequest } from "../../utils/requestsUtils";
 import { clearUserScopedCaches } from "../../lib/pwa/client";
+import { notifyAuthChanged } from "../../utils/authEvents";
 import { getReturnUrlFromLocation } from "../../utils/authRedirect";
 
 import AuthHeading from "./auth/AuthHeading";
@@ -176,6 +177,10 @@ export default function SignIn({
       } else {
         localStorage.removeItem("governorateId");
       }
+
+      // Let the shared header (name, default address, cart badge) and route
+      // guards pick up the fresh session without waiting for a page reload.
+      notifyAuthChanged();
 
       // A different account may be signing in on this device. Drop any
       // previously cached page/API data before navigating.

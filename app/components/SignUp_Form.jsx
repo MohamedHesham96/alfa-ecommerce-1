@@ -17,6 +17,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { useFeature } from "../../context/AppConfigContext";
 import { resolveLanguage } from "../../utils/languageUtils";
 import { clearUserScopedCaches } from "../../lib/pwa/client";
+import { notifyAuthChanged } from "../../utils/authEvents";
 import { reportApiFailure } from "../../utils/connectivityStore";
 
 import AuthHeading from "./auth/AuthHeading";
@@ -431,6 +432,10 @@ export default function SignUp({
           } else {
             localStorage.removeItem("governorateId");
           }
+
+          // Refresh the shared header (name, address, cart) right away instead
+          // of waiting for a manual page reload.
+          notifyAuthChanged();
 
           await clearUserScopedCaches().catch(() => {});
 

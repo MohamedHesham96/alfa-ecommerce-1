@@ -37,10 +37,20 @@ export default function BottomNav() {
       if (userId) {
         const res = await getRequest(`/api/shopCarts`);
         const rseData = res.data;
-        setItemNum(rseData.itemLines.length);
+        setItemNum(
+          rseData.itemLines.reduce(
+            (total, line) => total + (Number(line.quantity) || 0),
+            0,
+          ),
+        );
       } else {
         const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-        setItemNum(cart.length);
+        setItemNum(
+          cart.reduce(
+            (total, item) => total + (Number(item.quantity) || 0),
+            0,
+          ),
+        );
       }
     } catch (err) {
       console.error("Failed to get product in cart", err);
